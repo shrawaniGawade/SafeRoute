@@ -7,7 +7,7 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors());
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
@@ -31,7 +31,15 @@ app.post('/api/safety/predict', async (req, res) => {
   }
 });
 
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`SafeRoute backend running at http://localhost:${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`SafeRoute backend running at http://localhost:${PORT}`);
-});
+export default app;
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = app;
+}
+
+

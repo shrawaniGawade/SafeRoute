@@ -1,7 +1,4 @@
-
 import axios from 'axios';
-
-const AI_SERVICE_URL = 'http://127.0.0.1:8000';
 
 export async function predictRouteSafety(input: {
   lighting: number;
@@ -9,10 +6,11 @@ export async function predictRouteSafety(input: {
   accident_risk: number;
   crowd_level: number;
 }) {
-  const response = await axios.post(
-    `${AI_SERVICE_URL}/predict`,
-    input
-  );
+  const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000';
+  const targetUrl = new URL('predict', aiServiceUrl.endsWith('/') ? aiServiceUrl : `${aiServiceUrl}/`).toString();
+
+  const response = await axios.post(targetUrl, input);
 
   return response.data;
 }
+

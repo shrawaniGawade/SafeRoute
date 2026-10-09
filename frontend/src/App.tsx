@@ -1,6 +1,6 @@
-
 import { useState } from 'react';
 import './App.css';
+import DotGrid from './components/DotGrid';
 import { predictRouteSafety } from './services/api';
 import type { SafetyResult } from './services/api';
 
@@ -64,7 +64,23 @@ function App() {
 
       <main>
         <section className="hero" id="home">
-          <p className="tagline">SMARTER JOURNEYS. SAFER CHOICES.</p>
+          <div className="hero-dot-bg" aria-hidden="true">
+            <DotGrid
+              dotSize={6}
+              gap={22}
+              baseColor="#b9e4e8"
+              activeColor="#087f8c"
+              proximity={140}
+              shockRadius={250}
+              shockStrength={4}
+              resistance={750}
+              returnDuration={1.5}
+            />
+          </div>
+
+          <div className="hero-content">
+            <p className="tagline">SMARTER JOURNEYS. SAFER CHOICES.</p>
+
 
           <h1>
             Your Journey,
@@ -142,7 +158,9 @@ function App() {
               <p className="warning-message">{result.warning}</p>
             </section>
           )}
+          </div>
         </section>
+
 
         <section className="features" id="features">
           <article className="feature-card">

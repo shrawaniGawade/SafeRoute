@@ -62,9 +62,25 @@ button:disabled {
 }
 
 .hero {
+  position: relative;
+  overflow: hidden;
   text-align: center;
-  padding: 75px 20px 55px;
+  padding: 85px 20px 65px;
   background: linear-gradient(135deg, #e5f7f5, #f5f8fc);
+}
+
+.hero-dot-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
 }
 
 .tagline {
@@ -95,9 +111,11 @@ button:disabled {
   max-width: 950px;
   margin: 30px auto 0;
   padding: 24px;
-  background: white;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(8, 127, 140, 0.14);
   border-radius: 16px;
-  box-shadow: 0 12px 35px #17334a12;
+  box-shadow: 0 16px 40px rgba(8, 127, 140, 0.08);
   text-align: left;
 }
 
@@ -146,10 +164,11 @@ button:disabled {
   max-width: 650px;
   margin: 28px auto 0;
   padding: 28px;
-  background: white;
-  border: 1px solid #d8e1eb;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(8, 127, 140, 0.16);
   border-radius: 16px;
-  box-shadow: 0 12px 35px #17334a12;
+  box-shadow: 0 16px 40px rgba(8, 127, 140, 0.08);
   text-align: left;
   overflow-wrap: anywhere;
 }

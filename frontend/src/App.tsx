@@ -32,6 +32,36 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Listen to #admin hash route for direct URL link access
+  useEffect(() => {
+    function checkHashRoute() {
+      if (window.location.hash === '#admin') {
+        if (isAuthenticated && user?.role === 'admin') {
+          setAdminDashboardOpen(true);
+        } else if (!isAuthenticated) {
+          openAuthModal('login');
+        }
+      }
+    }
+
+    checkHashRoute();
+    window.addEventListener('hashchange', checkHashRoute);
+    return () => window.removeEventListener('hashchange', checkHashRoute);
+  }, [isAuthenticated, user, openAuthModal]);
+
+  const handleOpenAdminDashboard = () => {
+    setDropdownOpen(false);
+    setAdminDashboardOpen(true);
+    window.location.hash = '#admin';
+  };
+
+  const handleCloseAdminDashboard = () => {
+    setAdminDashboardOpen(false);
+    if (window.location.hash === '#admin') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  };
+
   async function handleFindSafeRoute() {
     if (!source.trim() || !destination.trim()) {
       setError('Please enter both source and destination.');
@@ -79,6 +109,18 @@ function App() {
           <a href="#home">Home</a>
           <a href="#features">Features</a>
           <a href="#about">About</a>
+          {user?.role === 'admin' && (
+            <a
+              href="#admin"
+              onClick={(e) => {
+                e.preventDefault();
+                handleOpenAdminDashboard();
+              }}
+              style={{ color: '#087f8c', fontWeight: 700 }}
+            >
+              🛡️ Admin Dashboard
+            </a>
+          )}
         </nav>
 
         {isAuthenticated && user ? (
@@ -120,10 +162,7 @@ function App() {
                   <button
                     className="dropdown-item"
                     style={{ color: '#087f8c', fontWeight: 600 }}
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      setAdminDashboardOpen(true);
-                    }}
+                    onClick={handleOpenAdminDashboard}
                   >
                     <LayoutDashboard size={16} />
                     Admin Console
@@ -297,7 +336,7 @@ function App() {
       <AuthModal />
       <AdminDashboard
         isOpen={adminDashboardOpen}
-        onClose={() => setAdminDashboardOpen(false)}
+        onClose={handleCloseAdminDashboard}
       />
     </>
   );

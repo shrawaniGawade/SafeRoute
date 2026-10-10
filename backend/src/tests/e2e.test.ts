@@ -109,6 +109,65 @@ describe('SafeRoute Full Authentication E2E Flow', () => {
     assert.equal(data.user.isVerified, true);
   });
 
+  test('4b. Silent Session Refresh with Token Rotation (RTR): POST /api/auth/refresh-token & /refresh', async () => {
+    const oldCookie = refreshTokenCookie;
+    const res = await fetch(`${BASE_URL}/refresh-token`, {
+      method: 'POST',
+      headers: {
+        Cookie: oldCookie,
+      },
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 200, `Expected 200, got ${res.status}: ${JSON.stringify(data)}`);
+    assert.ok(data.accessToken, 'Must issue new access token');
+    accessToken = data.accessToken;
+
+    const setCookie = res.headers.get('set-cookie');
+    assert.ok(setCookie, 'Must set rotated refresh token cookie');
+    refreshTokenCookie = setCookie.split(';')[0];
+    assert.notEqual(refreshTokenCookie, oldCookie, 'New refresh token must differ from rotated one');
+
+    // Verify alias /refresh also works with rotated token
+    const aliasRes = await fetch(`${BASE_URL}/refresh`, {
+      method: 'POST',
+      headers: {
+        Cookie: refreshTokenCookie,
+      },
+    });
+    const aliasData = await aliasRes.json();
+    assert.equal(aliasRes.status, 200, 'Alias /refresh expected 200');
+    assert.ok(aliasData.accessToken);
+    accessToken = aliasData.accessToken;
+    const aliasCookie = aliasRes.headers.get('set-cookie');
+    if (aliasCookie) {
+      refreshTokenCookie = aliasCookie.split(';')[0];
+    }
+  });
+
+  test('4c. Replay / Revoked Token Reuse Detection: invalid or consumed refresh token rejected', async () => {
+    const res = await fetch(`${BASE_URL}/refresh-token`, {
+      method: 'POST',
+      headers: {
+        Cookie: 'refreshToken=invalid_or_revoked_token',
+      },
+    });
+
+    assert.equal(res.status, 401, 'Reused or invalid token must be rejected with 401');
+    const data = await res.json();
+    assert.equal(data.code, 'SESSION_EXPIRED');
+  });
+
+  test('4d. Unauthenticated Refresh Request Fails (401)', async () => {
+    const res = await fetch(`${BASE_URL}/refresh-token`, {
+      method: 'POST',
+    });
+
+    assert.equal(res.status, 401);
+    const data = await res.json();
+    assert.equal(data.code, 'NO_REFRESH_TOKEN');
+  });
+
   test('5. Forgot Password Request: POST /api/auth/forgot-password', async () => {
     capturedOtp = '';
     const res = await fetch(`${BASE_URL}/forgot-password`, {

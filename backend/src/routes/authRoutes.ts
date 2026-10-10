@@ -31,6 +31,7 @@ router.post('/resend-otp', otpLimiter, validateBody(resendOtpSchema), resendOtp)
 
 // Login and Silent Session Refresh
 router.post('/login', authLimiter, validateBody(loginSchema), login);
+router.post('/refresh', refreshToken);
 router.post('/refresh-token', refreshToken);
 
 // Password Recovery

@@ -206,6 +206,11 @@ function App() {
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <span className="user-name">{user.name}</span>
+              {user.role === 'admin' && (
+                <span className="admin-header-pill">
+                  <Shield size={11} /> Admin
+                </span>
+              )}
               <ChevronDown size={14} className={`chevron ${dropdownOpen ? 'open' : ''}`} />
             </button>
 

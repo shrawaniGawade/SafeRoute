@@ -44,6 +44,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [accidentRisk, setAccidentRisk] = useState(3);
   const [crowdLevel, setCrowdLevel] = useState(7);
   const [aiTesting, setAiTesting] = useState(false);
+  const [aiLatency, setAiLatency] = useState<number | null>(null);
   const [aiTestResult, setAiTestResult] = useState<SafetyResult | null>(null);
 
   const loadStats = async () => {
@@ -61,6 +62,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   useEffect(() => {
     if (isOpen) {
       loadStats();
+      const interval = setInterval(() => {
+        loadStats();
+      }, 8000);
+      return () => clearInterval(interval);
     }
   }, [isOpen]);
 
@@ -95,12 +100,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const handleRunAiTest = async () => {
     try {
       setAiTesting(true);
+      const startTime = performance.now();
       const result = await predictRouteSafety({
         lighting,
         crime_risk: crimeRisk,
         accident_risk: accidentRisk,
         crowd_level: crowdLevel,
       });
+      const elapsed = Math.round(performance.now() - startTime);
+      setAiLatency(elapsed);
       setAiTestResult(result);
     } catch (err: any) {
       setActionMessage('AI Model probe failed: ' + err.message);
@@ -533,6 +541,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                             {aiTestResult.safety_score >= 70 ? 'High Route Safety' : 'Moderate Caution Recommended'}
                           </strong>
                         </div>
+                        {aiLatency !== null && (
+                          <div className="meta-item">
+                            <span>Inference Latency:</span>
+                            <strong className="positive">{aiLatency} ms</strong>
+                          </div>
+                        )}
                         <p className="ai-warning-box">{aiTestResult.warning}</p>
                       </div>
                     </div>

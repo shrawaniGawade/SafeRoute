@@ -109,18 +109,30 @@ function App() {
           <a href="#home">Home</a>
           <a href="#features">Features</a>
           <a href="#about">About</a>
-          {user?.role === 'admin' && (
-            <a
-              href="#admin"
-              onClick={(e) => {
-                e.preventDefault();
+          <a
+            href="#admin"
+            onClick={(e) => {
+              e.preventDefault();
+              if (isAuthenticated && user?.role === 'admin') {
                 handleOpenAdminDashboard();
-              }}
-              style={{ color: '#087f8c', fontWeight: 700 }}
-            >
-              🛡️ Admin Dashboard
-            </a>
-          )}
+              } else {
+                openAuthModal('login');
+              }
+            }}
+            style={{
+              color: '#087f8c',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '4px 10px',
+              background: '#e0f2fe',
+              borderRadius: '6px',
+              border: '1px solid #bae6fd',
+            }}
+          >
+            <Shield size={14} /> Admin Dashboard
+          </a>
         </nav>
 
         {isAuthenticated && user ? (

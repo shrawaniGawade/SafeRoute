@@ -7,21 +7,33 @@ SafeRoute is a modern, safety-conscious navigation platform that evaluates trave
 
 ## ✨ Features
 
+- **🛡️ Admin Command Center Dashboard**:
+  - Live system telemetry: Server Uptime, Memory usage (MB), API Latency (ms), and active security policies.
+  - User Management Directory: View all registered accounts, promote/demote administrator privileges with 1 click, and delete accounts.
+  - Microservices Health: Real-time health monitoring of AI FastAPI (Port 8000), Express API Gateway (Port 5000), Dual-Layer Database, and Mail Gateway.
+  - Interactive AI Model Simulator: Tune lighting, crime index, accident risk, and crowd density sliders with live AI score inference.
+  - Direct URL access via `/admin` and `#admin`.
+- **🗺️ Interactive Route Safety Evaluator**:
+  - Route priority presets: 🌙 Well-Lit Night Walk, ⚡ Direct Commute, 🛡️ Maximum Caution, 🎛️ Custom Tuners.
+  - Multi-variable risk assessment across illumination, crime, accidents, and crowds.
+  - Visual metrics breakdown meters and context-aware Route Safety Advisories.
 - **🔐 End-to-End Authentication**:
+  - Default Admin Account seeded out of the box (`admin@saferoute.com` / `Admin@12345`) with 1-click Auto-fill in the login modal.
   - Secure Registration & Login with `bcryptjs` password hashing.
   - 6-Digit Cryptographic Numeric OTP for email verification and password recovery.
   - Dual-token architecture with in-memory Access Tokens & `httpOnly` Refresh Token Rotation (RTR).
   - Rate limiting, brute-force mitigation, and zero-enumeration password resets.
   - Live interactive password strength evaluator.
 - **🤖 AI Route Safety Scoring**:
-  - Real-time scoring microservice built with FastAPI and Scikit-Learn.
-  - Multi-variable risk assessment across illumination, crime, accidents, and crowds.
+  - Real-time scoring microservice built with FastAPI and Scikit-Learn with resilient synthetic fallback.
 - **⚡ Modern Responsive UI**:
   - React 19 + TypeScript + Vite.
-  - GSAP-powered interactive background canvas grid.
+  - GSAP-powered interactive DotGrid background canvas.
   - Glassmorphic modal overlays, custom toast alerts, and responsive layouts.
 - **☁️ Multi-Service Cloud Architecture**:
   - Pre-configured for seamless Vercel deployment with automated microservice rewrites.
+- **📸 Exported Visual Previews**:
+  - Complete application flow and admin dashboard screenshots archived in `screenshots/`.
 
 ---
 
@@ -72,6 +84,30 @@ python -m venv .venv
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
+
+---
+
+## 🛡️ Default Administrator Access
+
+The platform auto-seeds an administrator account upon backend startup:
+
+| Attribute | Value |
+| :--- | :--- |
+| **Direct URL** | `http://localhost:5173/admin` or `http://localhost:5173/#admin` |
+| **Email** | `admin@saferoute.com` |
+| **Password** | `Admin@12345` |
+| **Convenience** | Click **"Auto-fill Admin"** inside the Sign In modal |
+
+---
+
+## 📸 Screenshots Gallery
+
+High-resolution visual captures are stored in the [`screenshots/`](screenshots/) directory:
+- `admin_dashboard_1791621746794.png`: Full Admin Command Center Dashboard
+- `admin_dropdown_menu_1791621673939.png`: User menu with Admin badge and Console link
+- `route_safety_evaluation_result_1791623499874.png`: Interactive AI Route Evaluation Result
+- `verification_successful_page_1791619144737.png`: 6-digit OTP email verification
+- `register_modal_view_1791618662328.png`: Account registration with live password validator
 
 ---
 

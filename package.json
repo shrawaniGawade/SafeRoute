@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "description": "SafeRoute - Smarter Journeys. Safer Choices.",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "npm run build --prefix backend",
     "test": "npm test --prefix backend",
     "start": "npm start --prefix backend"
   },

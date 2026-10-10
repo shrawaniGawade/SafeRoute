@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 
 
+import { Analytics } from '@vercel/analytics/react';
+
 function App() {
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
@@ -558,6 +560,7 @@ function App() {
         isOpen={adminDashboardOpen}
         onClose={handleCloseAdminDashboard}
       />
+      <Analytics />
     </>
   );
 }

@@ -53,10 +53,15 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Listen to #admin hash route for direct URL link access
+  // Listen to /admin and #admin routes for direct URL link access
   useEffect(() => {
-    function checkHashRoute() {
-      if (window.location.hash === '#admin') {
+    function checkAdminRoute() {
+      const isAdminPath =
+        window.location.hash === '#admin' ||
+        window.location.pathname === '/admin' ||
+        window.location.pathname.startsWith('/admin');
+
+      if (isAdminPath) {
         if (isAuthenticated && user?.role === 'admin') {
           setAdminDashboardOpen(true);
         } else if (!isAuthenticated) {
@@ -65,9 +70,13 @@ function App() {
       }
     }
 
-    checkHashRoute();
-    window.addEventListener('hashchange', checkHashRoute);
-    return () => window.removeEventListener('hashchange', checkHashRoute);
+    checkAdminRoute();
+    window.addEventListener('hashchange', checkAdminRoute);
+    window.addEventListener('popstate', checkAdminRoute);
+    return () => {
+      window.removeEventListener('hashchange', checkAdminRoute);
+      window.removeEventListener('popstate', checkAdminRoute);
+    };
   }, [isAuthenticated, user, openAuthModal]);
 
   const handleOpenAdminDashboard = () => {
@@ -80,6 +89,9 @@ function App() {
     setAdminDashboardOpen(false);
     if (window.location.hash === '#admin') {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    if (window.location.pathname === '/admin') {
+      window.history.replaceState(null, '', '/' + window.location.search);
     }
   };
 

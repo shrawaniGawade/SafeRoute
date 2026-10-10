@@ -241,8 +241,6 @@ Protected endpoints require `Authorization: Bearer <accessToken>`.
 
 ---
 
-## 3. System Endpoints
-
 ### 3.1 Health Check
 - **Method**: `GET`
 - **URL**: `/api/health`
@@ -254,3 +252,94 @@ Protected endpoints require `Authorization: Bearer <accessToken>`.
   "timestamp": "2026-10-10T12:05:00.000Z"
 }
 ```
+
+---
+
+## 4. Admin Management Endpoints (`/api/admin`)
+
+All `/api/admin` routes strictly require `Authorization: Bearer <accessToken>` of a user with `role: "admin"`.
+
+### 4.1 System Telemetry & Statistics
+- **Method**: `GET`
+- **URL**: `/api/admin/stats`
+- **Description**: Returns live system telemetry, RAM utilization, microservice status, active user counts, and user list.
+- **Response `200 OK`**:
+```json
+{
+  "success": true,
+  "data": {
+    "server": {
+      "uptimeSeconds": 1824,
+      "nodeVersion": "v20.x",
+      "environment": "development",
+      "memoryUsageMb": 42
+    },
+    "services": {
+      "backend": { "status": "ONLINE", "port": 5000, "latencyMs": 2 },
+      "aiScoringEngine": { "status": "ONLINE", "endpoint": "http://127.0.0.1:8000", "latencyMs": 14 },
+      "database": { "status": "ONLINE", "engine": "Dual-Layer In-Memory / MongoDB" },
+      "emailGateway": { "status": "ONLINE", "provider": "Ethereal Mail (Dev)" }
+    },
+    "stats": {
+      "totalUsers": 3,
+      "verifiedUsers": 3,
+      "adminUsers": 1,
+      "verificationRate": 100
+    },
+    "users": [
+      {
+        "id": "67a91...",
+        "name": "SafeRoute Admin",
+        "email": "admin@saferoute.com",
+        "role": "admin",
+        "isVerified": true
+      }
+    ]
+  }
+}
+```
+- **Error `401 Unauthorized`**: No token provided.
+- **Error `403 Forbidden`**: Token user role is not `admin`.
+
+---
+
+### 4.2 Toggle User Role (Promote / Demote)
+- **Method**: `PATCH`
+- **URL**: `/api/admin/users/:id/role`
+- **Description**: Promotes a user to `admin` or demotes to `user`.
+- **Request Body**:
+```json
+{
+  "role": "admin" // or "user"
+}
+```
+- **Response `200 OK`**:
+```json
+{
+  "success": true,
+  "message": "User traveler@saferoute.com role updated to admin.",
+  "user": {
+    "id": "67a91...",
+    "name": "Traveler",
+    "email": "traveler@saferoute.com",
+    "role": "admin"
+  }
+}
+```
+- **Error `400 Bad Request`**: Attempting to demote your own account.
+
+---
+
+### 4.3 Delete User Account
+- **Method**: `DELETE`
+- **URL**: `/api/admin/users/:id`
+- **Description**: Permanently removes a user record from the database.
+- **Response `200 OK`**:
+```json
+{
+  "success": true,
+  "message": "User account traveler@saferoute.com was removed."
+}
+```
+- **Error `400 Bad Request`**: Attempting to delete your own account.
+

@@ -46,7 +46,7 @@ export async function getAdminStats(req: AuthenticatedRequest, res: Response): P
           backend: { status: 'ONLINE', port: ENV.PORT, latencyMs: 2 },
           aiScoringEngine: { status: aiOnline ? 'ONLINE' : 'DEGRADED', endpoint: ENV.AI_SERVICE_URL, latencyMs: aiLatencyMs },
           database: { status: 'ONLINE', engine: 'Dual-Layer In-Memory / MongoDB' },
-          emailGateway: { status: 'ONLINE', provider: ENV.SMTP_HOST ? 'Custom SMTP' : 'Ethereal Mail (Dev)' },
+          emailGateway: { status: 'ONLINE', provider: ENV.SMTP.HOST ? 'Custom SMTP' : 'Ethereal Mail (Dev)' },
         },
         stats: {
           totalUsers,

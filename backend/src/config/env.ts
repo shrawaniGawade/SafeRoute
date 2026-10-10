@@ -22,5 +22,6 @@ export const ENV = {
   },
 
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+  AI_SERVICE_URL: process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000',
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
 };

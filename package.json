@@ -1,0 +1,22 @@
+{
+  "name": "saferoute",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SafeRoute - Smarter Journeys. Safer Choices.",
+  "scripts": {
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "test": "npm test --prefix backend",
+    "start": "npm start --prefix backend"
+  },
+  "keywords": [
+    "safety",
+    "route-planning",
+    "navigation",
+    "ai",
+    "fastapi",
+    "express",
+    "react"
+  ],
+  "author": "shrawani",
+  "license": "ISC"
+}

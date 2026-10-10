@@ -1,0 +1,189 @@
+import { test, describe } from 'node:test';
+import assert from 'node:assert/strict';
+import app from '../server';
+
+let server: any;
+const PORT = 5055;
+const BASE_URL = `http://localhost:${PORT}/api/auth`;
+
+describe('SafeRoute Full Authentication E2E Flow', () => {
+  let capturedOtp = '';
+  const testUser = {
+    name: 'Alex Johnson',
+    email: 'alex.johnson@saferoute.test',
+    password: 'SafePass@2026',
+    confirmPassword: 'SafePass@2026',
+  };
+  const newPassword = 'NewSecretPass@2026';
+  let accessToken = '';
+  let refreshTokenCookie = '';
+
+  test('Start test server', async () => {
+    // Intercept console.log to capture generated OTP in tests
+    const origLog = console.log;
+    console.log = (...args: any[]) => {
+      const line = args.join(' ');
+      const match = line.match(/Code:\s*>>>\s*(\d{6})\s*<<</);
+      if (match) {
+        capturedOtp = match[1];
+      }
+      origLog(...args);
+    };
+
+    await new Promise<void>((resolve) => {
+      server = app.listen(PORT, () => {
+        resolve();
+      });
+    });
+  });
+
+  test('1. User Registration: POST /api/auth/register', async () => {
+    const res = await fetch(`${BASE_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testUser),
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 201, `Expected status 201, got ${res.status}: ${JSON.stringify(data)}`);
+    assert.ok(data.message.includes('verification code'));
+    assert.ok(capturedOtp.length === 6, 'Should have intercepted 6-digit OTP from email dispatch');
+  });
+
+  test('2. Verify OTP: POST /api/auth/verify-otp', async () => {
+    const res = await fetch(`${BASE_URL}/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: testUser.email,
+        otp: capturedOtp,
+        purpose: 'EMAIL_VERIFICATION',
+      }),
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 200, `Expected status 200, got ${res.status}: ${JSON.stringify(data)}`);
+    assert.ok(data.user.isVerified === true, 'User must be marked verified');
+    assert.ok(data.accessToken, 'Must receive access token');
+    accessToken = data.accessToken;
+
+    const setCookie = res.headers.get('set-cookie');
+    if (setCookie) {
+      refreshTokenCookie = setCookie.split(';')[0];
+    }
+  });
+
+  test('3. User Login: POST /api/auth/login', async () => {
+    const res = await fetch(`${BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: testUser.email,
+        password: testUser.password,
+      }),
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 200, `Expected status 200, got ${res.status}: ${JSON.stringify(data)}`);
+    assert.equal(data.user.email, testUser.email);
+    assert.ok(data.accessToken);
+
+    const setCookie = res.headers.get('set-cookie');
+    if (setCookie) {
+      refreshTokenCookie = setCookie.split(';')[0];
+    }
+  });
+
+  test('4. Fetch Current Profile: GET /api/auth/me', async () => {
+    const res = await fetch(`${BASE_URL}/me`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 200);
+    assert.equal(data.user.email, testUser.email);
+    assert.equal(data.user.name, testUser.name);
+    assert.equal(data.user.isVerified, true);
+  });
+
+  test('5. Forgot Password Request: POST /api/auth/forgot-password', async () => {
+    capturedOtp = '';
+    const res = await fetch(`${BASE_URL}/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: testUser.email }),
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 200);
+    assert.ok(capturedOtp.length === 6, 'Must generate reset OTP');
+  });
+
+  test('6. Reset Password: POST /api/auth/reset-password', async () => {
+    const res = await fetch(`${BASE_URL}/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: testUser.email,
+        otp: capturedOtp,
+        newPassword,
+        confirmNewPassword: newPassword,
+      }),
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 200, `Expected status 200, got ${res.status}: ${JSON.stringify(data)}`);
+  });
+
+  test('7. Login with Old Password Fails: POST /api/auth/login', async () => {
+    const res = await fetch(`${BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: testUser.email,
+        password: testUser.password, // Old password
+      }),
+    });
+
+    assert.equal(res.status, 401, 'Old password must be rejected');
+  });
+
+  test('8. Login with New Password Succeeds: POST /api/auth/login', async () => {
+    const res = await fetch(`${BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: testUser.email,
+        password: newPassword, // New password
+      }),
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 200, 'New password must succeed');
+    assert.ok(data.accessToken);
+  });
+
+  test('9. User Logout: POST /api/auth/logout', async () => {
+    const res = await fetch(`${BASE_URL}/logout`, {
+      method: 'POST',
+      headers: {
+        Cookie: refreshTokenCookie,
+      },
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 200);
+    assert.equal(data.message, 'Logged out successfully.');
+  });
+
+  test('Teardown test server', async () => {
+    if (server) {
+      await new Promise<void>((resolve) => {
+        server.close(() => resolve());
+      });
+    }
+  });
+});

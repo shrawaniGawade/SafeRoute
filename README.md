@@ -53,6 +53,7 @@ SafeRoute/
 ## 📚 Documentation Links
 
 - 📖 [Project Overview](docs/PROJECT_OVERVIEW.md) - High-level pillars and technical architecture.
+- 🗺️ [10-12 Day MVP Roadmap](docs/MVP.md) - Day-by-day Minimum Viable Product delivery schedule.
 - 🗂️ [Project Structure](docs/PROJECT_STRUCTURE.md) - Detailed directory layout and component breakdown.
 - 🔌 [API Documentation](docs/API_DOCUMENTATION.md) - Full specification of all Auth and Safety endpoints.
 - 🚀 [Setup & Run Guide](docs/SETUP_GUIDE.md) - Step-by-step local development setup and Vercel instructions.

@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { ENV } from './config/env';
 import { connectDB } from './config/db';
+import { seedDefaultAdmin } from './config/seedAdmin';
 import authRoutes from './routes/authRoutes';
 import adminRoutes from './routes/adminRoutes';
 import { predictRouteSafety } from './services/aiService';

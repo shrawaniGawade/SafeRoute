@@ -20,18 +20,13 @@ jobs:
         with:
           node-version: 20
       - name: Install Dependencies
-        run: |
-          rm -f package-lock.json
-          npm install
+        run: npm install
       - name: Run Test Suite
         run: npm test
 
   frontend-build:
     name: Frontend Build & Typecheck
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -39,11 +34,9 @@ jobs:
         with:
           node-version: 20
       - name: Install Dependencies
-        run: |
-          rm -f package-lock.json
-          npm install
+        run: npm install --include=optional
       - name: Verify Build
-        run: npm run build
+        run: npm run build --prefix frontend
 
   ai-lint:
     name: AI Service Validation

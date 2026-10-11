@@ -39,7 +39,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npm install @rolldown/binding-linux-x64-gnu
+          npm install @rolldown/binding-linux-x64-gnu lightningcss-linux-x64-gnu @oxlint/binding-linux-x64-gnu
       - name: Verify Build
         run: npm run build
 

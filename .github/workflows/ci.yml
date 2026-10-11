@@ -27,6 +27,9 @@ jobs:
   frontend-build:
     name: Frontend Build & Typecheck
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -34,9 +37,11 @@ jobs:
         with:
           node-version: 20
       - name: Install Dependencies
-        run: npm install --include=optional
+        run: |
+          npm install
+          npm install @rolldown/binding-linux-x64-gnu
       - name: Verify Build
-        run: npm run build --prefix frontend
+        run: npm run build
 
   ai-lint:
     name: AI Service Validation

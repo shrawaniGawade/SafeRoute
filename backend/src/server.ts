@@ -76,7 +76,13 @@ app.post('/api/safety/predict', async (req, res) => {
 
 const PORT = ENV.PORT;
 
-if (!process.env.VERCEL && !process.env.CI && process.env.NODE_ENV !== 'test') {
+const isTestEnv =
+  process.env.NODE_ENV === 'test' ||
+  process.env.npm_lifecycle_event === 'test' ||
+  process.argv.includes('--test') ||
+  Boolean(process.env.CI);
+
+if (!process.env.VERCEL && !isTestEnv) {
   app.listen(PORT, () => {
     console.log(`SafeRoute backend running at http://localhost:${PORT}`);
   });

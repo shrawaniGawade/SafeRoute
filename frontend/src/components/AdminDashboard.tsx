@@ -29,9 +29,10 @@ import type { AdminStatsResponse, SafetyResult } from '../services/api';
 interface AdminDashboardProps {
   isOpen: boolean;
   onClose: () => void;
+  onGoToPlanner?: () => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose, onGoToPlanner }) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'users' | 'ai-model'>('overview');
   const [data, setData] = useState<AdminStatsResponse | null>(null);
@@ -146,6 +147,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
             </div>
           </div>
           <div className="admin-header-actions">
+            {onGoToPlanner && (
+              <button
+                type="button"
+                className="planner-switch-btn"
+                onClick={onGoToPlanner}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#087f8c',
+                  background: '#e0f2fe',
+                  border: '1px solid #bae6fd',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                <span>Route Planner &rarr;</span>
+              </button>
+            )}
             <button
               className={`refresh-btn ${loading ? 'spinning' : ''}`}
               onClick={loadStats}

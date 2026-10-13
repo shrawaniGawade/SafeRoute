@@ -2,9 +2,10 @@ name: SafeRoute Continuous Integration (CI)
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main, master, develop, 'feature/**']
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 jobs:
   backend-test:

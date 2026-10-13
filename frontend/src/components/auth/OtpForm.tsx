@@ -13,7 +13,9 @@ export const OtpForm: React.FC = () => {
     setAuthModalView,
   } = useAuth();
 
-  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
+  const [digits, setDigits] = useState<string[]>(() =>
+    devOtp && devOtp.length === 6 ? devOtp.split('') : ['', '', '', '', '', '']
+  );
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
@@ -21,12 +23,12 @@ export const OtpForm: React.FC = () => {
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Automatically populate digits if devOtp is provided
+  // Automatically update digits when a new devOtp is dispatched
   useEffect(() => {
-    if (devOtp && devOtp.length === 6) {
+    if (devOtp && devOtp.length === 6 && digits.every((d) => d === '')) {
       setDigits(devOtp.split(''));
     }
-  }, [devOtp]);
+  }, [devOtp, digits]);
 
   const handleAutofill = (code: string) => {
     setDigits(code.split('').slice(0, 6));

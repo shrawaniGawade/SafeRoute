@@ -110,10 +110,9 @@ export async function verifyOtp(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  // Code matches! Remove the used OTP
-  await Otp.deleteOne({ _id: otpRecord._id });
-
   if (purpose === 'EMAIL_VERIFICATION') {
+    // Code matches! Remove the used OTP
+    await Otp.deleteOne({ _id: otpRecord._id });
     const user = await User.findOne({ email });
     if (!user) {
       res.status(404).json({ message: 'User not found.' });

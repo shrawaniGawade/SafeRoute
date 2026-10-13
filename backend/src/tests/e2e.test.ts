@@ -1,5 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
+import mongoose from 'mongoose';
 import app from '../server';
 
 let server: any;
@@ -244,5 +245,6 @@ describe('SafeRoute Full Authentication E2E Flow', () => {
         server.close(() => resolve());
       });
     }
+    await mongoose.disconnect();
   });
 });

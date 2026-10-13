@@ -29,6 +29,7 @@ interface AuthContextType {
   authModalView: AuthModalView;
   pendingOtpEmail: string;
   pendingOtpPurpose: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
+  pendingResetOtp: string;
   devOtp: string | null;
   emailPreviewUrl: string | null;
   toastMessage: { text: string; type: 'success' | 'error' | 'info' } | null;
@@ -58,6 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [pendingOtpPurpose, setPendingOtpPurpose] = useState<
     'EMAIL_VERIFICATION' | 'PASSWORD_RESET'
   >('EMAIL_VERIFICATION');
+  const [pendingResetOtp, setPendingResetOtp] = useState<string>('');
   const [devOtp, setDevOtp] = useState<string | null>(null);
   const [emailPreviewUrl, setEmailPreviewUrl] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<{
@@ -169,6 +171,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       closeAuthModal();
       showToast('Account verified! Welcome to SafeRoute.', 'success');
     } else if (payload.purpose === 'PASSWORD_RESET') {
+      setPendingResetOtp(payload.otp);
       setAuthModalView('reset');
       showToast('Code verified. Set your new password.', 'success');
     }
@@ -186,6 +189,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const forgotPassword = async (email: string): Promise<AuthResponse> => {
     const response = await authService.forgotPassword(email);
     setPendingOtpInfo(email, 'PASSWORD_RESET');
+    setPendingResetOtp('');
     if (response.devOtp) setDevOtp(response.devOtp);
     if (response.emailPreviewUrl) setEmailPreviewUrl(response.emailPreviewUrl);
     setAuthModalView('otp');
@@ -195,8 +199,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const resetPassword = async (payload: ResetPasswordPayload): Promise<AuthResponse> => {
     const response = await authService.resetPassword(payload);
+    setPendingResetOtp('');
     setAuthModalView('login');
-    showToast('Password reset successfully! Please sign in.', 'success');
+    showToast('Password reset successfully! Please sign in with your new password.', 'success');
     return response;
   };
 
@@ -222,6 +227,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         authModalView,
         pendingOtpEmail,
         pendingOtpPurpose,
+        pendingResetOtp,
         devOtp,
         emailPreviewUrl,
         toastMessage,

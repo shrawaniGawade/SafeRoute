@@ -492,3 +492,44 @@
   font-weight: 500;
 }
 
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  .auth-modal-card {
+    padding: 22px 16px;
+    border-radius: 14px;
+    margin: 12px;
+  }
+
+  .auth-header h3 {
+    font-size: 19px;
+  }
+
+  .otp-boxes-container {
+    gap: 6px;
+  }
+
+  .otp-digit-box {
+    width: calc((100% - 30px) / 6);
+    height: 48px;
+    font-size: 20px;
+    border-radius: 8px;
+  }
+
+  .input-wrapper input {
+    font-size: 14px;
+    padding: 10px 36px 10px 38px;
+  }
+
+  .auth-tab-btn {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .otp-digit-box {
+    height: 42px;
+    font-size: 18px;
+  }
+}
+

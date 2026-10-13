@@ -503,3 +503,25 @@
     text-align: center;
   }
 }
+
+@media (max-width: 480px) {
+  .login-brand-meta span {
+    display: none;
+  }
+
+  .explore-landing-btn span {
+    display: none;
+  }
+
+  .explore-landing-btn {
+    padding: 8px 10px;
+  }
+
+  .login-tagline-badge {
+    font-size: 11px;
+  }
+
+  .login-showcase-column h2 {
+    font-size: 26px;
+  }
+}

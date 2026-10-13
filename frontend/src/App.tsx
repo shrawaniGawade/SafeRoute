@@ -2,16 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { useAuth } from './context/AuthContext';
 import { AuthModal } from './components/auth/AuthModal';
+import { LoginPage } from './components/LoginPage';
 import { LandingPage } from './components/LandingPage';
 import { UserDashboard } from './components/UserDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Analytics } from '@vercel/analytics/react';
 
-export type AppRoute = 'landing' | 'app' | 'admin';
+export type AppRoute = 'login' | 'landing' | 'app' | 'admin';
 
 function App() {
-  const { user, isAuthenticated, isLoading, openAuthModal, logout, toastMessage, showToast } = useAuth();
-  const [currentRoute, setCurrentRoute] = useState<AppRoute>('landing');
+  const { user, isAuthenticated, isLoading, setAuthModalView, logout, toastMessage, showToast } = useAuth();
+  const [currentRoute, setCurrentRoute] = useState<AppRoute>('login');
 
   // Parse path or hash into an AppRoute
   const getRequestedRoute = useCallback((): AppRoute => {
@@ -24,7 +25,11 @@ function App() {
     if (hash.includes('app') || hash.includes('planner') || path === '/app' || path.startsWith('/app')) {
       return 'app';
     }
-    return 'landing';
+    if (hash.includes('landing') || hash.includes('about') || hash.includes('features') || path === '/landing' || path.startsWith('/landing')) {
+      return 'landing';
+    }
+    // Default route for visitors is login
+    return 'login';
   }, []);
 
   // Synchronize route and enforce RBAC route protection
@@ -35,13 +40,20 @@ function App() {
       if (!isAuthenticated) {
         // Guests cannot access protected pages
         if (requestedRoute === 'admin' || requestedRoute === 'app') {
-          setCurrentRoute('landing');
-          window.location.hash = '#/';
-          openAuthModal('login');
+          setCurrentRoute('login');
+          window.location.hash = '#/login';
           showToast('Please sign in to access SafeRoute.', 'info');
           return;
         }
-        setCurrentRoute('landing');
+
+        // Guests can view landing page if explicitly navigated
+        if (requestedRoute === 'landing') {
+          setCurrentRoute('landing');
+          return;
+        }
+
+        // New visitors and unauthenticated users land directly on the Login Page
+        setCurrentRoute('login');
         return;
       }
 
@@ -54,7 +66,7 @@ function App() {
           showToast('Access restricted: Admin privileges required.', 'error');
           return;
         }
-        // User on landing or app -> goes to user app
+        // User lands on route planner
         setCurrentRoute('app');
         if (window.location.hash !== '#/app') {
           window.location.hash = '#/app';
@@ -75,7 +87,7 @@ function App() {
         }
       }
     },
-    [isAuthenticated, isLoading, user, openAuthModal, showToast]
+    [isAuthenticated, isLoading, user, showToast]
   );
 
   // Sync on initial load and whenever authentication status changes
@@ -120,10 +132,21 @@ function App() {
     window.location.hash = '#/app';
   };
 
+  const handleGoToLanding = () => {
+    setCurrentRoute('landing');
+    window.location.hash = '#/landing';
+  };
+
+  const handleGoToLogin = (view: 'login' | 'register' = 'login') => {
+    setAuthModalView(view);
+    setCurrentRoute('login');
+    window.location.hash = '#/login';
+  };
+
   const handleLogout = async () => {
     await logout();
-    setCurrentRoute('landing');
-    window.location.hash = '#/';
+    setCurrentRoute('login');
+    window.location.hash = '#/login';
   };
 
   return (
@@ -135,15 +158,20 @@ function App() {
         </aside>
       )}
 
-      {/* Screen 1: Public Landing Page (Unauthenticated / Default) */}
+      {/* Screen 1: Primary Login & Registration Page (Default for new users / visitors) */}
+      {currentRoute === 'login' && (
+        <LoginPage onExploreLanding={handleGoToLanding} />
+      )}
+
+      {/* Screen 2: Public Landing Page & Features Showcase */}
       {currentRoute === 'landing' && (
         <LandingPage
-          onSignIn={() => openAuthModal('login')}
-          onSignUp={() => openAuthModal('register')}
+          onSignIn={() => handleGoToLogin('login')}
+          onSignUp={() => handleGoToLogin('register')}
         />
       )}
 
-      {/* Screen 2: Logged-in User Application (Route Safety Planner) */}
+      {/* Screen 3: Logged-in User Application (Route Safety Planner) */}
       {currentRoute === 'app' && (
         <UserDashboard
           onOpenAdmin={user?.role === 'admin' ? handleOpenAdminFromPlanner : undefined}
@@ -151,7 +179,7 @@ function App() {
         />
       )}
 
-      {/* Screen 3: Logged-in Admin Command Center */}
+      {/* Screen 4: Logged-in Admin Command Center */}
       {currentRoute === 'admin' && (
         <>
           <UserDashboard
@@ -166,7 +194,7 @@ function App() {
         </>
       )}
 
-      {/* Authentication Modal */}
+      {/* Authentication Modal (Available for modal interactions if triggered) */}
       <AuthModal />
 
       {/* Vercel Telemetry Analytics */}

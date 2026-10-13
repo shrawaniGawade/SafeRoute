@@ -78,13 +78,16 @@ function App() {
         // Admin can access both admin and app (route planner)
         if (requestedRoute === 'app') {
           setCurrentRoute('app');
-          window.location.hash = '#/app';
+          if (window.location.hash !== '#/app') {
+            window.location.hash = '#/app';
+          }
         } else {
           setCurrentRoute('admin');
           if (window.location.hash !== '#/admin') {
             window.location.hash = '#/admin';
           }
         }
+        return;
       }
     },
     [isAuthenticated, isLoading, user, showToast]
@@ -123,11 +126,6 @@ function App() {
   };
 
   const handleOpenPlannerFromAdmin = () => {
-    setCurrentRoute('app');
-    window.location.hash = '#/app';
-  };
-
-  const handleCloseAdmin = () => {
     setCurrentRoute('app');
     window.location.hash = '#/app';
   };
@@ -181,17 +179,12 @@ function App() {
 
       {/* Screen 4: Logged-in Admin Command Center */}
       {currentRoute === 'admin' && (
-        <>
-          <UserDashboard
-            onOpenAdmin={handleOpenAdminFromPlanner}
-            onLogout={handleLogout}
-          />
-          <AdminDashboard
-            isOpen={true}
-            onClose={handleCloseAdmin}
-            onGoToPlanner={handleOpenPlannerFromAdmin}
-          />
-        </>
+        <AdminDashboard
+          isOpen={true}
+          isStandalone={true}
+          onLogout={handleLogout}
+          onGoToPlanner={handleOpenPlannerFromAdmin}
+        />
       )}
 
       {/* Authentication Modal (Available for modal interactions if triggered) */}

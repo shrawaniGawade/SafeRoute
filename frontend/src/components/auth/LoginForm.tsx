@@ -27,7 +27,12 @@ export const LoginForm: React.FC = () => {
     setError('');
 
     try {
-      await login({ email: email.trim(), password });
+      const response = await login({ email: email.trim(), password });
+      if (response?.user?.role === 'admin') {
+        window.location.hash = '#/admin';
+      } else {
+        window.location.hash = '#/app';
+      }
     } catch (err: any) {
       setError(err?.message || 'Login failed. Please check your credentials.');
     } finally {

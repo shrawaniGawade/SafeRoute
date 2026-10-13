@@ -1,3 +1,69 @@
+.admin-page-layout {
+  min-height: 100vh;
+  width: 100%;
+  background: radial-gradient(circle at 18% 25%, rgba(8, 127, 140, 0.12) 0%, transparent 45%),
+              radial-gradient(circle at 82% 75%, rgba(37, 99, 235, 0.1) 0%, transparent 45%),
+              #070d18;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 24px;
+}
+
+.admin-page-card {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  flex: 1;
+  min-height: 85vh;
+}
+
+.planner-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #087f8c;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.planner-switch-btn:hover {
+  background: #bae6fd;
+  transform: translateY(-1px);
+}
+
+.admin-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-logout-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  transform: translateY(-1px);
+}
+
 .admin-overlay {
   position: fixed;
   inset: 0;

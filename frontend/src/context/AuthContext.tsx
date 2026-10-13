@@ -140,6 +140,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (response.user && response.accessToken) {
         updateSession(response.accessToken, response.user);
         closeAuthModal();
+        if (response.user.role === 'admin') {
+          window.location.hash = '#/admin';
+        } else {
+          window.location.hash = '#/app';
+        }
         showToast(`Welcome back, ${response.user.name}!`, 'success');
       }
       return response;

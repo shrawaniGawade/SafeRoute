@@ -6,34 +6,18 @@ export const OtpForm: React.FC = () => {
   const {
     pendingOtpEmail,
     pendingOtpPurpose,
-    devOtp,
-    emailPreviewUrl,
     verifyOtp,
     resendOtp,
     setAuthModalView,
   } = useAuth();
 
-  const [digits, setDigits] = useState<string[]>(() =>
-    devOtp && devOtp.length === 6 ? devOtp.split('') : ['', '', '', '', '', '']
-  );
+  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(60);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // Automatically update digits when a new devOtp is dispatched
-  useEffect(() => {
-    if (devOtp && devOtp.length === 6 && digits.every((d) => d === '')) {
-      setDigits(devOtp.split(''));
-    }
-  }, [devOtp, digits]);
-
-  const handleAutofill = (code: string) => {
-    setDigits(code.split('').slice(0, 6));
-    inputRefs.current[5]?.focus();
-  };
 
   // 60-second cooldown timer
   useEffect(() => {
@@ -154,35 +138,6 @@ export const OtpForm: React.FC = () => {
         <div className="auth-alert error">
           <AlertCircle size={18} />
           <span>{error}</span>
-        </div>
-      )}
-
-      {devOtp && (
-        <div className="dev-otp-helper">
-          <div className="dev-otp-info">
-            <span className="dev-badge">Development Code</span>
-            <span className="dev-code"><strong>{devOtp}</strong></span>
-          </div>
-          <button
-            type="button"
-            className="dev-autofill-btn"
-            onClick={() => handleAutofill(devOtp)}
-          >
-            Auto-fill
-          </button>
-        </div>
-      )}
-
-      {emailPreviewUrl && (
-        <div className="preview-email-banner">
-          <a
-            href={emailPreviewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="preview-email-link"
-          >
-            Open Test Inbox Preview ↗
-          </a>
         </div>
       )}
 

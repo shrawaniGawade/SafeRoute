@@ -9,6 +9,9 @@ export interface IOtp extends Document {
   hashedOtp: string;
   purpose: OtpPurpose;
   attempts: number;
+  verified?: boolean;
+  verificationTokenHash?: string;
+  verifiedAt?: Date;
   expiresAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -25,7 +28,8 @@ const OtpSchema = new Schema<IOtp>(
     },
     hashedOtp: {
       type: String,
-      required: true,
+      required: false,
+      default: '',
     },
     purpose: {
       type: String,
@@ -35,6 +39,18 @@ const OtpSchema = new Schema<IOtp>(
     attempts: {
       type: Number,
       default: 0,
+    },
+    verified: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    verificationTokenHash: {
+      type: String,
+      default: '',
+    },
+    verifiedAt: {
+      type: Date,
     },
     expiresAt: {
       type: Date,

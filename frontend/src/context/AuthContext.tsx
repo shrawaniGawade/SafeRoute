@@ -30,14 +30,13 @@ interface AuthContextType {
   pendingOtpEmail: string;
   pendingOtpPurpose: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
   pendingResetOtp: string;
-  devOtp: string | null;
-  emailPreviewUrl: string | null;
   toastMessage: { text: string; type: 'success' | 'error' | 'info' } | null;
   openAuthModal: (view?: AuthModalView) => void;
   closeAuthModal: () => void;
   setAuthModalView: (view: AuthModalView) => void;
   setPendingOtpInfo: (email: string, purpose: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET') => void;
   showToast: (text: string, type?: 'success' | 'error' | 'info') => void;
+  sendOtp: (email: string, purpose?: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET') => Promise<AuthResponse>;
   login: (payload: LoginPayload) => Promise<AuthResponse>;
   register: (payload: RegisterPayload) => Promise<AuthResponse>;
   verifyOtp: (payload: VerifyOtpPayload) => Promise<AuthResponse>;
@@ -60,8 +59,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     'EMAIL_VERIFICATION' | 'PASSWORD_RESET'
   >('EMAIL_VERIFICATION');
   const [pendingResetOtp, setPendingResetOtp] = useState<string>('');
-  const [devOtp, setDevOtp] = useState<string | null>(null);
-  const [emailPreviewUrl, setEmailPreviewUrl] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<{
     text: string;
     type: 'success' | 'error' | 'info';
@@ -151,30 +148,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error: any) {
       if (error?.data?.unverified) {
         setPendingOtpInfo(payload.email, 'EMAIL_VERIFICATION');
-        if (error.data.devOtp) setDevOtp(error.data.devOtp);
-        if (error.data.emailPreviewUrl) setEmailPreviewUrl(error.data.emailPreviewUrl);
         setAuthModalView('otp');
       }
       throw error;
     }
   };
 
+  const sendOtp = async (
+    email: string,
+    purpose: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET' = 'EMAIL_VERIFICATION'
+  ): Promise<AuthResponse> => {
+    const response = await authService.sendOtp(email, purpose);
+    setPendingOtpInfo(email, purpose);
+    showToast(response.message || 'Verification code sent. Please check your inbox and spam folder.', 'info');
+    return response;
+  };
+
   const register = async (payload: RegisterPayload): Promise<AuthResponse> => {
     const response = await authService.register(payload);
-    setPendingOtpInfo(payload.email, 'EMAIL_VERIFICATION');
-    if (response.devOtp) setDevOtp(response.devOtp);
-    if (response.emailPreviewUrl) setEmailPreviewUrl(response.emailPreviewUrl);
-    setAuthModalView('otp');
-    showToast('Verification code generated!', 'info');
+    if (response.user && response.accessToken) {
+      updateSession(response.accessToken, response.user);
+      closeAuthModal();
+      if (response.user.role === 'admin') {
+        window.location.hash = '#/admin';
+      } else {
+        window.location.hash = '#/app';
+      }
+      showToast('Account created successfully! Welcome to SafeRoute.', 'success');
+    } else {
+      setPendingOtpInfo(payload.email, 'EMAIL_VERIFICATION');
+      setAuthModalView('otp');
+      showToast(response.message || 'Registration initiated! Please enter the 6-digit verification code.', 'info');
+    }
     return response;
   };
 
   const verifyOtp = async (payload: VerifyOtpPayload): Promise<AuthResponse> => {
     const response = await authService.verifyOtp(payload);
-    if (payload.purpose === 'EMAIL_VERIFICATION' && response.user && response.accessToken) {
-      updateSession(response.accessToken, response.user);
-      closeAuthModal();
-      showToast('Account verified! Welcome to SafeRoute.', 'success');
+    if (payload.purpose === 'EMAIL_VERIFICATION') {
+      if (response.user && response.accessToken) {
+        updateSession(response.accessToken, response.user);
+        closeAuthModal();
+        showToast('Account verified! Welcome to SafeRoute.', 'success');
+      } else {
+        showToast(response.message || 'Email verified successfully!', 'success');
+      }
     } else if (payload.purpose === 'PASSWORD_RESET') {
       setPendingResetOtp(payload.otp);
       setAuthModalView('reset');
@@ -185,9 +203,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const resendOtp = async (payload: ResendOtpPayload): Promise<AuthResponse> => {
     const response = await authService.resendOtp(payload);
-    if (response.devOtp) setDevOtp(response.devOtp);
-    if (response.emailPreviewUrl) setEmailPreviewUrl(response.emailPreviewUrl);
-    showToast(response.message, 'info');
+    showToast(response.message || 'Verification code resent.', 'info');
     return response;
   };
 
@@ -195,10 +211,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const response = await authService.forgotPassword(email);
     setPendingOtpInfo(email, 'PASSWORD_RESET');
     setPendingResetOtp('');
-    if (response.devOtp) setDevOtp(response.devOtp);
-    if (response.emailPreviewUrl) setEmailPreviewUrl(response.emailPreviewUrl);
     setAuthModalView('otp');
-    showToast('Verification code dispatched!', 'info');
+    showToast('Verification code dispatched! Please check your inbox.', 'info');
     return response;
   };
 
@@ -233,14 +247,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         pendingOtpEmail,
         pendingOtpPurpose,
         pendingResetOtp,
-        devOtp,
-        emailPreviewUrl,
         toastMessage,
         openAuthModal,
         closeAuthModal,
         setAuthModalView,
         setPendingOtpInfo,
         showToast,
+        sendOtp,
         login,
         register,
         verifyOtp,

@@ -42,6 +42,17 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
   });
 
   await t.test('3. Register and Login a Standard User', async () => {
+    let capturedOtp = '';
+    const origLog = console.log;
+    console.log = (...args: any[]) => {
+      const line = args.join(' ');
+      const match = line.match(/Code:\s*>>>\s*(\d{6})\s*<<</);
+      if (match) {
+        capturedOtp = match[1];
+      }
+      origLog(...args);
+    };
+
     const regRes = await fetch(`${BASE_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -52,9 +63,10 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
         confirmPassword: 'Password@12345',
       }),
     });
+    console.log = origLog;
+
     assert.strictEqual(regRes.status, 201);
-    const regData = await regRes.json();
-    const otp = regData.devOtp;
+    const otp = capturedOtp;
 
     // Verify OTP
     const verifyRes = await fetch(`${BASE_URL}/api/auth/verify-otp`, {

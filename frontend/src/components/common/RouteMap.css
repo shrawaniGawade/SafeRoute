@@ -1,0 +1,236 @@
+/* SafeRoute Interactive Vector Map Component */
+
+.route-map-container {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  background: #090f1d;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.map-svg-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  user-select: none;
+}
+
+.map-svg-canvas:active {
+  cursor: grabbing;
+}
+
+/* Floating Controls Bar */
+.map-controls-bar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.map-control-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.map-control-btn:hover {
+  background: #087f8c;
+  color: #ffffff;
+  border-color: #087f8c;
+  transform: scale(1.05);
+}
+
+.map-control-btn.active {
+  background: #087f8c;
+  color: #ffffff;
+  border-color: #38bdf8;
+}
+
+/* Floating Layer Toggles */
+.map-layers-bar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+.map-layer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-layer-chip:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.map-layer-chip.active {
+  background: rgba(8, 127, 140, 0.25);
+  border-color: #087f8c;
+  color: #38bdf8;
+}
+
+/* Map Status Banner */
+.map-status-overlay {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-route-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-route-meta {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Floating Legend */
+.map-legend {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-color-line {
+  width: 18px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.legend-color-line.safe {
+  background: #087f8c;
+  box-shadow: 0 0 8px #087f8c;
+}
+
+.legend-color-line.alt {
+  background: #f59e0b;
+}
+
+.legend-color-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-color-dot.light {
+  background: #facc15;
+  box-shadow: 0 0 6px #facc15;
+}
+
+/* Pulse animation for pins */
+@keyframes pinPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.pulse-ring {
+  animation: pinPulse 2s infinite ease-in-out;
+  transform-origin: center;
+}
+
+@media (max-width: 640px) {
+  .route-map-container {
+    height: 360px;
+  }
+
+  .map-layers-bar {
+    top: 10px;
+    left: 10px;
+    gap: 4px;
+  }
+
+  .map-layer-chip {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .map-controls-bar {
+    top: 10px;
+    right: 10px;
+  }
+
+  .map-legend {
+    display: none;
+  }
+
+  .map-status-overlay {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+  }
+}

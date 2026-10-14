@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const RAW_API_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = RAW_API_URL.endsWith('/') ? RAW_API_URL.slice(0, -1) : RAW_API_URL;
 
 export interface UserProfile {
   id: string;
@@ -14,7 +15,8 @@ export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  confirmPassword?: string;
+  verificationToken?: string;
 }
 
 export interface LoginPayload {
@@ -37,18 +39,18 @@ export interface ResetPasswordPayload {
   email: string;
   otp: string;
   newPassword: string;
-  confirmNewPassword: string;
+  confirmNewPassword?: string;
 }
 
 export interface AuthResponse {
+  success?: boolean;
   message: string;
   user?: UserProfile;
   accessToken?: string;
   unverified?: boolean;
   email?: string;
   verified?: boolean;
-  devOtp?: string;
-  emailPreviewUrl?: string;
+  verificationToken?: string;
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -67,6 +69,16 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 export const authService = {
+  async sendOtp(email: string, purpose: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET' = 'EMAIL_VERIFICATION'): Promise<AuthResponse> {
+    const res = await fetch(`${API_BASE_URL}/auth/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, purpose }),
+    });
+    return handleResponse<AuthResponse>(res);
+  },
+
   async register(payload: RegisterPayload): Promise<AuthResponse> {
     const res = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',

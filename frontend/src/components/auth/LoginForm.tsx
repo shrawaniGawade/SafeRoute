@@ -34,7 +34,11 @@ export const LoginForm: React.FC = () => {
         window.location.hash = '#/app';
       }
     } catch (err: any) {
-      setError(err?.message || 'Login failed. Please check your credentials.');
+      if (err?.data?.unverified) {
+        setError('Your account is pending email verification. A new verification code has been dispatched to your email.');
+      } else {
+        setError(err?.message || 'Invalid email or password. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

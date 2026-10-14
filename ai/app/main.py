@@ -56,9 +56,9 @@ if JSON_MODEL_PATH.exists():
     except Exception as e:
         print(f"[AIService] Failed to load JSON model: {e}")
 
-# 2. Attempt joblib if available
+# 2. Attempt joblib if JSON ensemble is not loaded
 joblib_model = None
-if JOBLIB_MODEL_PATH.exists():
+if ensemble_model is None and JOBLIB_MODEL_PATH.exists():
     try:
         import joblib
         joblib_model = joblib.load(JOBLIB_MODEL_PATH)

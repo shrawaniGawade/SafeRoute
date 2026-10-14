@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) => {
   await t.test('1. Safety Score Classification Logic', () => {
-    function classifySafetyScore(score: number): { label: string; color: string } {
+    function classifySafetyScore(score) {
       if (score >= 80) return { label: 'Optimal Safe', color: '#10b981' };
       if (score >= 60) return { label: 'Moderate Caution', color: '#f59e0b' };
       return { label: 'High Risk', color: '#ef4444' };
@@ -17,7 +17,7 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
   });
 
   await t.test('2. Safety Factor Bounds & Clamping Validation', () => {
-    function validateSafetyFactor(val: number): boolean {
+    function validateSafetyFactor(val) {
       return typeof val === 'number' && !isNaN(val) && val >= 0 && val <= 10;
     }
 
@@ -30,13 +30,7 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
   });
 
   await t.test('3. Route Alternatives Sorting & Recommendation Selection', () => {
-    interface Alternative {
-      id: string;
-      score: number;
-      isRecommended: boolean;
-    }
-
-    const alternatives: Alternative[] = [
+    const alternatives = [
       { id: 'standard', score: 62, isRecommended: false },
       { id: 'illuminated', score: 88, isRecommended: true },
       { id: 'express', score: 45, isRecommended: false }
@@ -59,7 +53,7 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
     assert.equal(emailRegex.test('invalid-email'), false);
     assert.equal(emailRegex.test('user@domain'), false);
 
-    function validatePasswordStrength(pwd: string): { valid: boolean; reason?: string } {
+    function validatePasswordStrength(pwd) {
       if (pwd.length < 8) return { valid: false, reason: 'Password must be at least 8 characters' };
       if (!/[A-Z]/.test(pwd)) return { valid: false, reason: 'Password must include uppercase letter' };
       if (!/[0-9]/.test(pwd)) return { valid: false, reason: 'Password must include numeric character' };

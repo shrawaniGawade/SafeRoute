@@ -1,7 +1,4 @@
-import { authService } from './authService';
-
-const RAW_API_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '/api';
-const API_BASE_URL = RAW_API_URL.endsWith('/') ? RAW_API_URL.slice(0, -1) : RAW_API_URL;
+import { authService, getApiUrl } from './authService';
 
 export interface SafetyInput {
   lighting: number;
@@ -142,7 +139,7 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
 export async function predictRouteSafety(
   input: SafetyInput
 ): Promise<SafetyResult> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/safety/predict`, {
+  const response = await fetchWithAuth(getApiUrl('/safety/predict'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -164,7 +161,7 @@ export async function predictRouteSafety(
  * 2. Fetch User Safety Prediction History (Paginated)
  */
 export async function fetchSafetyHistory(page = 1, limit = 10): Promise<PaginatedResponse<SafetyResult>> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/safety/history?page=${page}&limit=${limit}`);
+  const response = await fetchWithAuth(getApiUrl(`/safety/history?page=${page}&limit=${limit}`));
   if (!response.ok) {
     throw new Error(`Failed to fetch history: ${response.status}`);
   }
@@ -175,7 +172,7 @@ export async function fetchSafetyHistory(page = 1, limit = 10): Promise<Paginate
  * 3. Fetch Single Prediction Details by ID
  */
 export async function fetchSafetyPredictionDetails(id: string): Promise<SafetyResult> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/safety/history/${id}`);
+  const response = await fetchWithAuth(getApiUrl(`/safety/history/${id}`));
   if (!response.ok) {
     throw new Error(`Failed to fetch prediction details: ${response.status}`);
   }
@@ -187,7 +184,7 @@ export async function fetchSafetyPredictionDetails(id: string): Promise<SafetyRe
  * 4. User Profile Management
  */
 export async function fetchUserProfile(): Promise<UserProfileData> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/users/me`);
+  const response = await fetchWithAuth(getApiUrl('/users/me'));
   if (!response.ok) {
     throw new Error(`Failed to fetch user profile: ${response.status}`);
   }
@@ -196,7 +193,7 @@ export async function fetchUserProfile(): Promise<UserProfileData> {
 }
 
 export async function updateUserProfile(data: UserProfileUpdateInput): Promise<UserProfileData> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/users/me`, {
+  const response = await fetchWithAuth(getApiUrl('/users/me'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -246,7 +243,7 @@ export interface AdminStatsResponse {
 }
 
 export async function fetchAdminStats(): Promise<AdminStatsResponse> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/admin/stats`);
+  const response = await fetchWithAuth(getApiUrl('/admin/stats'));
   if (!response.ok) {
     throw new Error(`Admin stats request failed: ${response.status}`);
   }
@@ -260,7 +257,7 @@ export async function fetchAdminUsers(
   search = ''
 ): Promise<PaginatedResponse<UserProfileData>> {
   const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
-  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users?page=${page}&limit=${limit}${searchParam}`);
+  const response = await fetchWithAuth(getApiUrl(`/admin/users?page=${page}&limit=${limit}${searchParam}`));
   if (!response.ok) {
     throw new Error(`Failed to fetch admin users: ${response.status}`);
   }
@@ -268,7 +265,7 @@ export async function fetchAdminUsers(
 }
 
 export async function updateAdminUserRole(userId: string, role: 'admin' | 'user'): Promise<void> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users/${userId}/role`, {
+  const response = await fetchWithAuth(getApiUrl(`/admin/users/${userId}/role`), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ role }),
@@ -280,7 +277,7 @@ export async function updateAdminUserRole(userId: string, role: 'admin' | 'user'
 }
 
 export async function deleteAdminUser(userId: string): Promise<void> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users/${userId}`, {
+  const response = await fetchWithAuth(getApiUrl(`/admin/users/${userId}`), {
     method: 'DELETE',
   });
   if (!response.ok) {

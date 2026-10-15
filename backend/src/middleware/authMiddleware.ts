@@ -52,25 +52,32 @@ export function optionalAuth(
   next();
 }
 
+export function requireRole(...allowedRoles: string[]) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({
+        message: 'Authentication required. No token provided.',
+      });
+      return;
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      res.status(403).json({
+        message: `Access denied. Requires one of the following roles: ${allowedRoles.join(', ')}.`,
+      });
+      return;
+    }
+
+    next();
+  };
+}
+
 export function requireAdmin(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): void {
-  if (!req.user) {
-    res.status(401).json({
-      message: 'Authentication required.',
-    });
-    return;
-  }
-
-  if (req.user.role !== 'admin') {
-    res.status(403).json({
-      message: 'Access denied. Administrator privileges required.',
-    });
-    return;
-  }
-
-  next();
+  requireRole('admin')(req, res, next);
 }
+
 

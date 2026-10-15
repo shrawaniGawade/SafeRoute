@@ -109,6 +109,24 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
     assert.strictEqual(res.status, 403);
   });
 
+  await t.test('4b. Standard User Cannot Modify Roles or Delete Users (403)', async () => {
+    const patchRes = await fetch(`${BASE_URL}/api/admin/users/${createdUserId}/role`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${normalUserToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ role: 'admin' }),
+    });
+    assert.strictEqual(patchRes.status, 403, 'Normal user cannot modify roles');
+
+    const deleteRes = await fetch(`${BASE_URL}/api/admin/users/${createdUserId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${normalUserToken}` },
+    });
+    assert.strictEqual(deleteRes.status, 403, 'Normal user cannot delete users');
+  });
+
   await t.test('5. Admin Successfully Retrieves System Telemetry & Stats', async () => {
     const res = await fetch(`${BASE_URL}/api/admin/stats`, {
       headers: { Authorization: `Bearer ${adminToken}` },
@@ -147,6 +165,30 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
     const data = await res.json();
     assert.strictEqual(res.status, 200, `Demote failed: ${res.status} ${JSON.stringify(data)}`);
     assert.strictEqual(data.user.role, 'user');
+  });
+
+  await t.test('7b. Admin Cannot Demote or Delete Self (400)', async () => {
+    const meRes = await fetch(`${BASE_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const meData = await meRes.json();
+    const adminSelfId = meData.user.id;
+
+    const selfDemoteRes = await fetch(`${BASE_URL}/api/admin/users/${adminSelfId}/role`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ role: 'user' }),
+    });
+    assert.strictEqual(selfDemoteRes.status, 400, 'Admin must not be allowed to demote self');
+
+    const selfDeleteRes = await fetch(`${BASE_URL}/api/admin/users/${adminSelfId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert.strictEqual(selfDeleteRes.status, 400, 'Admin must not be allowed to delete self');
   });
 
   await t.test('8. Admin Deletes Standard User', async () => {

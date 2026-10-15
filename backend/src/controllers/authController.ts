@@ -464,10 +464,16 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
       console.error('[AuthController] Failed to send password reset OTP:', err);
     }
 
+    console.log(`\n[SafeRoute Auth] >>> FORGOT PASSWORD OTP: ${rawOtp} (for ${normalizedEmail}) <<<\n`);
+
     res.status(200).json({
       message: 'If an account exists with this email address, a password reset code has been sent.',
     });
     return;
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`\n[SafeRoute Auth Notice] Forgot password requested for unregistered email: ${normalizedEmail}. (No user found in database)\n`);
   }
 
   res.status(200).json({

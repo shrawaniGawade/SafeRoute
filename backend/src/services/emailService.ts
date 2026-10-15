@@ -71,15 +71,13 @@ export async function sendOtpEmail(
     process.execArgv.includes('--test') ||
     process.argv.some((arg) => arg.includes('test'));
 
-  // In test environments, log OTP for automated test runners to capture
-  if (isTest) {
-    console.log('=========================================================');
-    console.log(`[SafeRoute Verification Dispatch]`);
-    console.log(`To: ${email}`);
-    console.log(`Purpose: ${purpose}`);
-    console.log(`Code: >>> ${otp} <<<`);
-    console.log('=========================================================');
-  }
+  // Log OTP prominently in terminal for developers and automated test runners
+  console.log('\n=========================================================');
+  console.log('[SafeRoute Verification Dispatch]');
+  console.log(`To: ${email}`);
+  console.log(`Purpose: ${purpose}`);
+  console.log(`Code: >>> ${otp} <<<`);
+  console.log('=========================================================\n');
 
   // 1. Send via Resend HTTPS API (Recommended for Vercel serverless)
   if (ENV.RESEND_API_KEY) {
@@ -146,15 +144,16 @@ export async function sendOtpEmail(
     }
   }
 
-  // 3. Automated Test Fallback
-  if (isTest) {
+  // 3. Automated Test or Local Development Fallback
+  if (isTest || process.env.NODE_ENV !== 'production') {
+    console.log(`[EmailService] Dev Fallback: Simulated email dispatched to terminal for ${email}`);
     return {
       success: true,
       provider: 'test-mock',
     };
   }
 
-  // 4. No email provider configured — Fail fast with explicit instructions
+  // 4. In strict production with no email provider configured — Fail fast with explicit instructions
   const missingConfigMessage =
     'Email delivery service is not configured. Please set RESEND_API_KEY (recommended for Vercel) or SMTP credentials (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS) in your environment variables.';
   console.error(`[EmailService CRITICAL] ${missingConfigMessage}`);

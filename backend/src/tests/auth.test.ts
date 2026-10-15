@@ -2,7 +2,13 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import bcrypt from 'bcryptjs';
 import { generateNumericOtp, hashValue, generateRandomToken } from '../utils/crypto';
-import { registerSchema, loginSchema, verifyOtpSchema } from '../utils/validators';
+import {
+  registerSchema,
+  loginSchema,
+  verifyOtpSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from '../utils/validators';
 
 describe('SafeRoute Cryptographic & Validation Utilities', () => {
   test('generateNumericOtp produces valid 6-digit numeric string', () => {
@@ -90,5 +96,50 @@ describe('SafeRoute Cryptographic & Validation Utilities', () => {
       purpose: 'EMAIL_VERIFICATION',
     };
     assert.equal(verifyOtpSchema.safeParse(nonNumeric).success, false);
+  });
+
+  test('forgotPasswordSchema validates valid email and rejects malformed email', () => {
+    const valid = forgotPasswordSchema.safeParse({ email: 'Traveler@SafeRoute.com ' });
+    assert.equal(valid.success, true, 'Valid email must succeed');
+    if (valid.success) {
+      assert.equal(valid.data.email, 'traveler@saferoute.com', 'Email must be normalized to lowercase and trimmed');
+    }
+
+    const invalid = forgotPasswordSchema.safeParse({ email: 'not-an-email' });
+    assert.equal(invalid.success, false, 'Malformed email must fail validation');
+  });
+
+  test('resetPasswordSchema validates OTP and password complexity', () => {
+    const valid = resetPasswordSchema.safeParse({
+      email: 'user@saferoute.com',
+      otp: '654321',
+      newPassword: 'NewSecurePassword@2026',
+      confirmNewPassword: 'NewSecurePassword@2026',
+    });
+    assert.equal(valid.success, true, 'Valid reset password payload must succeed');
+
+    const mismatch = resetPasswordSchema.safeParse({
+      email: 'user@saferoute.com',
+      otp: '654321',
+      newPassword: 'NewSecurePassword@2026',
+      confirmNewPassword: 'DifferentPassword@2026',
+    });
+    assert.equal(mismatch.success, false, 'Mismatched confirmation password must fail');
+
+    const weak = resetPasswordSchema.safeParse({
+      email: 'user@saferoute.com',
+      otp: '654321',
+      newPassword: 'short',
+      confirmNewPassword: 'short',
+    });
+    assert.equal(weak.success, false, 'Password lacking complexity must fail');
+
+    const badOtp = resetPasswordSchema.safeParse({
+      email: 'user@saferoute.com',
+      otp: '12',
+      newPassword: 'NewSecurePassword@2026',
+      confirmNewPassword: 'NewSecurePassword@2026',
+    });
+    assert.equal(badOtp.success, false, 'OTP with wrong length must fail');
   });
 });

@@ -286,7 +286,10 @@ describe('SafeRoute Database Layer — Unit, Schema & Integration Tests', () => 
         },
       });
 
-      const auditLogs = await AuditLog.find({ action: 'USER_ROLE_PROMOTED' }).limit(1);
+      const auditLogs = await AuditLog.find({
+        action: 'USER_ROLE_PROMOTED',
+        'target.resourceId': 'test_user_789',
+      }).limit(1);
       assert.ok(auditLogs.length > 0, 'Audit log must be saved');
 
       const logged = auditLogs[0];

@@ -440,8 +440,9 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
 
 export async function forgotPassword(req: Request, res: Response): Promise<void> {
   const { email } = req.body;
+  const normalizedEmail = (email || '').toLowerCase().trim();
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: normalizedEmail });
 
   // Security best practice: Prevent user enumeration by returning identical generic message
   if (user) {
@@ -449,15 +450,20 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
     const hashedOtp = hashValue(rawOtp);
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-    await Otp.deleteMany({ email, purpose: 'PASSWORD_RESET' });
+    await Otp.deleteMany({ email: normalizedEmail, purpose: 'PASSWORD_RESET' });
     await Otp.create({
-      email,
+      email: normalizedEmail,
       hashedOtp,
       purpose: 'PASSWORD_RESET',
       expiresAt,
     });
 
-    await sendOtpEmail(email, rawOtp, 'PASSWORD_RESET');
+    try {
+      await sendOtpEmail(normalizedEmail, rawOtp, 'PASSWORD_RESET');
+    } catch (err) {
+      console.error('[AuthController] Failed to send password reset OTP:', err);
+    }
+
     res.status(200).json({
       message: 'If an account exists with this email address, a password reset code has been sent.',
     });
@@ -471,10 +477,20 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
 
 export async function resetPassword(req: Request, res: Response): Promise<void> {
   const { email, otp, newPassword } = req.body;
+  const normalizedEmail = (email || '').toLowerCase().trim();
 
-  const otpRecord = await Otp.findOne({ email, purpose: 'PASSWORD_RESET' });
+  const otpRecord = await Otp.findOne({ email: normalizedEmail, purpose: 'PASSWORD_RESET' });
 
   if (!otpRecord) {
+    res.status(400).json({
+      message: 'Invalid or expired password reset code. Please request a new code.',
+    });
+    return;
+  }
+
+  // Enforce code expiration check
+  if (otpRecord.expiresAt && new Date() > new Date(otpRecord.expiresAt)) {
+    await Otp.deleteOne({ _id: otpRecord._id });
     res.status(400).json({
       message: 'Invalid or expired password reset code. Please request a new code.',
     });
@@ -500,7 +516,7 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
     return;
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: normalizedEmail });
   if (!user) {
     res.status(404).json({ message: 'User not found.' });
     return;

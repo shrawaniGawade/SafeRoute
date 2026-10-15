@@ -156,6 +156,18 @@ export const MongoSafetyPrediction: Model<ISafetyPrediction> =
 export const SafetyPrediction: any = new Proxy(MongoSafetyPrediction, {
   get(target, prop, receiver) {
     if (mongoose.connection.readyState === 1) {
+      if (prop === 'create') {
+        return async function (...args: any[]) {
+          const doc = args[0];
+          if (doc && typeof doc === 'object' && doc.clientRequestId) {
+            const existing = await target.findOne({ clientRequestId: doc.clientRequestId });
+            if (existing) {
+              return existing;
+            }
+          }
+          return (target as any).create(...args);
+        };
+      }
       return Reflect.get(target, prop, receiver);
     }
     if (prop in memorySafetyPrediction) {

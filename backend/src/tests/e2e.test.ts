@@ -249,5 +249,6 @@ describe('SafeRoute Full Authentication E2E Flow', () => {
         server.close(() => resolve());
       });
     }
+    await mongoose.disconnect();
   });
 });

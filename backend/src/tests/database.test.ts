@@ -12,10 +12,6 @@ describe('SafeRoute Database Layer — Unit, Schema & Integration Tests', () => 
     await connectDB();
   });
 
-  after(async () => {
-    await disconnectDB();
-  });
-
   // --------------------------------------------------------------------------
   // 1. Database Connectivity & Health Check
   // --------------------------------------------------------------------------

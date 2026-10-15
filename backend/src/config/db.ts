@@ -11,29 +11,28 @@ export interface DBHealthInfo {
   error?: string;
 }
 
-let isConnecting = false;
+let connectingPromise: Promise<void> | null = null;
 
 export async function connectDB(): Promise<void> {
   if (mongoose.connection.readyState === 1) {
     return;
   }
 
-  if (isConnecting) {
-    return;
+  if (connectingPromise) {
+    return connectingPromise;
   }
 
-  isConnecting = true;
+  connectingPromise = (async () => {
+    try {
+      const conn = await mongoose.connect(ENV.MONGO_URI, {
+        serverSelectionTimeoutMS: 4000,
+        connectTimeoutMS: 5000,
+        maxPoolSize: 10,
+        minPoolSize: 2,
+      });
 
-  try {
-    const conn = await mongoose.connect(ENV.MONGO_URI, {
-      serverSelectionTimeoutMS: 4000,
-      connectTimeoutMS: 5000,
-      maxPoolSize: 10,
-      minPoolSize: 2,
-    });
-
-    console.log(`[Database] MongoDB successfully connected: ${conn.connection.host}/${conn.connection.name}`);
-  } catch (err: any) {
+      console.log(`[Database] MongoDB successfully connected: ${conn.connection.host}/${conn.connection.name}`);
+    } catch (err: any) {
     const errorMsg = err?.message || String(err);
     console.warn('\n================================================================================');
     console.warn('[DATABASE WARNING] MongoDB is currently unavailable or offline.');
@@ -56,21 +55,24 @@ export async function connectDB(): Promise<void> {
       process.exit(1);
     }
   } finally {
-    isConnecting = false;
+    connectingPromise = null;
   }
+  })();
 
-  mongoose.connection.on('disconnected', () => {
-    console.warn('[Database] MongoDB connection dropped / disconnected.');
-  });
-
-  mongoose.connection.on('reconnected', () => {
-    console.log('[Database] MongoDB connection re-established.');
-  });
-
-  mongoose.connection.on('error', (err) => {
-    console.error('[Database] MongoDB runtime connection error:', err);
-  });
+  return connectingPromise;
 }
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('[Database] MongoDB connection dropped / disconnected.');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('[Database] MongoDB connection re-established.');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('[Database] MongoDB runtime connection error:', err);
+});
 
 /**
  * Health check probe to evaluate actual database connection and roundtrip latency

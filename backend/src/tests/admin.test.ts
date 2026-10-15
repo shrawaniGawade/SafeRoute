@@ -2,17 +2,32 @@ import test from 'node:test';
 import assert from 'node:assert';
 import http from 'node:http';
 import app from '../server';
+import { connectDB } from '../config/db';
 import { seedDefaultAdmin } from '../config/seedAdmin';
 
 let server: http.Server;
-const TEST_PORT = 5002;
-const BASE_URL = `http://127.0.0.1:${TEST_PORT}`;
+let BASE_URL = '';
+
+const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
 
 test('SafeRoute Admin Endpoints & Authorization', async (t) => {
+  // Guaranteed cleanup: ensure HTTP server closes even if any subtest fails
+  t.after(async () => {
+    if (server) {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
   await t.test('Start test server & seed admin', async () => {
+    await connectDB();
     await seedDefaultAdmin();
     await new Promise<void>((resolve) => {
-      server = app.listen(TEST_PORT, () => resolve());
+      server = app.listen(0, () => {
+        const address = server.address() as any;
+        BASE_URL = `http://127.0.0.1:${address.port}`;
+        resolve();
+      });
     });
   });
 
@@ -25,14 +40,14 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: 'admin@saferoute.com',
-        password: 'Admin@12345',
+        email: adminEmail,
+        password: adminPassword,
       }),
     });
-    assert.strictEqual(res.status, 200);
     const data = await res.json();
-    assert.ok(data.accessToken);
-    assert.strictEqual(data.user.role, 'admin');
+    assert.strictEqual(res.status, 200, `Admin login failed: ${res.status} ${JSON.stringify(data)}`);
+    assert.ok(data.accessToken, 'Access token must be returned');
+    assert.strictEqual(data.user?.role, 'admin', 'User role must be admin');
     adminToken = data.accessToken;
   });
 
@@ -53,19 +68,22 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       origLog(...args);
     };
 
+    const userEmail = `traveler.admin.${Date.now()}.${Math.random().toString(36).substring(2, 7)}@saferoute.test`;
+
     const regRes = await fetch(`${BASE_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: 'Standard Traveler',
-        email: 'traveler.standard@saferoute.test',
+        email: userEmail,
         password: 'Password@12345',
         confirmPassword: 'Password@12345',
       }),
     });
     console.log = origLog;
 
-    assert.strictEqual(regRes.status, 201);
+    const regData = await regRes.json();
+    assert.strictEqual(regRes.status, 201, `Register failed: ${regRes.status} ${JSON.stringify(regData)}`);
     const otp = capturedOtp;
 
     // Verify OTP
@@ -73,13 +91,13 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: 'traveler.standard@saferoute.test',
+        email: userEmail,
         otp,
         purpose: 'EMAIL_VERIFICATION',
       }),
     });
-    assert.strictEqual(verifyRes.status, 200);
     const verifyData = await verifyRes.json();
+    assert.strictEqual(verifyRes.status, 200, `Verify OTP failed: ${verifyRes.status} ${JSON.stringify(verifyData)}`);
     normalUserToken = verifyData.accessToken;
     createdUserId = verifyData.user.id;
   });
@@ -95,8 +113,8 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
     const res = await fetch(`${BASE_URL}/api/admin/stats`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
-    assert.strictEqual(res.status, 200);
     const data = await res.json();
+    assert.strictEqual(res.status, 200, `Admin stats failed: ${res.status} ${JSON.stringify(data)}`);
     assert.strictEqual(data.success, true);
     assert.ok(data.data.stats.totalUsers >= 2);
     assert.ok(data.data.services.backend.status === 'ONLINE');
@@ -112,8 +130,8 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       },
       body: JSON.stringify({ role: 'admin' }),
     });
-    assert.strictEqual(res.status, 200);
     const data = await res.json();
+    assert.strictEqual(res.status, 200, `Promote failed: ${res.status} ${JSON.stringify(data)}`);
     assert.strictEqual(data.user.role, 'admin');
   });
 
@@ -126,8 +144,8 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       },
       body: JSON.stringify({ role: 'user' }),
     });
-    assert.strictEqual(res.status, 200);
     const data = await res.json();
+    assert.strictEqual(res.status, 200, `Demote failed: ${res.status} ${JSON.stringify(data)}`);
     assert.strictEqual(data.user.role, 'user');
   });
 
@@ -137,9 +155,5 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     assert.strictEqual(res.status, 200);
-  });
-
-  await t.test('Teardown test server', async () => {
-    await new Promise<void>((resolve) => server.close(() => resolve()));
   });
 });

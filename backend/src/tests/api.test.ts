@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import app from '../server';
 import http from 'http';
 import { User } from '../models/User';
+import { connectDB } from '../config/db';
+import { seedDefaultAdmin } from '../config/seedAdmin';
 
 let server: http.Server;
 let baseUrl: string;
@@ -23,6 +25,9 @@ let createdPredictionId: string;
 
 describe('SafeRoute Backend API Endpoints Test Suite', () => {
   before(async () => {
+    await connectDB();
+    await seedDefaultAdmin();
+
     await new Promise<void>((resolve) => {
       server = app.listen(0, () => {
         const address = server.address() as any;
@@ -30,18 +35,6 @@ describe('SafeRoute Backend API Endpoints Test Suite', () => {
         resolve();
       });
     });
-
-    // Seed/Verify Admin account in DB
-    const existingAdmin = await User.findOne({ email: adminEmail });
-    if (!existingAdmin) {
-      await User.create({
-        name: 'System Admin',
-        email: adminEmail,
-        password: adminPassword,
-        role: 'admin',
-        isVerified: true,
-      });
-    }
 
     // Login as Admin to get adminToken
     const adminLoginRes = await fetch(`${baseUrl}/api/auth/login`, {

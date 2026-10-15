@@ -1,17 +1,17 @@
-import { test, describe } from 'node:test';
+import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import app from '../server';
+import { connectDB } from '../config/db';
 
 let server: any;
-const PORT = 5055;
-const BASE_URL = `http://localhost:${PORT}/api/auth`;
+let BASE_URL = '';
 
 describe('SafeRoute Full Authentication E2E Flow', () => {
   let capturedOtp = '';
   const testUser = {
     name: 'Alex Johnson',
-    email: 'alex.johnson@saferoute.test',
+    email: `alex.johnson.${Date.now()}.${Math.random().toString(36).substring(2, 7)}@saferoute.test`,
     password: 'SafePass@2026',
     confirmPassword: 'SafePass@2026',
   };
@@ -19,7 +19,9 @@ describe('SafeRoute Full Authentication E2E Flow', () => {
   let accessToken = '';
   let refreshTokenCookie = '';
 
-  test('Start test server', async () => {
+  before(async () => {
+    await connectDB();
+
     // Intercept console.log to capture generated OTP in tests
     const origLog = console.log;
     console.log = (...args: any[]) => {
@@ -32,7 +34,9 @@ describe('SafeRoute Full Authentication E2E Flow', () => {
     };
 
     await new Promise<void>((resolve) => {
-      server = app.listen(PORT, () => {
+      server = app.listen(0, () => {
+        const address = server.address() as any;
+        BASE_URL = `http://127.0.0.1:${address.port}/api/auth`;
         resolve();
       });
     });
@@ -239,12 +243,11 @@ describe('SafeRoute Full Authentication E2E Flow', () => {
     assert.equal(data.message, 'Logged out successfully.');
   });
 
-  test('Teardown test server', async () => {
+  after(async () => {
     if (server) {
       await new Promise<void>((resolve) => {
         server.close(() => resolve());
       });
     }
-    await mongoose.disconnect();
   });
 });

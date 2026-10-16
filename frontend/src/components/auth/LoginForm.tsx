@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, EyeOff, Lock, Mail, ArrowRight, AlertCircle, Loader2, Shield } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 
 export const LoginForm: React.FC = () => {
   const { login, setAuthModalView } = useAuth();
@@ -9,12 +9,6 @@ export const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const fillAdminCredentials = () => {
-    setEmail('admin@saferoute.com');
-    setPassword('Admin@12345');
-    setError('');
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,44 +43,6 @@ export const LoginForm: React.FC = () => {
       <div className="auth-header">
         <h3>Welcome Back</h3>
         <p>Sign in to your SafeRoute account to access saved routes & personalized safety scoring.</p>
-      </div>
-
-      <div
-        style={{
-          background: '#f0fdf4',
-          border: '1px solid #bbf7d0',
-          borderRadius: '8px',
-          padding: '10px 14px',
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '10px',
-        }}
-      >
-        <div style={{ fontSize: '12px', color: '#166534' }}>
-          <strong>Admin Account:</strong> admin@saferoute.com
-        </div>
-        <button
-          type="button"
-          onClick={fillAdminCredentials}
-          style={{
-            background: '#16a34a',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            padding: '5px 10px',
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-          }}
-        >
-          <Shield size={12} />
-          Auto-fill Admin
-        </button>
       </div>
 
       {error && (

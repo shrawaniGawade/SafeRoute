@@ -13,6 +13,8 @@ export interface DBHealthInfo {
 
 let connectingPromise: Promise<void> | null = null;
 
+let hasEverConnected = false;
+
 export async function connectDB(): Promise<void> {
   if (mongoose.connection.readyState === 1) {
     return;
@@ -25,53 +27,53 @@ export async function connectDB(): Promise<void> {
   connectingPromise = (async () => {
     try {
       const conn = await mongoose.connect(ENV.MONGO_URI, {
-        serverSelectionTimeoutMS: 4000,
-        connectTimeoutMS: 5000,
+        serverSelectionTimeoutMS: 2000,
+        connectTimeoutMS: 3000,
         maxPoolSize: 10,
         minPoolSize: 2,
       });
 
+      hasEverConnected = true;
       console.log(`[Database] MongoDB successfully connected: ${conn.connection.host}/${conn.connection.name}`);
     } catch (err: any) {
-    const errorMsg = err?.message || String(err);
-    console.warn('\n================================================================================');
-    console.warn('[DATABASE WARNING] MongoDB is currently unavailable or offline.');
-    console.warn(`Target URI: ${ENV.MONGO_URI}`);
-    console.warn(`Error Detail: ${errorMsg}`);
-    console.warn('--------------------------------------------------------------------------------');
-    console.warn('REQUIRED SETUP FOR PERSISTENT DATABASE STORAGE:');
-    console.warn('1. Local MongoDB: Start the local service (e.g., `net start MongoDB` or `mongod`).');
-    console.warn('2. Docker: Run `docker-compose up -d mongo` to launch a containerized instance.');
-    console.warn('3. MongoDB Atlas (Cloud): Set MONGO_URI in backend/.env to your Atlas cluster:');
-    console.warn('   MONGO_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/saferoute?retryWrites=true&w=majority');
-    console.warn('--------------------------------------------------------------------------------');
-    console.warn('OPERATIONAL FALLBACK NOTICE:');
-    console.warn('Operating with in-memory fallback layer for local development and unit tests.');
-    console.warn('In production (NODE_ENV=production), persistent database connection is mandatory.');
-    console.warn('================================================================================\n');
+      const errorMsg = err?.message || String(err);
+      const isOffline = errorMsg.includes('ECONNREFUSED') || err?.name === 'MongoServerSelectionError';
 
-    if (ENV.IS_PRODUCTION && !process.env.VERCEL) {
-      console.error('[Database CRITICAL] Cannot boot production server without a reachable MongoDB instance.');
-      process.exit(1);
+      if (isOffline) {
+        console.log(`[Database] Local MongoDB offline (${ENV.MONGO_URI}) -> In-Memory resilient data layer active.`);
+      } else {
+        console.warn(`[Database] MongoDB connection issue: ${errorMsg}`);
+        console.log('[Database] Active Engine: In-Memory resilient data layer.');
+      }
+
+      if (ENV.IS_PRODUCTION && !process.env.VERCEL) {
+        console.error('[Database CRITICAL] Cannot boot production server without a reachable MongoDB instance.');
+        process.exit(1);
+      }
+    } finally {
+      connectingPromise = null;
     }
-  } finally {
-    connectingPromise = null;
-  }
   })();
 
   return connectingPromise;
 }
 
 mongoose.connection.on('disconnected', () => {
-  console.warn('[Database] MongoDB connection dropped / disconnected.');
+  if (hasEverConnected) {
+    console.warn('[Database] MongoDB connection dropped / disconnected.');
+  }
 });
 
 mongoose.connection.on('reconnected', () => {
+  hasEverConnected = true;
   console.log('[Database] MongoDB connection re-established.');
 });
 
-mongoose.connection.on('error', (err) => {
-  console.error('[Database] MongoDB runtime connection error:', err);
+mongoose.connection.on('error', (err: any) => {
+  if (!hasEverConnected) {
+    return;
+  }
+  console.error('[Database] MongoDB runtime connection error:', err?.message || err);
 });
 
 /**

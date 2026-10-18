@@ -32,3 +32,30 @@ export const safetyHistoryQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(10).optional(),
   all: z.coerce.boolean().optional(),
 });
+
+export const evaluateSafetyScoreSchema = z.object({
+  factors: z
+    .object({
+      lighting: z.number().min(0).max(100).nullable().optional(),
+      crime: z.number().min(0).max(100).nullable().optional(),
+      accident: z.number().min(0).max(100).nullable().optional(),
+      activity: z.number().min(0).max(100).nullable().optional(),
+      timeOfDay: z.number().min(0).max(100).nullable().optional(),
+      emergencyNearby: z.number().min(0).max(100).nullable().optional(),
+    })
+    .optional(),
+  coordinates: z.array(z.tuple([z.number(), z.number()])).optional(),
+  departureTime: z.union([z.string(), z.number()]).optional(),
+  coverageThreshold: z.number().min(0).max(1).optional(),
+  customWeights: z
+    .object({
+      lighting: z.number().min(0).max(1).optional(),
+      crime: z.number().min(0).max(1).optional(),
+      accident: z.number().min(0).max(1).optional(),
+      activity: z.number().min(0).max(1).optional(),
+      timeOfDay: z.number().min(0).max(1).optional(),
+      emergencyNearby: z.number().min(0).max(1).optional(),
+    })
+    .optional(),
+});
+

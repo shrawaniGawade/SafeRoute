@@ -393,6 +393,53 @@ describe('SafeRoute Backend API Endpoints Test Suite', () => {
       assert.ok(body.errors?.lighting);
     });
 
+    test('POST /api/safety/score computes 88.9 score and Low risk for acceptance criteria factors', async () => {
+      const res = await fetch(`${baseUrl}/api/safety/score`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          factors: {
+            lighting: 90,
+            crime: 88,
+            accident: 92,
+            activity: 80,
+            timeOfDay: 95,
+            emergencyNearby: 85,
+          },
+        }),
+      });
+
+      assert.strictEqual(res.status, 200);
+      const body = await res.json();
+      assert.strictEqual(body.success, true);
+      assert.strictEqual(body.data.score, 88.9);
+      assert.strictEqual(body.data.riskLevel, 'Low');
+      assert.strictEqual(body.data.weightsTotal, 100);
+    });
+
+    test('POST /api/safety/score returns Insufficient data when coverage threshold fails', async () => {
+      const res = await fetch(`${baseUrl}/api/safety/score`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          factors: {
+            lighting: 90,
+            crime: 85,
+          },
+          coverageThreshold: 0.6,
+        }),
+      });
+
+      assert.strictEqual(res.status, 200);
+      const body = await res.json();
+      assert.strictEqual(body.success, true);
+      // Only 2 of 6 factors known = 33.3% coverage < 60%
+      assert.strictEqual(body.data.status, 'Insufficient data');
+      assert.strictEqual(body.data.riskLevel, 'Insufficient data');
+      assert.strictEqual(body.data.hasSufficientData, false);
+      assert.strictEqual(body.data.score, null);
+    });
+
     test('GET /api/safety/history returns paginated prediction history for caller', async () => {
       const res = await fetch(`${baseUrl}/api/safety/history?page=1&limit=5`, {
         headers: { Authorization: `Bearer ${userToken}` },

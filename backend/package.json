@@ -5,7 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "build": "tsc",
-    "test": "tsx --test --test-force-exit src/tests/auth.test.ts src/tests/admin.test.ts src/tests/database.test.ts src/tests/api.test.ts src/tests/geocode.test.ts src/tests/routing.test.ts src/tests/e2e.test.ts src/tests/safetyData.test.ts",
+    "test": "tsx --test --test-force-exit src/tests/auth.test.ts src/tests/admin.test.ts src/tests/database.test.ts src/tests/api.test.ts src/tests/geocode.test.ts src/tests/routing.test.ts src/tests/e2e.test.ts src/tests/safetyData.test.ts src/tests/safetyScore.test.ts",
     "db:init": "tsx src/config/initDatabase.ts",
     "admin:bootstrap": "tsx src/scripts/bootstrapAdmin.ts",
     "seed": "tsx src/scripts/seed.ts",
@@ -19,6 +19,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@turf/along": "^7.4.0",
+    "@turf/helpers": "^7.4.0",
+    "@turf/length": "^7.4.0",
     "axios": "^1.20.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",

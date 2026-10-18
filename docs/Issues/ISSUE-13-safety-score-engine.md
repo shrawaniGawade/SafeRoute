@@ -5,7 +5,7 @@
 | **Phase / Day** | Phase 5 · Day 5 |
 | **Priority** | Must have |
 | **Labels** | `safety`, `backend`, `core` |
-| **Status** | ⬜ Not started |
+| **Status** | ✅ Completed |
 | **Depends on** | ISSUE-10, ISSUE-12 |
 | **Requirements** | FR-4.1 – FR-4.9 · FRD F3.1, F3.2 |
 
@@ -41,21 +41,22 @@ If data is missing, the app says **"unknown"** and never assumes the route is sa
    - less than 60% → show **"Insufficient data"**
 
 ## Tasks
-- [ ] `services/safetyScore.service.ts`
-- [ ] Sample points along the route (`@turf/along`)
-- [ ] Find nearby records for each factor (`$geoNear`)
-- [ ] Normalize each factor to 0–100 (higher means better)
-- [ ] Time rules: day 100, evening 70, night 40
-- [ ] Weighted sum, with missing weight spread across the other factors
-- [ ] Coverage %, risk level, and data freshness
-- [ ] Unit tests (Vitest): formula, missing data, threshold
+- [x] `services/safetyScore.service.ts`
+- [x] Sample points along the route (`@turf/along`)
+- [x] Find nearby records for each factor (`$geoNear`)
+- [x] Normalize each factor to 0–100 (higher means better)
+- [x] Time rules: day 100, evening 70, night 40
+- [x] Weighted sum, with missing weight spread across the other factors
+- [x] Coverage %, risk level, and data freshness
+- [x] Unit tests (Node.js test runner): formula, missing data, threshold
 
 ## Acceptance Criteria
-- [ ] **Given** the factors (90, 88, 92, 80, 95, 85), **then** the score is **88.9** and the risk is **Low**.
-- [ ] **Given** only 50% data coverage, **then** the result is "Insufficient data".
-- [ ] **Given** a night departure, **then** the time factor is lower than for a day departure.
-- [ ] **Given** the weights, **then** they always total 100%.
+- [x] **Given** the factors (90, 88, 92, 80, 95, 85), **then** the score is **88.9** and the risk is **Low**.
+- [x] **Given** only 50% data coverage, **then** the result is "Insufficient data".
+- [x] **Given** a night departure, **then** the time factor is lower than for a day departure.
+- [x] **Given** the weights, **then** they always total 100%.
 
 ## Technical Notes
 - Risk levels: ≥75 Low · 50–74 Moderate · <50 High
 - The scoring engine must reach at least 80% unit-test coverage
+

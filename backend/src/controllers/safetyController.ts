@@ -3,6 +3,10 @@ import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { SafetyPrediction } from '../models/SafetyPrediction';
 import { predictRouteSafety } from '../services/aiService';
 import { getRouteAlternatives } from '../services/routingService';
+import {
+  calculateSafetyScore,
+  evaluateRouteSafetyScore,
+} from '../services/safetyScore.service';
 
 export async function predict(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
@@ -291,3 +295,48 @@ export async function getPredictionById(req: AuthenticatedRequest, res: Response
     });
   }
 }
+
+/**
+ * Direct 6-Factor Safety Score Engine Evaluation Endpoint
+ * POST /api/safety/score
+ * Evaluates route safety using weighted 6-factor formula, Turf point sampling, and $geoNear lookups.
+ */
+export async function evaluateScore(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { factors, coordinates, departureTime, customWeights, coverageThreshold } = req.body;
+
+    if (coordinates && Array.isArray(coordinates) && coordinates.length > 0) {
+      const result = await evaluateRouteSafetyScore({
+        coordinates,
+        departureTime,
+        customFactors: factors,
+        customWeights,
+        coverageThreshold,
+      });
+
+      res.json({
+        success: true,
+        data: result,
+      });
+      return;
+    }
+
+    const result = calculateSafetyScore(factors || {}, {
+      customWeights,
+      coverageThreshold,
+    });
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
+    console.error('[SafetyController] Error evaluating safety score:', error);
+    res.status(500).json({
+      success: false,
+      message: error?.message || 'Failed to evaluate safety score',
+      code: 'SCORE_EVALUATION_ERROR',
+    });
+  }
+}
+

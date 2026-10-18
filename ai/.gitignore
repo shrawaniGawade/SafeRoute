@@ -5,3 +5,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# Raw Data Downloads (large files)
+data/raw/*
+!data/raw/.gitignore
+!data/raw/.gitkeep

@@ -5,7 +5,7 @@
 | **Phase / Day** | Phase 1 · Day 1 |
 | **Priority** | Must have |
 | **Labels** | `data`, `ai-ml`, `research` |
-| **Status** | ⬜ Not started |
+| **Status** | ✅ Done |
 | **Depends on** | — |
 | **Requirements** | ML-01, BRD §12.2 |
 
@@ -25,18 +25,18 @@ SafeRoute needs real data (crime, accidents, lighting, emergency places) to calc
 5. Decide which data is real and which is sample data (sample data is labelled in the app).
 
 ## Tasks
-- [ ] Choose the demo city (for example Chicago, or an Indian city with OSM data only)
-- [ ] Pick a crime or incident dataset (point level, at least 12 months, at least 10,000 rows)
-- [ ] Pick an accident dataset (same city if possible)
-- [ ] Plan the OSM data: `lit` tags, POIs, hospitals, police, fire stations
-- [ ] Save the raw files to `ai/data/raw/` (git-ignored)
-- [ ] Write `ai/data/README.md`: source, link, licence, period, row count
-- [ ] Decide the fallback: if no good data is found, use sample data and label it clearly
+- [x] Choose the demo city (for example Chicago, or an Indian city with OSM data only)
+- [x] Pick a crime or incident dataset (point level, at least 12 months, at least 10,000 rows)
+- [x] Pick an accident dataset (same city if possible)
+- [x] Plan the OSM data: `lit` tags, POIs, hospitals, police, fire stations
+- [x] Save the raw files to `ai/data/raw/` (git-ignored)
+- [x] Write `ai/data/README.md`: source, link, licence, period, row count
+- [x] Decide the fallback: if no good data is found, use sample data and label it clearly
 
 ## Acceptance Criteria
-- [ ] **Given** the chosen dataset, **when** I open `ai/data/README.md`, **then** I can see its source, licence, and period.
-- [ ] **Given** the dataset, **when** I load it, **then** every row has coordinates and a date.
-- [ ] **Given** no suitable dataset exists, **then** the fallback (sample data with labels) is written down.
+- [x] **Given** the chosen dataset, **when** I open `ai/data/README.md`, **then** I can see its source, licence, and period.
+- [x] **Given** the dataset, **when** I load it, **then** every row has coordinates and a date.
+- [x] **Given** no suitable dataset exists, **then** the fallback (sample data with labels) is written down.
 
 ## Technical Notes
 - Candidates: Chicago Crimes, UK police.uk, UK STATS19, NYC Collisions

@@ -94,8 +94,8 @@ jobs:
       - name: Python Syntax & Bytecode Compilation
         run: python -m py_compile app/main.py
 
-      - name: Run AI Safety & Random Forest Inference Tests
-        run: python tests/test_ai_service.py -v
+      - name: Run AI Safety & Dataset Verification Tests
+        run: python -m unittest discover -s tests -v
 
   full-stack-integration:
     name: Full-Stack Live Services Integration Test

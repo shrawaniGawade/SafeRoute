@@ -7,6 +7,7 @@ import {
   Shield,
   Layers
 } from 'lucide-react';
+import type { RouteAlternativeItem } from '../../services/api';
 import './RouteMap.css';
 
 interface RouteMapProps {
@@ -15,6 +16,10 @@ interface RouteMapProps {
   sourceCoords?: { lat: number; lng: number };
   destinationCoords?: { lat: number; lng: number };
   safetyScore?: number;
+  routes?: RouteAlternativeItem[];
+  selectedRouteId?: string;
+  onSelectRoute?: (routeId: string) => void;
+  // Backwards compatibility with previous interface
   selectedAlternative?: 'safe' | 'fastest';
   onSelectAlternative?: (alt: 'safe' | 'fastest') => void;
 }
@@ -25,6 +30,9 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   sourceCoords,
   destinationCoords,
   safetyScore = 88,
+  routes,
+  selectedRouteId,
+  onSelectRoute,
   selectedAlternative = 'safe',
   onSelectAlternative,
 }) => {
@@ -36,11 +44,41 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   const handleZoomOut = () => setZoomLevel((z) => Math.max(z - 0.25, 0.75));
   const handleReset = () => setZoomLevel(1);
 
-  // SVG Coordinates for city grid
-  // Origin Pin A: (120, 360)
-  // Destination Pin B: (680, 120)
-  // Safe Route Path: (120,360) -> (240, 360) -> (240, 220) -> (480, 220) -> (480, 120) -> (680, 120)
-  // Direct / Fastest Path: (120,360) -> (360, 360) -> (360, 260) -> (580, 260) -> (680, 120)
+  // Fallback route IDs if not provided
+  const routeAId = routes?.[0]?.id || 'alt_safe_corridor';
+  const routeBId = routes?.[1]?.id || 'alt_balanced_transit';
+  const routeCId = routes?.[2]?.id || 'alt_direct_shortcut';
+
+  // Determine current active selection
+  const currentSelectedId =
+    selectedRouteId ||
+    (selectedAlternative === 'fastest' ? routeCId : routeAId);
+
+  const isRouteASelected = currentSelectedId === routeAId;
+  const isRouteBSelected = currentSelectedId === routeBId;
+  const isRouteCSelected = currentSelectedId === routeCId;
+
+  const handleSelect = (id: string) => {
+    if (onSelectRoute) {
+      onSelectRoute(id);
+    }
+    if (onSelectAlternative) {
+      onSelectAlternative(
+        id === routeCId || id.includes('shortcut') || id.includes('fastest')
+          ? 'fastest'
+          : 'safe'
+      );
+    }
+  };
+
+  // Determine which routes to render (if 1 route returned by provider, only render Route A)
+  const totalRoutesCount = routes && routes.length > 0 ? routes.length : 3;
+  const renderRouteB = totalRoutesCount >= 2;
+  const renderRouteC = totalRoutesCount >= 3;
+
+  // Selected route metadata for overlay
+  const selectedRouteObj = routes?.find((r) => r.id === currentSelectedId) || routes?.[0];
+  const selectedRouteDisplayName = selectedRouteObj?.name || (isRouteASelected ? 'Primary Safe Corridor (Route A)' : isRouteBSelected ? 'Balanced Transit Avenue (Route B)' : 'Direct Shortcut (Route C)');
 
   return (
     <div className="route-map-container" role="region" aria-label="Interactive Route Safety Map">
@@ -66,11 +104,12 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         </button>
         <button
           type="button"
-          className={`map-layer-chip ${selectedAlternative === 'safe' ? 'active' : ''}`}
-          onClick={() => onSelectAlternative?.('safe')}
+          className={`map-layer-chip ${isRouteASelected ? 'active' : ''}`}
+          onClick={() => handleSelect(routeAId)}
+          title="Select Route A (Safest Corridor)"
         >
           <Layers size={14} />
-          <span>Safest Route ({safetyScore}/100)</span>
+          <span>Route A ({selectedRouteObj?.safety_score || safetyScore}/100)</span>
         </button>
       </div>
 
@@ -135,6 +174,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         <path d="M 0 360 L 800 360" stroke="#1e293b" strokeWidth="14" />
         <path d="M 120 0 L 120 480" stroke="#1e293b" strokeWidth="14" />
         <path d="M 240 0 L 240 480" stroke="#1e293b" strokeWidth="16" />
+        <path d="M 360 0 L 360 480" stroke="#1e293b" strokeWidth="14" />
         <path d="M 480 0 L 480 480" stroke="#1e293b" strokeWidth="16" />
         <path d="M 680 0 L 680 480" stroke="#1e293b" strokeWidth="14" />
 
@@ -183,34 +223,92 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           </g>
         )}
 
-        {/* Alternative Route B (Direct / Unlit Shortcut) */}
-        <path
-          d="M 120 360 L 360 360 L 360 260 L 580 260 L 680 120"
-          fill="none"
-          stroke="#f59e0b"
-          strokeWidth={selectedAlternative === 'fastest' ? '7' : '4'}
-          strokeDasharray="6 6"
-          opacity={selectedAlternative === 'fastest' ? '1' : '0.55'}
-          cursor="pointer"
-          onClick={() => onSelectAlternative?.('fastest')}
-        />
+        {/* Route C: Direct Shortcut (Fastest / Higher Risk) */}
+        {renderRouteC && (
+          <g id="route-c-group">
+            {/* Transparent click target */}
+            <path
+              d="M 120 360 L 360 360 L 360 260 L 580 260 L 680 120"
+              fill="none"
+              stroke="transparent"
+              strokeWidth="24"
+              cursor="pointer"
+              onClick={() => handleSelect(routeCId)}
+            />
+            {/* Visible styled line: selected is thicker (8px) with glow */}
+            <path
+              d="M 120 360 L 360 360 L 360 260 L 580 260 L 680 120"
+              fill="none"
+              stroke="#f59e0b"
+              strokeWidth={isRouteCSelected ? '8' : '4'}
+              strokeDasharray="6 6"
+              filter={isRouteCSelected ? 'url(#neon-glow)' : undefined}
+              opacity={isRouteCSelected ? '1' : '0.55'}
+              cursor="pointer"
+              onClick={() => handleSelect(routeCId)}
+            />
+          </g>
+        )}
 
-        {/* Primary Safe Route A (Evaluated Safe Corridor) */}
-        <path
-          d="M 120 360 L 240 360 L 240 220 L 480 220 L 480 120 L 680 120"
-          fill="none"
-          stroke="#087f8c"
-          strokeWidth={selectedAlternative === 'safe' ? '8' : '5'}
-          filter="url(#neon-glow)"
-          cursor="pointer"
-          onClick={() => onSelectAlternative?.('safe')}
-        />
-        <path
-          d="M 120 360 L 240 360 L 240 220 L 480 220 L 480 120 L 680 120"
-          fill="none"
-          stroke="#38bdf8"
-          strokeWidth="3"
-        />
+        {/* Route B: Balanced Active Avenue */}
+        {renderRouteB && (
+          <g id="route-b-group">
+            {/* Transparent click target */}
+            <path
+              d="M 120 360 L 120 220 L 360 220 L 360 120 L 680 120"
+              fill="none"
+              stroke="transparent"
+              strokeWidth="24"
+              cursor="pointer"
+              onClick={() => handleSelect(routeBId)}
+            />
+            {/* Visible styled line: selected is thicker (8px) with glow */}
+            <path
+              d="M 120 360 L 120 220 L 360 220 L 360 120 L 680 120"
+              fill="none"
+              stroke="#8b5cf6"
+              strokeWidth={isRouteBSelected ? '8' : '4'}
+              strokeDasharray="10 4"
+              filter={isRouteBSelected ? 'url(#neon-glow)' : undefined}
+              opacity={isRouteBSelected ? '1' : '0.6'}
+              cursor="pointer"
+              onClick={() => handleSelect(routeBId)}
+            />
+          </g>
+        )}
+
+        {/* Route A: Primary Safe Corridor (Recommended) */}
+        <g id="route-a-group">
+          {/* Transparent click target */}
+          <path
+            d="M 120 360 L 240 360 L 240 220 L 480 220 L 480 120 L 680 120"
+            fill="none"
+            stroke="transparent"
+            strokeWidth="24"
+            cursor="pointer"
+            onClick={() => handleSelect(routeAId)}
+          />
+          {/* Outer glow stroke: selected is thicker (8px) with neon glow */}
+          <path
+            d="M 120 360 L 240 360 L 240 220 L 480 220 L 480 120 L 680 120"
+            fill="none"
+            stroke="#087f8c"
+            strokeWidth={isRouteASelected ? '8' : '4'}
+            filter={isRouteASelected ? 'url(#neon-glow)' : undefined}
+            opacity={isRouteASelected ? '1' : '0.65'}
+            cursor="pointer"
+            onClick={() => handleSelect(routeAId)}
+          />
+          {/* Inner core stroke */}
+          <path
+            d="M 120 360 L 240 360 L 240 220 L 480 220 L 480 120 L 680 120"
+            fill="none"
+            stroke="#38bdf8"
+            strokeWidth={isRouteASelected ? '3' : '1.5'}
+            cursor="pointer"
+            onClick={() => handleSelect(routeAId)}
+          />
+        </g>
 
         {/* Origin Marker A */}
         <g transform="translate(120, 360)">
@@ -253,20 +351,28 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           {destinationCoords && <span className="coords-pill">({destinationCoords.lat.toFixed(4)}, {destinationCoords.lng.toFixed(4)})</span>}
         </div>
         <div className="status-route-meta">
-          Showing: {selectedAlternative === 'safe' ? 'SafeRoute Primary Corridor' : 'Direct Alternative'} &bull; Illumination: 92% &bull; CCTV Active
+          Active: <strong>{selectedRouteDisplayName}</strong> &bull; Illumination: {selectedRouteObj?.factors?.lighting ? `${selectedRouteObj.factors.lighting * 10}%` : '92%'} &bull; CCTV Monitored
         </div>
       </div>
 
       {/* Map Legend */}
       <div className="map-legend">
-        <div className="legend-item">
+        <div className="legend-item" onClick={() => handleSelect(routeAId)} style={{ cursor: 'pointer' }}>
           <div className="legend-color-line safe"></div>
-          <span>Primary Safe Corridor</span>
+          <span style={{ fontWeight: isRouteASelected ? 700 : 400 }}>Route A (Safe Corridor)</span>
         </div>
-        <div className="legend-item">
-          <div className="legend-color-line alt"></div>
-          <span>Direct Shortcut (Moderate Risk)</span>
-        </div>
+        {renderRouteB && (
+          <div className="legend-item" onClick={() => handleSelect(routeBId)} style={{ cursor: 'pointer' }}>
+            <div className="legend-color-line balanced" style={{ background: '#8b5cf6', boxShadow: isRouteBSelected ? '0 0 8px #8b5cf6' : 'none' }}></div>
+            <span style={{ fontWeight: isRouteBSelected ? 700 : 400 }}>Route B (Balanced Transit)</span>
+          </div>
+        )}
+        {renderRouteC && (
+          <div className="legend-item" onClick={() => handleSelect(routeCId)} style={{ cursor: 'pointer' }}>
+            <div className="legend-color-line alt" style={{ boxShadow: isRouteCSelected ? '0 0 8px #f59e0b' : 'none' }}></div>
+            <span style={{ fontWeight: isRouteCSelected ? 700 : 400 }}>Route C (Direct Shortcut)</span>
+          </div>
+        )}
         <div className="legend-item">
           <div className="legend-color-dot light"></div>
           <span>Continuous Streetlighting</span>

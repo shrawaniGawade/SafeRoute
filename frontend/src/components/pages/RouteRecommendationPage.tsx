@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import {
   Clock,
-  Navigation,
   SlidersHorizontal,
   ShieldCheck,
   AlertTriangle,
   RotateCw,
   Sparkles,
-  ChevronRight,
   Footprints,
   Car
 } from 'lucide-react';
 import { RouteMap } from '../common/RouteMap';
-import { ScoreBadge } from '../common/ScoreBadge';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { LocationInput } from '../common/LocationInput';
-import { predictRouteSafety, type SafetyInput, type SafetyResult } from '../../services/api';
+import { RouteList } from '../routes/RouteList';
+import { predictRouteSafety, type SafetyInput, type SafetyResult, type RouteAlternativeItem } from '../../services/api';
 import { usePredictions } from '../../context/PredictionContext';
 import { useAuth } from '../../context/AuthContext';
 import './RouteRecommendationPage.css';
@@ -45,7 +43,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedAlt, setSelectedAlt] = useState<'safe' | 'fastest'>('safe');
+  const [selectedRouteId, setSelectedRouteId] = useState<string>('alt_safe_corridor');
 
   // Handle Preset Changes
   const handleSelectPreset = (preset: 'night' | 'commute' | 'maximum' | 'custom') => {
@@ -133,6 +131,9 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
         factors,
         result,
       });
+      if (result.alternatives && result.alternatives.length > 0) {
+        setSelectedRouteId(result.alternatives[0].id);
+      }
       showToast('Route safety score successfully evaluated!', 'success');
     } catch (err: any) {
       setError(err?.message || 'Could not connect to AI safety engine. Please verify the backend service.');
@@ -142,6 +143,83 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
   };
 
   const activeResult = currentPrediction?.result;
+
+  const defaultDemoRoutes: RouteAlternativeItem[] = [
+    {
+      id: 'alt_safe_corridor',
+      letter: 'A',
+      name: 'Route A: Primary Safe Corridor (Recommended)',
+      summary: 'Via Well-Lit Commercial Avenue & Active Pedestrian Corridor',
+      type: 'safe_corridor',
+      safety_score: activeResult?.safety_score || 88,
+      rating: 'Optimal Safety (Low Risk)',
+      isRecommended: true,
+      isNavigable: false,
+      distanceText: travelMode === 'driving' ? '2.1 km' : '1.8 km',
+      durationText: travelMode === 'driving' ? '7 mins' : '22 mins',
+      color: '#087f8c',
+      factors: {
+        lighting: lighting || 9,
+        crime_risk: crimeRisk || 1,
+        accident_risk: accidentRisk || 2,
+        crowd_level: crowdLevel || 8,
+        emergency_proximity: 8.5,
+      },
+      safetyAttributes: ['High Municipal Lighting', 'Active Foot Traffic', 'Safe Haven Nearby'],
+      caveats: ['Prioritizes personal security over shortest transit distance.'],
+    },
+    {
+      id: 'alt_balanced_transit',
+      letter: 'B',
+      name: 'Route B: Balanced Transit Avenue',
+      summary: 'Via Mixed Commercial Boulevard & Monitored Public Transit Links',
+      type: 'balanced_transit',
+      safety_score: Math.max((activeResult?.safety_score || 88) - 14, 68),
+      rating: 'Moderate Caution (Balanced)',
+      isRecommended: false,
+      isNavigable: false,
+      distanceText: travelMode === 'driving' ? '1.8 km' : '1.6 km',
+      durationText: travelMode === 'driving' ? '6 mins' : '19 mins',
+      color: '#8b5cf6',
+      factors: {
+        lighting: Math.max(1, (lighting || 9) - 2),
+        crime_risk: Math.min(10, (crimeRisk || 1) + 2),
+        accident_risk: Math.min(10, (accidentRisk || 2) + 1),
+        crowd_level: Math.max(1, (crowdLevel || 8) - 2),
+        emergency_proximity: 7.0,
+      },
+      safetyAttributes: ['Active Transit Arteries', 'Steady Streetlighting'],
+      caveats: ['Intermittent quiet zones between commercial blocks.'],
+    },
+    {
+      id: 'alt_direct_shortcut',
+      letter: 'C',
+      name: 'Route C: Direct Shortcut (Fastest / Higher Risk)',
+      summary: 'Traverses unmonitored back alleys and industrial cut-throughs',
+      type: 'direct_shortcut',
+      safety_score: Math.max((activeResult?.safety_score || 88) - 36, 48),
+      rating: 'Elevated Risk (Dark Zones)',
+      isRecommended: false,
+      isNavigable: false,
+      distanceText: travelMode === 'driving' ? '1.5 km' : '1.4 km',
+      durationText: travelMode === 'driving' ? '5 mins' : '16 mins',
+      color: '#f59e0b',
+      factors: {
+        lighting: Math.max(1, (lighting || 9) - 5),
+        crime_risk: Math.min(10, (crimeRisk || 1) + 4.5),
+        accident_risk: Math.min(10, (accidentRisk || 2) + 2.5),
+        crowd_level: Math.max(1, (crowdLevel || 8) - 5),
+        emergency_proximity: 4.5,
+      },
+      safetyAttributes: ['Shortest direct linear displacement'],
+      caveats: ['Diminished streetlighting with dark zones.', 'Isolated during late hours.'],
+    },
+  ];
+
+  const currentRoutes: RouteAlternativeItem[] =
+    activeResult?.alternatives && activeResult.alternatives.length > 0
+      ? activeResult.alternatives
+      : defaultDemoRoutes;
 
   return (
     <div className="route-page-grid">
@@ -428,8 +506,9 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
               sourceCoords={sourceCoords}
               destinationCoords={destCoords}
               safetyScore={activeResult?.safety_score || 88}
-              selectedAlternative={selectedAlt}
-              onSelectAlternative={(alt) => setSelectedAlt(alt)}
+              routes={currentRoutes}
+              selectedRouteId={selectedRouteId}
+              onSelectRoute={(id) => setSelectedRouteId(id)}
             />
 
             {/* Navigability & Safety Policy Disclaimer */}
@@ -462,118 +541,14 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
               </p>
             </div>
 
-            {/* Route Alternatives Selection */}
-            <div className="alternatives-container">
-              {/* Alternative 1: Primary Safe Route */}
-              <div
-                className={`alternative-card ${selectedAlt === 'safe' ? 'selected' : ''}`}
-                onClick={() => setSelectedAlt('safe')}
-              >
-                <div className="alt-meta-block">
-                  <div className="alt-route-icon safe">
-                    <ShieldCheck size={22} />
-                  </div>
-                  <div className="alt-details">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <h4>
-                        {activeResult?.alternatives?.[0]?.name ||
-                          'Primary Safe Corridor (Recommended)'}
-                      </h4>
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          padding: '2px 8px',
-                          borderRadius: '12px',
-                          background: '#e0f2fe',
-                          color: '#0369a1',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {activeResult?.alternatives?.[0]?.distanceText || 'Demo (1.8 km)'} &bull;{' '}
-                        {activeResult?.alternatives?.[0]?.durationText || '22 mins'}
-                      </span>
-                    </div>
-                    <p>
-                      {activeResult?.alternatives?.[0]?.summary ||
-                        'Via Lit Commercial Avenue • High foot traffic & CCTV coverage'}
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <ScoreBadge score={activeResult?.safety_score || 88} size="md" />
-                  <button
-                    type="button"
-                    className="view-details-link-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onNavigate('prediction-details');
-                    }}
-                  >
-                    <span>Full Audit</span>
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Alternative 2: Direct Shortcut */}
-              <div
-                className={`alternative-card ${selectedAlt === 'fastest' ? 'selected' : ''}`}
-                onClick={() => setSelectedAlt('fastest')}
-              >
-                <div className="alt-meta-block">
-                  <div className="alt-route-icon">
-                    <Navigation size={22} />
-                  </div>
-                  <div className="alt-details">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <h4>
-                        {activeResult?.alternatives?.[1]?.name ||
-                          'Direct Shortcut Alternative'}
-                      </h4>
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          padding: '2px 8px',
-                          borderRadius: '12px',
-                          background: '#fef3c7',
-                          color: '#b45309',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {activeResult?.alternatives?.[1]?.distanceText || 'Demo (1.4 km)'} &bull;{' '}
-                        {activeResult?.alternatives?.[1]?.durationText || '17 mins'}
-                      </span>
-                    </div>
-                    <p>
-                      {activeResult?.alternatives?.[1]?.summary ||
-                        'Shorter distance but traverses unmonitored backstreets with diminished lighting'}
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <ScoreBadge
-                    score={
-                      activeResult?.alternatives?.[1]?.safety_score ||
-                      Math.max((activeResult?.safety_score || 88) - 24, 45)
-                    }
-                    size="md"
-                  />
-                  <button
-                    type="button"
-                    className="view-details-link-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onNavigate('prediction-details');
-                    }}
-                  >
-                    <span>Full Audit</span>
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
+            {/* Modular Route Alternatives List with Bidirectional Selection & Single-Route Notice */}
+            <RouteList
+              routes={currentRoutes}
+              selectedRouteId={selectedRouteId}
+              onSelectRoute={(id) => setSelectedRouteId(id)}
+              onNavigateDetails={() => onNavigate('prediction-details')}
+              className="routes-sidebar"
+            />
 
             {/* AI Scoring Logic Explanation */}
             {activeResult?.scoring_explanation && (

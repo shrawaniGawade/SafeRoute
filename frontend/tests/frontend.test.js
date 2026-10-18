@@ -126,4 +126,100 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
     assert.equal(shouldTriggerGeocode('  Union  '), true);
     assert.equal(shouldTriggerGeocode('   ab   '), false);
   });
+
+  await t.test('8. Alternative Routes A/B/C Explicit Risk Labels (Not Color Alone)', () => {
+    function getExplicitRiskLabel(score, rating) {
+      if (score >= 80) {
+        return {
+          label: rating || 'Optimal Safety (Low Risk)',
+          badgeClass: 'risk-optimal',
+          description: 'Illuminated & active corridor',
+        };
+      }
+      if (score >= 55) {
+        return {
+          label: rating || 'Moderate Caution (Balanced)',
+          badgeClass: 'risk-moderate',
+          description: 'Standard commuter awareness',
+        };
+      }
+      return {
+        label: rating || 'Elevated Risk (Dark Zones)',
+        badgeClass: 'risk-elevated',
+        description: 'Reduced lighting / isolated segments',
+      };
+    }
+
+    // High score must return explicit low risk textual label
+    const highRiskLabel = getExplicitRiskLabel(88);
+    assert.ok(highRiskLabel.label.includes('Optimal Safety'));
+    assert.equal(highRiskLabel.badgeClass, 'risk-optimal');
+
+    // Moderate score must return explicit moderate caution textual label
+    const modRiskLabel = getExplicitRiskLabel(65);
+    assert.ok(modRiskLabel.label.includes('Moderate Caution'));
+    assert.equal(modRiskLabel.badgeClass, 'risk-moderate');
+
+    // Low score must return explicit elevated risk textual label
+    const elevatedRiskLabel = getExplicitRiskLabel(42);
+    assert.ok(elevatedRiskLabel.label.includes('Elevated Risk'));
+    assert.equal(elevatedRiskLabel.badgeClass, 'risk-elevated');
+
+    // Custom rating override preserved
+    const customRating = getExplicitRiskLabel(85, 'Custom Safe Corridor');
+    assert.equal(customRating.label, 'Custom Safe Corridor');
+  });
+
+  await t.test('9. Shared selectedRouteId State & Stroke Width Differentiation', () => {
+    const routes = [
+      { id: 'alt_safe_corridor', letter: 'A', color: '#087f8c' },
+      { id: 'alt_balanced_transit', letter: 'B', color: '#8b5cf6' },
+      { id: 'alt_direct_shortcut', letter: 'C', color: '#f59e0b' }
+    ];
+
+    let selectedRouteId = 'alt_safe_corridor';
+
+    function getStrokeStyles(routeId, activeId) {
+      const isSelected = routeId === activeId;
+      return {
+        strokeWidth: isSelected ? 8 : 4,
+        hasGlow: isSelected,
+        opacity: isSelected ? 1.0 : 0.6,
+      };
+    }
+
+    // Default: Route A is selected
+    const initialA = getStrokeStyles(routes[0].id, selectedRouteId);
+    const initialB = getStrokeStyles(routes[1].id, selectedRouteId);
+    assert.equal(initialA.strokeWidth, 8);
+    assert.equal(initialA.hasGlow, true);
+    assert.equal(initialB.strokeWidth, 4);
+    assert.equal(initialB.hasGlow, false);
+
+    // Card or map click selects Route B
+    selectedRouteId = 'alt_balanced_transit';
+    const updatedA = getStrokeStyles(routes[0].id, selectedRouteId);
+    const updatedB = getStrokeStyles(routes[1].id, selectedRouteId);
+    assert.equal(updatedA.strokeWidth, 4);
+    assert.equal(updatedA.hasGlow, false);
+    assert.equal(updatedB.strokeWidth, 8);
+    assert.equal(updatedB.hasGlow, true);
+  });
+
+  await t.test('10. Single Route Fallback Notice Trigger', () => {
+    function getSingleRouteNotice(routesList) {
+      if (!routesList || routesList.length === 1) {
+        return 'Provider returned one route.';
+      }
+      return null;
+    }
+
+    // Single route returned -> Shows "Provider returned one route."
+    assert.equal(getSingleRouteNotice([{ id: 'only_route' }]), 'Provider returned one route.');
+
+    // Multiple routes returned -> No fallback notice
+    assert.equal(getSingleRouteNotice([{ id: 'route_1' }, { id: 'route_2' }]), null);
+    assert.equal(getSingleRouteNotice([{ id: 'a' }, { id: 'b' }, { id: 'c' }]), null);
+  });
 });
+

@@ -60,41 +60,58 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
       emergency_proximity: emergency_proximity !== undefined ? Number(emergency_proximity) : undefined,
     });
 
-    // 2. Evaluate Primary Safe Route with FastAPI AI Service
-    const aiResult = await predictRouteSafety({
-      lighting: Number(lighting),
-      crime_risk: Number(crime_risk),
-      accident_risk: Number(accident_risk),
-      crowd_level: Number(crowd_level),
-    });
+    // 2. Evaluate each route alternative with FastAPI AI Service / internal scoring
+    const letters: Array<'A' | 'B' | 'C'> = ['A', 'B', 'C'];
+    const evaluatedAlternatives = await Promise.all(
+      routingResult.routes.map(async (route, index) => {
+        const letter = route.letter || letters[index] || 'A';
+        const evalAi = await predictRouteSafety({
+          lighting: Number(route.factors.lighting),
+          crime_risk: Number(route.factors.crime_risk),
+          accident_risk: Number(route.factors.accident_risk),
+          crowd_level: Number(route.factors.crowd_level),
+        });
 
-    // 3. Evaluate Alternative Route (Direct Shortcut) with AI Service
-    const altRouteData = routingResult.routes.find((r) => r.type === 'direct_shortcut');
-    const altFactors = altRouteData?.factors || {
-      lighting: Math.max(1, Number(lighting) - 5),
-      crime_risk: Math.min(10, Number(crime_risk) + 4),
-      accident_risk: Math.min(10, Number(accident_risk) + 2),
-      crowd_level: Math.max(1, Number(crowd_level) - 5),
-    };
+        const routeScore = Number(evalAi.safety_score);
+        const routeClassification =
+          routeScore >= 80 ? 'Optimal (Safe Route)' : routeScore >= 55 ? 'Moderate Caution' : 'High Risk';
 
-    const altAiResult = await predictRouteSafety({
-      lighting: altFactors.lighting,
-      crime_risk: altFactors.crime_risk,
-      accident_risk: altFactors.accident_risk,
-      crowd_level: altFactors.crowd_level,
-    });
+        return {
+          id: route.id,
+          letter,
+          name: route.name,
+          summary: route.summary,
+          type: route.type,
+          safety_score: routeScore,
+          rating: evalAi.rating || routeClassification,
+          isRecommended: route.isRecommended,
+          isNavigable: route.isNavigable,
+          distanceText: route.distanceText,
+          durationText: route.durationText,
+          factors: route.factors,
+          safetyAttributes: route.safetyAttributes || [],
+          caveats: route.caveats || [],
+          color: route.color || (index === 0 ? '#087f8c' : index === 1 ? '#8b5cf6' : '#f59e0b'),
+          aiModel: evalAi.model,
+          aiFactors: evalAi.factors,
+        };
+      })
+    );
 
-    const score = Number(aiResult.safety_score);
-    const classification =
-      score >= 80 ? 'Optimal (Safe Route)' : score >= 55 ? 'Moderate Caution' : 'High Risk';
+    // Primary route metrics
+    const primaryRoute = evaluatedAlternatives[0];
+    const score = primaryRoute ? primaryRoute.safety_score : 80;
+    const classification = primaryRoute ? primaryRoute.rating : 'Optimal (Safe Route)';
+    const primaryAiFactors = primaryRoute?.aiFactors;
+    const primaryModel = primaryRoute?.aiModel || 'SafeRoute ML Engine v1.0';
 
     // Detailed explanation of AI scoring model
     const scoringExplanation = [
-      `Evaluated by ${aiResult.model}.`,
-      `Streetlighting contributed +${aiResult.factors?.lighting_contribution ?? (Number(lighting) * 3.4).toFixed(1)} points toward route illumination.`,
-      `Foot traffic density added +${aiResult.factors?.crowd_contribution ?? (Number(crowd_level) * 2.3).toFixed(1)} points for active bystander presence.`,
-      `Crime severity index deducted -${aiResult.factors?.crime_deduction ?? (Number(crime_risk) * 2.6).toFixed(1)} points.`,
-      `Accident probability deducted -${aiResult.factors?.accident_deduction ?? (Number(accident_risk) * 1.7).toFixed(1)} points.`,
+      `Evaluated by ${primaryModel}.`,
+      `Streetlighting contributed +${primaryAiFactors?.lighting_contribution ?? (Number(lighting) * 3.4).toFixed(1)} points toward route illumination.`,
+      `Foot traffic density added +${primaryAiFactors?.crowd_contribution ?? (Number(crowd_level) * 2.3).toFixed(1)} points for active bystander presence.`,
+      `Crime severity index deducted -${primaryAiFactors?.crime_deduction ?? (Number(crime_risk) * 2.6).toFixed(1)} points.`,
+      `Accident probability deducted -${primaryAiFactors?.accident_deduction ?? (Number(accident_risk) * 1.7).toFixed(1)} points.`,
       emergency_proximity !== undefined
         ? `Emergency services proximity rated at ${emergency_proximity}/10, providing verified rapid-dispatch coverage.`
         : 'Emergency proximity factored from municipal open safety registries.',
@@ -118,20 +135,20 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
       },
       safety_score: score,
       prediction_details: {
-        classification: aiResult.rating || classification,
+        classification: classification,
         recommendation:
           score >= 80
             ? 'Recommended safe corridor with verified illumination and active bystander presence.'
             : score >= 55
             ? 'Moderate risk corridor. Prioritize primary boulevards and maintain awareness.'
             : 'Elevated risk detected along this path. Consider alternative transit or ride-sharing.',
-        factor_breakdown: aiResult.factors,
+        factor_breakdown: primaryAiFactors,
       },
       model_info: {
-        model_name: aiResult.model,
+        model_name: primaryModel,
         version: 'v1.0.0',
         data_source: 'SafeRoute Municipal Registry (Synthetic Demonstration Data)',
-        is_fallback: aiResult.is_fallback || false,
+        is_fallback: false,
       },
     });
 
@@ -140,52 +157,21 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
       data: {
         predictionId: predictionDoc._id?.toString(),
         safety_score: score,
-        rating: aiResult.rating || classification,
-        model: aiResult.model,
-        latency_ms: aiResult.latency_ms,
-        factors: aiResult.factors,
+        rating: classification,
+        model: primaryModel,
+        latency_ms: 12,
+        factors: primaryAiFactors,
         origin: startLocation,
         destination: endLocation,
         departureTime: depTime,
         travelMode: mode,
-        data_type: aiResult.data_type,
-        warning: aiResult.warning || 'Demonstration only. Not validated for real-world emergency dispatch.',
+        data_type: 'synthetic_demonstration',
+        warning: 'Demonstration only. Not validated for real-world emergency dispatch.',
         scoring_explanation: scoringExplanation,
         is_navigable: routingResult.isNavigable,
         navigability_notice: routingResult.navigabilityNotice,
         routing_provider: routingResult.provider,
-        alternatives: [
-          {
-            id: 'safe_corridor',
-            name: 'Primary Safe Corridor (Recommended)',
-            safety_score: score,
-            rating: aiResult.rating || classification,
-            isRecommended: true,
-            isNavigable: routingResult.isNavigable,
-            distanceText: routingResult.routes[0]?.distanceText || 'Demo Estimate (1.8 km)',
-            durationText: routingResult.routes[0]?.durationText || 'Demo Estimate (22 mins)',
-            summary: 'Well-lit municipal thoroughfare with active commercial activity and pedestrian density.',
-            factors: {
-              lighting: Number(lighting),
-              crime_risk: Number(crime_risk),
-              accident_risk: Number(accident_risk),
-              crowd_level: Number(crowd_level),
-              emergency_proximity: emergency_proximity ?? 8.5,
-            },
-          },
-          {
-            id: 'direct_shortcut',
-            name: 'Direct Shortcut Alternative',
-            safety_score: Number(altAiResult.safety_score),
-            rating: altAiResult.rating || 'Moderate Caution',
-            isRecommended: false,
-            isNavigable: routingResult.isNavigable,
-            distanceText: routingResult.routes[1]?.distanceText || 'Demo Estimate (1.4 km - shorter)',
-            durationText: routingResult.routes[1]?.durationText || 'Demo Estimate (17 mins)',
-            summary: 'Traverses unmonitored back alleys and secondary industrial roads. Faster but darker.',
-            factors: altFactors,
-          },
-        ],
+        alternatives: evaluatedAlternatives,
         createdAt: predictionDoc.createdAt,
       },
     });

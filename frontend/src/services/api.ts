@@ -17,6 +17,7 @@ export interface SafetyInput {
 
 export interface RouteAlternativeItem {
   id: string;
+  letter?: 'A' | 'B' | 'C' | string;
   name: string;
   safety_score: number;
   rating: string;
@@ -25,6 +26,10 @@ export interface RouteAlternativeItem {
   distanceText: string;
   durationText: string;
   summary: string;
+  color?: string;
+  type?: 'safe_corridor' | 'balanced_transit' | 'direct_shortcut' | string;
+  safetyAttributes?: string[];
+  caveats?: string[];
   factors: {
     lighting: number;
     crime_risk: number;

@@ -367,6 +367,11 @@ describe('SafeRoute Backend API Endpoints Test Suite', () => {
       assert.ok(body.data.predictionId, 'Must return a predictionId');
       assert.ok(body.data.safety_score >= 0 && body.data.safety_score <= 100);
       assert.ok(body.data.rating);
+      assert.strictEqual(Array.isArray(body.data.alternatives), true);
+      assert.strictEqual(body.data.alternatives.length, 3);
+      assert.strictEqual(body.data.alternatives[0].letter, 'A');
+      assert.strictEqual(body.data.alternatives[1].letter, 'B');
+      assert.strictEqual(body.data.alternatives[2].letter, 'C');
       createdPredictionId = body.data.predictionId;
     });
 

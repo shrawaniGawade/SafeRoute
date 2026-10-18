@@ -12,6 +12,8 @@ import './RouteMap.css';
 interface RouteMapProps {
   source?: string;
   destination?: string;
+  sourceCoords?: { lat: number; lng: number };
+  destinationCoords?: { lat: number; lng: number };
   safetyScore?: number;
   selectedAlternative?: 'safe' | 'fastest';
   onSelectAlternative?: (alt: 'safe' | 'fastest') => void;
@@ -20,6 +22,8 @@ interface RouteMapProps {
 export const RouteMap: React.FC<RouteMapProps> = ({
   source = '742 Evergreen Terrace',
   destination = 'Springfield Central Station',
+  sourceCoords,
+  destinationCoords,
   safetyScore = 88,
   selectedAlternative = 'safe',
   onSelectAlternative,
@@ -210,23 +214,43 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
         {/* Origin Marker A */}
         <g transform="translate(120, 360)">
-          <circle r="16" fill="rgba(8, 127, 140, 0.3)" className="pulse-ring" />
-          <circle r="10" fill="#087f8c" stroke="#ffffff" strokeWidth="2.5" />
+          <circle r="18" fill="rgba(8, 127, 140, 0.35)" className="pulse-ring" />
+          <circle r="11" fill="#087f8c" stroke="#ffffff" strokeWidth="2.5" />
           <text textAnchor="middle" y="4" fill="#ffffff" fontSize="10" fontWeight="bold">A</text>
+          {source && (
+            <g transform="translate(0, -20)">
+              <rect x="-60" y="-16" width="120" height="18" rx="4" fill="#0f172a" opacity="0.85" />
+              <text textAnchor="middle" y="-4" fill="#38bdf8" fontSize="9" fontWeight="600">
+                {source.split(',')[0].slice(0, 18)}
+              </text>
+            </g>
+          )}
         </g>
 
         {/* Destination Marker B */}
         <g transform="translate(680, 120)">
-          <circle r="16" fill="rgba(16, 185, 129, 0.3)" className="pulse-ring" />
-          <circle r="10" fill="#10b981" stroke="#ffffff" strokeWidth="2.5" />
+          <circle r="18" fill="rgba(16, 185, 129, 0.35)" className="pulse-ring" />
+          <circle r="11" fill="#10b981" stroke="#ffffff" strokeWidth="2.5" />
           <text textAnchor="middle" y="4" fill="#ffffff" fontSize="10" fontWeight="bold">B</text>
+          {destination && (
+            <g transform="translate(0, -20)">
+              <rect x="-60" y="-16" width="120" height="18" rx="4" fill="#0f172a" opacity="0.85" />
+              <text textAnchor="middle" y="-4" fill="#34d399" fontSize="9" fontWeight="600">
+                {destination.split(',')[0].slice(0, 18)}
+              </text>
+            </g>
+          )}
         </g>
       </svg>
 
       {/* Floating Status Overlay */}
       <div className="map-status-overlay">
         <div className="status-route-name">
-          <span>{source || 'Starting Location'}</span> &rarr; <span>{destination || 'Destination'}</span>
+          <span>{source || 'Starting Location'}</span>
+          {sourceCoords && <span className="coords-pill">({sourceCoords.lat.toFixed(4)}, {sourceCoords.lng.toFixed(4)})</span>}
+          &nbsp;&rarr;&nbsp;
+          <span>{destination || 'Destination'}</span>
+          {destinationCoords && <span className="coords-pill">({destinationCoords.lat.toFixed(4)}, {destinationCoords.lng.toFixed(4)})</span>}
         </div>
         <div className="status-route-meta">
           Showing: {selectedAlternative === 'safe' ? 'SafeRoute Primary Corridor' : 'Direct Alternative'} &bull; Illumination: 92% &bull; CCTV Active

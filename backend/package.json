@@ -5,7 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "build": "tsc",
-    "test": "tsx --test --test-force-exit src/tests/auth.test.ts src/tests/admin.test.ts src/tests/database.test.ts src/tests/api.test.ts src/tests/e2e.test.ts",
+    "test": "tsx --test --test-force-exit src/tests/auth.test.ts src/tests/admin.test.ts src/tests/database.test.ts src/tests/api.test.ts src/tests/geocode.test.ts src/tests/e2e.test.ts",
     "db:init": "tsx src/config/initDatabase.ts",
     "admin:bootstrap": "tsx src/scripts/bootstrapAdmin.ts",
     "dev": "tsx watch src/server.ts",

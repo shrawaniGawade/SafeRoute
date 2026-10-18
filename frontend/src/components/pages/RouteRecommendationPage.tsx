@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  MapPin,
   Clock,
   Navigation,
   SlidersHorizontal,
@@ -15,6 +14,7 @@ import {
 import { RouteMap } from '../common/RouteMap';
 import { ScoreBadge } from '../common/ScoreBadge';
 import { LoadingSpinner } from '../common/LoadingSpinner';
+import { LocationInput } from '../common/LocationInput';
 import { predictRouteSafety, type SafetyInput, type SafetyResult } from '../../services/api';
 import { usePredictions } from '../../context/PredictionContext';
 import { useAuth } from '../../context/AuthContext';
@@ -30,6 +30,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
 
   const [source, setSource] = useState(currentPrediction?.source || 'North Station, Boston, MA');
   const [destination, setDestination] = useState(currentPrediction?.destination || 'Boston Public Library, MA');
+  const [sourceCoords, setSourceCoords] = useState<{ lat: number; lng: number } | undefined>();
+  const [destCoords, setDestCoords] = useState<{ lat: number; lng: number } | undefined>();
   const [departureTime, setDepartureTime] = useState(currentPrediction?.departureTime || 'Now');
   const [travelMode, setTravelMode] = useState<'walking' | 'driving'>(currentPrediction?.travelMode === 'driving' ? 'driving' : 'walking');
   const [profile, setProfile] = useState<'night' | 'commute' | 'maximum' | 'custom'>('night');
@@ -75,12 +77,33 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
     const temp = source;
     setSource(destination);
     setDestination(temp);
+    const tempCoords = sourceCoords;
+    setSourceCoords(destCoords);
+    setDestCoords(tempCoords);
+    if (error) setError('');
   };
+
+  const isSameLocation = Boolean(
+    source.trim() &&
+    destination.trim() &&
+    source.trim().toLowerCase() === destination.trim().toLowerCase()
+  );
+
+  const isFormValid = Boolean(
+    source.trim() &&
+    destination.trim() &&
+    !isSameLocation
+  );
 
   const handleEvaluate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!source.trim() || !destination.trim()) {
       setError('Please provide both starting point and destination.');
+      return;
+    }
+
+    if (source.trim().toLowerCase() === destination.trim().toLowerCase()) {
+      setError('Choose two different locations');
       return;
     }
 
@@ -149,44 +172,78 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             </div>
           )}
 
-          <div className="route-input-field">
-            <label htmlFor="route-source">Origin / Start Location</label>
-            <div className="route-input-wrapper">
-              <MapPin className="route-field-icon" size={18} />
-              <input
-                id="route-source"
-                type="text"
-                value={source}
-                onChange={(e) => setSource(e.target.value)}
-                placeholder="e.g. 100 Main St, Downtown"
-                required
-              />
+          {isSameLocation && (
+            <div
+              className="location-duplicate-warning"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                background: '#fffbeb',
+                border: '1px solid #fde047',
+                color: '#854d0e',
+                fontSize: '13px',
+                fontWeight: 500,
+              }}
+              role="alert"
+            >
+              <AlertTriangle size={16} />
+              <span>Choose two different locations</span>
             </div>
-          </div>
+          )}
 
-          <button
-            type="button"
-            className="swap-locations-btn"
-            onClick={handleSwap}
-            title="Swap Origin and Destination"
-            aria-label="Swap starting location and destination"
-          >
-            <RotateCw size={14} />
-          </button>
+          <div className="location-inputs-cluster">
+            <LocationInput
+              id="route-source"
+              label="Origin / Start Location"
+              value={source}
+              onChange={(val, coords) => {
+                setSource(val);
+                if (coords) setSourceCoords(coords);
+                if (error) setError('');
+              }}
+              onSelectLocation={(loc) => {
+                setSource(loc.displayName);
+                setSourceCoords({ lat: loc.lat, lng: loc.lng });
+                if (error) setError('');
+              }}
+              placeholder="Search origin (e.g. Central Station)..."
+              icon="origin"
+              required
+            />
 
-          <div className="route-input-field">
-            <label htmlFor="route-dest">Destination</label>
-            <div className="route-input-wrapper">
-              <Navigation className="route-field-icon" size={18} />
-              <input
-                id="route-dest"
-                type="text"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                placeholder="e.g. University Campus, Hall B"
-                required
-              />
+            <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0' }}>
+              <button
+                type="button"
+                className="swap-locations-btn"
+                onClick={handleSwap}
+                title="Swap Origin and Destination"
+                aria-label="Swap starting location and destination"
+              >
+                <RotateCw size={14} />
+              </button>
             </div>
+
+            <LocationInput
+              id="route-dest"
+              label="Destination"
+              value={destination}
+              onChange={(val, coords) => {
+                setDestination(val);
+                if (coords) setDestCoords(coords);
+                if (error) setError('');
+              }}
+              onSelectLocation={(loc) => {
+                setDestination(loc.displayName);
+                setDestCoords({ lat: loc.lat, lng: loc.lng });
+                if (error) setError('');
+              }}
+              placeholder="Search destination (e.g. Millennium Park)..."
+              icon="destination"
+              required
+            />
           </div>
 
           {/* Time & Travel Mode Row */}
@@ -335,14 +392,14 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
           <button
             type="submit"
             className="evaluate-action-btn"
-            disabled={loading}
+            disabled={loading || !isFormValid}
           >
             {loading ? (
               <span>Evaluating Safety Factors...</span>
             ) : (
               <>
                 <Sparkles size={18} />
-                <span>Calculate Safe Route</span>
+                <span>Find Safe Routes</span>
               </>
             )}
           </button>
@@ -368,6 +425,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             <RouteMap
               source={source}
               destination={destination}
+              sourceCoords={sourceCoords}
+              destinationCoords={destCoords}
               safetyScore={activeResult?.safety_score || 88}
               selectedAlternative={selectedAlt}
               onSelectAlternative={(alt) => setSelectedAlt(alt)}

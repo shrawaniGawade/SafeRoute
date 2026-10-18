@@ -23,6 +23,7 @@ import { predictRouteSafety, type SafetyInput, type SafetyResult } from '../serv
 import { ScoreBadge } from './common/ScoreBadge';
 import { EmptyState } from './common/EmptyState';
 import { LoadingSpinner } from './common/LoadingSpinner';
+import { LocationInput } from './common/LocationInput';
 import './UserDashboard.css';
 
 interface UserDashboardProps {
@@ -59,10 +60,27 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     }
   };
 
+  const isSameLocation = Boolean(
+    source.trim() &&
+    destination.trim() &&
+    source.trim().toLowerCase() === destination.trim().toLowerCase()
+  );
+
+  const isFormValid = Boolean(
+    source.trim() &&
+    destination.trim() &&
+    !isSameLocation
+  );
+
   const handleQuickEvaluate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!source.trim() || !destination.trim()) {
       setError('Please provide both starting point and destination.');
+      return;
+    }
+
+    if (source.trim().toLowerCase() === destination.trim().toLowerCase()) {
+      setError('Choose two different locations');
       return;
     }
 
@@ -245,35 +263,39 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           </div>
 
           <form onSubmit={handleQuickEvaluate} className="quick-route-form">
-            <div className="quick-input-group">
-              <label htmlFor="dash-source">Starting Location</label>
-              <div className="quick-input-wrapper">
-                <MapPin size={16} color="#087f8c" />
-                <input
-                  id="dash-source"
-                  type="text"
-                  placeholder="e.g., North Station, Boston"
-                  value={source}
-                  onChange={(e) => setSource(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
+            <LocationInput
+              id="dash-source"
+              label="Starting Location"
+              value={source}
+              onChange={(val) => {
+                setSource(val);
+                if (error) setError('');
+              }}
+              onSelectLocation={(loc) => {
+                setSource(loc.displayName);
+                if (error) setError('');
+              }}
+              placeholder="Search starting location..."
+              icon="origin"
+              required
+            />
 
-            <div className="quick-input-group">
-              <label htmlFor="dash-dest">Destination</label>
-              <div className="quick-input-wrapper">
-                <MapPin size={16} color="#0284c7" />
-                <input
-                  id="dash-dest"
-                  type="text"
-                  placeholder="e.g., Back Bay Station, Boston"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
+            <LocationInput
+              id="dash-dest"
+              label="Destination"
+              value={destination}
+              onChange={(val) => {
+                setDestination(val);
+                if (error) setError('');
+              }}
+              onSelectLocation={(loc) => {
+                setDestination(loc.displayName);
+                if (error) setError('');
+              }}
+              placeholder="Search destination..."
+              icon="destination"
+              required
+            />
 
             <div className="quick-input-group">
               <label>Safety Priority Preset</label>
@@ -305,6 +327,27 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               </div>
             </div>
 
+            {isSameLocation && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: '#fffbeb',
+                  border: '1px solid #fde047',
+                  color: '#854d0e',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                }}
+                role="alert"
+              >
+                <AlertTriangle size={16} />
+                <span>Choose two different locations</span>
+              </div>
+            )}
+
             {error && (
               <div
                 style={{
@@ -325,7 +368,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               <button
                 type="submit"
                 className="btn-evaluate"
-                disabled={loading}
+                disabled={loading || !isFormValid}
               >
                 <Sparkles size={16} />
                 <span>{loading ? 'Evaluating Model...' : 'Calculate Safety Score'}</span>

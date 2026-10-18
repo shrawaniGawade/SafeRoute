@@ -24,6 +24,11 @@ export const ENV = {
   RESEND_API_KEY: process.env.RESEND_API_KEY || '',
   EMAIL_FROM: process.env.EMAIL_FROM || process.env.SMTP_FROM || 'SafeRoute Security <onboarding@resend.dev>',
 
+  NOMINATIM: {
+    BASE_URL: process.env.NOMINATIM_BASE_URL || 'https://nominatim.openstreetmap.org/search',
+    USER_AGENT: process.env.NOMINATIM_USER_AGENT || 'SafeRoute/1.0 (contact: info@saferoute.local)',
+  },
+
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   AI_SERVICE_URL: process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000',
   IS_PRODUCTION: process.env.NODE_ENV === 'production',

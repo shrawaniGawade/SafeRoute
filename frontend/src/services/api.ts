@@ -285,3 +285,45 @@ export async function deleteAdminUser(userId: string): Promise<void> {
     throw new Error(errorData.message || 'Failed to delete user');
   }
 }
+
+export interface GeocodeResult {
+  placeId: string;
+  name: string;
+  displayName: string;
+  lat: number;
+  lng: number;
+  type: string;
+  importance?: number;
+  address?: {
+    road?: string;
+    suburb?: string;
+    city?: string;
+    state?: string;
+    postcode?: string;
+    country?: string;
+  };
+}
+
+/**
+ * Searches places / addresses using backend geocoding proxy
+ */
+export async function geocodeLocations(query: string, limit = 5): Promise<GeocodeResult[]> {
+  const q = query.trim();
+  if (q.length < 3) return [];
+
+  const url = getApiUrl(`/geocode?q=${encodeURIComponent(q)}&limit=${limit}`);
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 400) return [];
+    throw new Error(`Location search failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.results || [];
+}

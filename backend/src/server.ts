@@ -18,6 +18,7 @@ import safetyRoutes from './routes/safetyRoutes';
 import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
 import routeHistoryRoutes from './routes/routeHistoryRoutes';
+import geocodingRoutes from './routes/geocodingRoutes';
 
 // Direct controller for root /health
 import { getHealth } from './controllers/healthController';
@@ -92,6 +93,7 @@ app.use('/api/safety', safetyRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/routes', routeHistoryRoutes);
+app.use('/api/geocode', geocodingRoutes);
 
 // Catch-all 404 handler for undefined routes
 app.use(notFoundHandler);

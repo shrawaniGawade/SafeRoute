@@ -5,7 +5,7 @@
 | **Phase / Day** | Phase 3 · Day 3 |
 | **Priority** | Must have |
 | **Labels** | `map`, `frontend`, `backend` |
-| **Status** | ⬜ Not started |
+| **Status** | ✅ Done |
 | **Depends on** | ISSUE-07 |
 | **Requirements** | FR-2.1, FR-2.2 · FRD F2.1 |
 
@@ -25,19 +25,19 @@ Users type a place name such as "Central Station", and the app finds its locatio
 5. The **Find Safe Routes** button becomes active.
 
 ## Tasks
-- [ ] Backend `services/geocoding.service.ts` (Nominatim)
-- [ ] `GET /api/geocode?q=` with Zod validation and caching
-- [ ] Respect the Nominatim limit (1 request per second) and send a proper User-Agent
-- [ ] Frontend `LocationInput` component with debounce and a dropdown
-- [ ] Keyboard support (up/down arrows, Enter, Esc)
-- [ ] "Use my location" button (optional)
-- [ ] Validation: both filled, and From ≠ To
+- [x] Backend `services/geocoding.service.ts` (Nominatim)
+- [x] `GET /api/geocode?q=` with Zod validation and caching
+- [x] Respect the Nominatim limit (1 request per second) and send a proper User-Agent
+- [x] Frontend `LocationInput` component with debounce and a dropdown
+- [x] Keyboard support (up/down arrows, Enter, Esc)
+- [x] "Use my location" button (optional)
+- [x] Validation: both filled, and From ≠ To
 
 ## Acceptance Criteria
-- [ ] **Given** I type "Cent", **then** I see matching suggestions.
-- [ ] **Given** I pick a suggestion, **then** a marker appears at that place.
-- [ ] **Given** no results, **then** I see "No places found".
-- [ ] **Given** the same place in both boxes, **then** I see "Choose two different locations".
+- [x] **Given** I type "Cent", **then** I see matching suggestions.
+- [x] **Given** I pick a suggestion, **then** a marker appears at that place.
+- [x] **Given** no results, **then** I see "No places found".
+- [x] **Given** the same place in both boxes, **then** I see "Choose two different locations".
 
 ## Technical Notes
 - Geocoding runs on the backend, which keeps API rules and caching in one place

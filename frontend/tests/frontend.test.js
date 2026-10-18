@@ -79,4 +79,51 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
     assert.ok(breakpoints.tablet < breakpoints.desktop);
     assert.equal(breakpoints.mobileLarge, 640);
   });
+
+  await t.test('6. Location Input Validation & From != To Constraints', () => {
+    function validateLocations(origin, destination) {
+      const orig = (origin || '').trim();
+      const dest = (destination || '').trim();
+
+      if (!orig || !dest) {
+        return { valid: false, error: 'Please provide both starting point and destination.' };
+      }
+      if (orig.toLowerCase() === dest.toLowerCase()) {
+        return { valid: false, error: 'Choose two different locations' };
+      }
+      return { valid: true };
+    }
+
+    // Both filled and distinct -> valid
+    const okCase = validateLocations('Central Station, Chicago', 'Millennium Park, Chicago');
+    assert.equal(okCase.valid, true);
+
+    // Missing destination -> invalid
+    const missingDest = validateLocations('Central Station', '');
+    assert.equal(missingDest.valid, false);
+    assert.match(missingDest.error, /Please provide both starting point/);
+
+    // Identical locations -> "Choose two different locations" (Acceptance Criteria)
+    const samePlace = validateLocations('Central Station', 'Central Station');
+    assert.equal(samePlace.valid, false);
+    assert.equal(samePlace.error, 'Choose two different locations');
+
+    // Case-insensitive duplicate check
+    const caseInsensitiveSame = validateLocations('the loop, chicago', 'THE LOOP, CHICAGO');
+    assert.equal(caseInsensitiveSame.valid, false);
+    assert.equal(caseInsensitiveSame.error, 'Choose two different locations');
+  });
+
+  await t.test('7. Geocoding Debounce and Query Rules', () => {
+    function shouldTriggerGeocode(query) {
+      return typeof query === 'string' && query.trim().length >= 3;
+    }
+
+    assert.equal(shouldTriggerGeocode(''), false);
+    assert.equal(shouldTriggerGeocode('C'), false);
+    assert.equal(shouldTriggerGeocode('Ce'), false);
+    assert.equal(shouldTriggerGeocode('Cent'), true);
+    assert.equal(shouldTriggerGeocode('  Union  '), true);
+    assert.equal(shouldTriggerGeocode('   ab   '), false);
+  });
 });

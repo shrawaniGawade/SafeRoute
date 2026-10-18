@@ -1,5 +1,6 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import mongoose from 'mongoose';
 import { connectDB, checkDBHealth, disconnectDB } from '../config/db';
 import { User } from '../models/User';
 import { SafetyPrediction } from '../models/SafetyPrediction';
@@ -10,6 +11,12 @@ describe('SafeRoute Database Layer — Unit, Schema & Integration Tests', () => 
   before(async () => {
     // Attempt database connection (gracefully falls back if mongod not running)
     await connectDB();
+    if (mongoose.connection.readyState === 1) {
+      try {
+        await User.init();
+        await SafetyPrediction.init();
+      } catch (_) {}
+    }
   });
 
   // --------------------------------------------------------------------------

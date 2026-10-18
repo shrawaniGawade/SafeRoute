@@ -5,7 +5,7 @@
 | **Phase / Day** | Phase 5 · Day 5 |
 | **Priority** | Must have |
 | **Labels** | `data`, `backend`, `database` |
-| **Status** | ⬜ Not started |
+| **Status** | ✅ Completed |
 | **Depends on** | ISSUE-02 |
 | **Requirements** | BRD §12, SRS §6 |
 
@@ -25,18 +25,19 @@ The safety score needs data saved in the database: where crimes and accidents ha
 5. The database can now answer queries like "find records within 250 m of this point".
 
 ## Tasks
-- [ ] `models/SafetyRecord.ts`: `location, factor, value (0–100), source, isSample, updatedAt`
-- [ ] `models/EmergencyLocation.ts`: `name, type, location, phone?, source`
-- [ ] Add `2dsphere` indexes on `location`
-- [ ] `scripts/seedSafetyData.ts`: import crime, accident, and lighting data
-- [ ] `scripts/seedEmergency.ts`: import hospitals, police, and fire stations from Overpass
-- [ ] Add an npm script: `npm run seed`
+- [x] `models/SafetyRecord.ts`: `location, factor, value (0–100), source, isSample, updatedAt`
+- [x] `models/EmergencyLocation.ts`: `name, type, location, phone?, source`
+- [x] Add `2dsphere` indexes on `location`
+- [x] `scripts/seedSafetyData.ts`: import crime, accident, and lighting data
+- [x] `scripts/seedEmergency.ts`: import hospitals, police, and fire stations from Overpass
+- [x] Add an npm script: `npm run seed`
 
 ## Acceptance Criteria
-- [ ] **Given** I run `npm run seed`, **then** the records appear in MongoDB.
-- [ ] **Given** a point, **when** I run a `$geoNear` query, **then** nearby records are returned.
-- [ ] **Given** simulated data, **then** it has `isSample: true`.
+- [x] **Given** I run `npm run seed`, **then** the records appear in MongoDB.
+- [x] **Given** a point, **when** I run a `$geoNear` query, **then** nearby records are returned.
+- [x] **Given** simulated data, **then** it has `isSample: true`.
 
 ## Technical Notes
 - GeoJSON coordinates use **[longitude, latitude]** order
 - The seed script must be safe to run more than once (upsert, no duplicates)
+

@@ -131,12 +131,53 @@ export interface InMemoryAuditLogDoc {
   createdAt: Date;
 }
 
+export interface InMemorySafetyRecordDoc {
+  _id: string;
+  location: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  factor: string;
+  value: number;
+  source: string;
+  isSample: boolean;
+  externalId?: string;
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+  save(): Promise<InMemorySafetyRecordDoc>;
+  toJSON(): Record<string, any>;
+  toObject(): Record<string, any>;
+}
+
+export interface InMemoryEmergencyLocationDoc {
+  _id: string;
+  name: string;
+  type: 'hospital' | 'police' | 'fire_station' | 'emergency_care' | 'other';
+  location: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  phone?: string;
+  source: string;
+  osmId?: string;
+  address?: string;
+  isSample?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  save(): Promise<InMemoryEmergencyLocationDoc>;
+  toJSON(): Record<string, any>;
+  toObject(): Record<string, any>;
+}
+
 const usersMap = new Map<string, InMemoryUserDoc>();
 const otpsMap = new Map<string, InMemoryOtpDoc>();
 const refreshTokensMap = new Map<string, InMemoryRefreshTokenDoc>();
 const predictionsMap = new Map<string, InMemorySafetyPredictionDoc>();
 const routeHistoriesMap = new Map<string, InMemoryRouteHistoryDoc>();
 const auditLogsMap = new Map<string, InMemoryAuditLogDoc>();
+const safetyRecordsMap = new Map<string, InMemorySafetyRecordDoc>();
+const emergencyLocationsMap = new Map<string, InMemoryEmergencyLocationDoc>();
 
 export const memoryUser = {
   findOne(query: { email?: string; _id?: any }) {
@@ -738,3 +779,691 @@ export const memoryAuditLog = {
     return results.length;
   },
 };
+
+// ============================================================================
+// GEOSPATIAL HELPER (HAVERSINE DISTANCE IN METERS)
+// ============================================================================
+function calculateHaversineMeters(
+  lon1: number,
+  lat1: number,
+  lon2: number,
+  lat2: number
+): number {
+  const r = 6371000.0; // Earth radius in meters
+  const dLat = ((lat2 - lat1) * Math.PI) / 180.0;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180.0;
+  const a =
+    Math.sin(dLat / 2.0) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180.0) *
+      Math.cos((lat2 * Math.PI) / 180.0) *
+      Math.sin(dLon / 2.0) ** 2;
+  const c = 2.0 * Math.atan2(Math.sqrt(a), Math.sqrt(1.0 - a));
+  return Math.round(r * c * 10) / 10;
+}
+
+function matchDoc(doc: any, query: any): boolean {
+  if (!query || Object.keys(query).length === 0) return true;
+  for (const [key, expected] of Object.entries(query)) {
+    if (key === '$or' && Array.isArray(expected)) {
+      const orMatched = expected.some((cond) => matchDoc(doc, cond));
+      if (!orMatched) return false;
+      continue;
+    }
+    if (key === '$and' && Array.isArray(expected)) {
+      const andMatched = expected.every((cond) => matchDoc(doc, cond));
+      if (!andMatched) return false;
+      continue;
+    }
+    const actual = doc[key];
+    if (expected && typeof expected === 'object' && !Array.isArray(expected) && !(expected instanceof Date)) {
+      const expObj = expected as Record<string, any>;
+      if ('$in' in expObj && Array.isArray(expObj.$in)) {
+        if (!expObj.$in.includes(actual)) return false;
+      } else if ('$nin' in expObj && Array.isArray(expObj.$nin)) {
+        if (!expObj.$nin.includes(actual)) return false;
+      } else if ('$ne' in expObj) {
+        if (actual === expObj.$ne) return false;
+      } else if ('$gte' in expObj) {
+        if (actual < expObj.$gte) return false;
+      } else if ('$lte' in expObj) {
+        if (actual > expObj.$lte) return false;
+      } else if ('$gt' in expObj) {
+        if (actual <= expObj.$gt) return false;
+      } else if ('$lt' in expObj) {
+        if (actual >= expObj.$lt) return false;
+      }
+    } else {
+      if (actual !== expected) return false;
+    }
+  }
+  return true;
+}
+
+// ============================================================================
+// MEMORY SAFETY RECORD STORE
+// ============================================================================
+function validateSafetyRecordData(data: any): void {
+  const coords = data?.location?.coordinates;
+  if (
+    !data?.location ||
+    data.location.type !== 'Point' ||
+    !Array.isArray(coords) ||
+    coords.length !== 2 ||
+    typeof coords[0] !== 'number' ||
+    typeof coords[1] !== 'number' ||
+    isNaN(coords[0]) ||
+    isNaN(coords[1]) ||
+    coords[0] < -180 ||
+    coords[0] > 180 ||
+    coords[1] < -90 ||
+    coords[1] > 90
+  ) {
+    const err = new Error(
+      'SafetyRecord validation failed: Coordinates must be valid [longitude, latitude] where longitude is between -180 and 180, and latitude is between -90 and 90'
+    );
+    (err as any).name = 'ValidationError';
+    throw err;
+  }
+
+  if (!data.factor || typeof data.factor !== 'string' || !data.factor.trim()) {
+    const err = new Error('SafetyRecord validation failed: Safety factor category is required');
+    (err as any).name = 'ValidationError';
+    throw err;
+  }
+
+  if (typeof data.value !== 'number' || isNaN(data.value) || data.value < 0 || data.value > 100) {
+    const err = new Error('SafetyRecord validation failed: Factor value must be a number between 0 and 100');
+    (err as any).name = 'ValidationError';
+    throw err;
+  }
+
+  if (!data.source || typeof data.source !== 'string' || !data.source.trim()) {
+    const err = new Error('SafetyRecord validation failed: Data source is required');
+    (err as any).name = 'ValidationError';
+    throw err;
+  }
+}
+
+function createSafetyDoc(id: string, data: any): InMemorySafetyRecordDoc {
+  validateSafetyRecordData(data);
+  const now = new Date();
+  const doc: InMemorySafetyRecordDoc = {
+    _id: id,
+    location: {
+      type: 'Point',
+      coordinates: [data.location.coordinates[0], data.location.coordinates[1]],
+    },
+    factor: data.factor.trim(),
+    value: data.value,
+    source: data.source.trim(),
+    isSample: data.isSample !== undefined ? Boolean(data.isSample) : false,
+    externalId: data.externalId ? data.externalId.trim() : undefined,
+    metadata: data.metadata || {},
+    createdAt: data.createdAt ? new Date(data.createdAt) : now,
+    updatedAt: data.updatedAt ? new Date(data.updatedAt) : now,
+    async save(): Promise<InMemorySafetyRecordDoc> {
+      validateSafetyRecordData(this);
+      this.updatedAt = new Date();
+      safetyRecordsMap.set(this._id, this);
+      return this;
+    },
+    toJSON() {
+      return { ...this };
+    },
+    toObject() {
+      return { ...this };
+    },
+  };
+  return doc;
+}
+
+export const memorySafetyRecord = {
+  async init() {
+    return Promise.resolve();
+  },
+
+  async create(data: any): Promise<InMemorySafetyRecordDoc> {
+    const id = generateHexId();
+    const doc = createSafetyDoc(id, data);
+    safetyRecordsMap.set(id, doc);
+    return doc;
+  },
+
+  async insertMany(docs: any[]): Promise<InMemorySafetyRecordDoc[]> {
+    const created: InMemorySafetyRecordDoc[] = [];
+    for (const d of docs) {
+      const doc = await this.create(d);
+      created.push(doc);
+    }
+    return created;
+  },
+
+  find(query?: any) {
+    const listPromise = (async () => {
+      let results = Array.from(safetyRecordsMap.values());
+      if (query) {
+        results = results.filter((r) => matchDoc(r, query));
+      }
+      return results;
+    })();
+
+    const queryObj = {
+      lean: () => queryObj,
+      select: () => queryObj,
+      sort: () => queryObj,
+      limit: (count: number) => {
+        const limited = listPromise.then((res) => res.slice(0, count));
+        return Object.assign(limited, queryObj);
+      },
+      skip: (count: number) => {
+        const skipped = listPromise.then((res) => res.slice(count));
+        return Object.assign(skipped, queryObj);
+      },
+      then: listPromise.then.bind(listPromise),
+      catch: listPromise.catch.bind(listPromise),
+      finally: listPromise.finally.bind(listPromise),
+    };
+
+    return queryObj;
+  },
+
+  async findOne(query: any): Promise<InMemorySafetyRecordDoc | null> {
+    for (const r of safetyRecordsMap.values()) {
+      if (matchDoc(r, query)) {
+        return r;
+      }
+    }
+    return null;
+  },
+
+  async findOneAndUpdate(filter: any, update: any, options?: any): Promise<InMemorySafetyRecordDoc | null> {
+    let existing: InMemorySafetyRecordDoc | null = null;
+    for (const r of safetyRecordsMap.values()) {
+      if (matchDoc(r, filter)) {
+        existing = r;
+        break;
+      }
+    }
+
+    if (!existing && options?.upsert) {
+      const rawData = {
+        ...filter,
+        ...(update.$set || update),
+        ...(update.$setOnInsert || {}),
+      };
+      const id = generateHexId();
+      const newDoc = createSafetyDoc(id, rawData);
+      safetyRecordsMap.set(id, newDoc);
+      return newDoc;
+    }
+
+    if (existing) {
+      const patch = update.$set || update;
+      if (patch.location) existing.location = patch.location;
+      if (patch.factor !== undefined) existing.factor = patch.factor;
+      if (patch.value !== undefined) existing.value = patch.value;
+      if (patch.source !== undefined) existing.source = patch.source;
+      if (patch.isSample !== undefined) existing.isSample = patch.isSample;
+      if (patch.metadata !== undefined) existing.metadata = patch.metadata;
+      validateSafetyRecordData(existing);
+      existing.updatedAt = new Date();
+      safetyRecordsMap.set(existing._id, existing);
+      return existing;
+    }
+
+    return null;
+  },
+
+  async bulkWrite(ops: any[]): Promise<any> {
+    let matchedCount = 0;
+    let modifiedCount = 0;
+    let upsertedCount = 0;
+    const upsertedIds: Record<number, string> = {};
+
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i];
+      if (op.updateOne) {
+        const { filter, update, upsert } = op.updateOne;
+        let matched: InMemorySafetyRecordDoc | null = null;
+        for (const r of safetyRecordsMap.values()) {
+          if (matchDoc(r, filter)) {
+            matched = r;
+            break;
+          }
+        }
+        if (matched) {
+          matchedCount++;
+          const patch = update.$set || update;
+          if (patch.location) matched.location = patch.location;
+          if (patch.factor !== undefined) matched.factor = patch.factor;
+          if (patch.value !== undefined) matched.value = patch.value;
+          if (patch.source !== undefined) matched.source = patch.source;
+          if (patch.isSample !== undefined) matched.isSample = patch.isSample;
+          if (patch.metadata !== undefined) matched.metadata = patch.metadata;
+          matched.updatedAt = new Date();
+          safetyRecordsMap.set(matched._id, matched);
+          modifiedCount++;
+        } else if (upsert) {
+          const rawData = {
+            ...filter,
+            ...(update.$set || update),
+            ...(update.$setOnInsert || {}),
+          };
+          const id = generateHexId();
+          const newDoc = createSafetyDoc(id, rawData);
+          safetyRecordsMap.set(id, newDoc);
+          upsertedCount++;
+          upsertedIds[i] = id;
+        }
+      }
+    }
+
+    return {
+      ok: 1,
+      matchedCount,
+      modifiedCount,
+      upsertedCount,
+      upsertedIds,
+    };
+  },
+
+  async countDocuments(query?: any): Promise<number> {
+    if (!query || Object.keys(query).length === 0) {
+      return safetyRecordsMap.size;
+    }
+    let count = 0;
+    for (const r of safetyRecordsMap.values()) {
+      if (matchDoc(r, query)) count++;
+    }
+    return count;
+  },
+
+  async deleteMany(query?: any): Promise<{ deletedCount: number }> {
+    if (!query || Object.keys(query).length === 0) {
+      const count = safetyRecordsMap.size;
+      safetyRecordsMap.clear();
+      return { deletedCount: count };
+    }
+    let count = 0;
+    for (const [id, r] of safetyRecordsMap.entries()) {
+      if (matchDoc(r, query)) {
+        safetyRecordsMap.delete(id);
+        count++;
+      }
+    }
+    return { deletedCount: count };
+  },
+
+  async aggregate(pipeline: any[]): Promise<any[]> {
+    let records: any[] = Array.from(safetyRecordsMap.values()).map((r) => ({
+      _id: r._id,
+      location: { ...r.location, coordinates: [...r.location.coordinates] },
+      factor: r.factor,
+      value: r.value,
+      source: r.source,
+      isSample: r.isSample,
+      externalId: r.externalId,
+      metadata: r.metadata ? { ...r.metadata } : {},
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+
+    for (const stage of pipeline) {
+      if (stage.$geoNear) {
+        const geoNear = stage.$geoNear;
+        const targetCoords = geoNear.near?.coordinates || geoNear.near;
+        if (!Array.isArray(targetCoords) || targetCoords.length !== 2) {
+          throw new Error('$geoNear: near coordinates must be [longitude, latitude]');
+        }
+        const [targetLon, targetLat] = targetCoords;
+        const distanceField = geoNear.distanceField || 'distance';
+        const maxDistance = geoNear.maxDistance !== undefined ? geoNear.maxDistance : Infinity;
+        const minDistance = geoNear.minDistance !== undefined ? geoNear.minDistance : 0;
+
+        if (geoNear.query) {
+          records = records.filter((r) => matchDoc(r, geoNear.query));
+        }
+
+        const withDist = records.map((r) => {
+          const [rLon, rLat] = r.location.coordinates;
+          const dist = calculateHaversineMeters(targetLon, targetLat, rLon, rLat);
+          return {
+            ...r,
+            [distanceField]: dist,
+          };
+        });
+
+        records = withDist
+          .filter((r) => r[distanceField] >= minDistance && r[distanceField] <= maxDistance)
+          .sort((a, b) => a[distanceField] - b[distanceField]);
+      } else if (stage.$match) {
+        records = records.filter((r) => matchDoc(r, stage.$match));
+      } else if (stage.$limit) {
+        records = records.slice(0, stage.$limit);
+      } else if (stage.$skip) {
+        records = records.slice(stage.$skip);
+      }
+    }
+
+    return records;
+  },
+};
+
+// ============================================================================
+// MEMORY EMERGENCY LOCATION STORE
+// ============================================================================
+const VALID_EMERGENCY_TYPES = ['hospital', 'police', 'fire_station', 'emergency_care', 'other'];
+
+function validateEmergencyData(data: any): void {
+  if (!data.name || typeof data.name !== 'string' || !data.name.trim()) {
+    const err = new Error('EmergencyLocation validation failed: Facility name is required');
+    (err as any).name = 'ValidationError';
+    throw err;
+  }
+
+  if (!data.type || !VALID_EMERGENCY_TYPES.includes(data.type)) {
+    const err = new Error(
+      'EmergencyLocation validation failed: Type must be hospital, police, fire_station, emergency_care, or other'
+    );
+    (err as any).name = 'ValidationError';
+    throw err;
+  }
+
+  const coords = data?.location?.coordinates;
+  if (
+    !data?.location ||
+    data.location.type !== 'Point' ||
+    !Array.isArray(coords) ||
+    coords.length !== 2 ||
+    typeof coords[0] !== 'number' ||
+    typeof coords[1] !== 'number' ||
+    isNaN(coords[0]) ||
+    isNaN(coords[1]) ||
+    coords[0] < -180 ||
+    coords[0] > 180 ||
+    coords[1] < -90 ||
+    coords[1] > 90
+  ) {
+    const err = new Error('EmergencyLocation validation failed: Coordinates must be valid [longitude, latitude]');
+    (err as any).name = 'ValidationError';
+    throw err;
+  }
+
+  if (!data.source || typeof data.source !== 'string' || !data.source.trim()) {
+    const err = new Error('EmergencyLocation validation failed: Source identifier is required');
+    (err as any).name = 'ValidationError';
+    throw err;
+  }
+}
+
+function createEmergencyDoc(id: string, data: any): InMemoryEmergencyLocationDoc {
+  validateEmergencyData(data);
+  const now = new Date();
+  const doc: InMemoryEmergencyLocationDoc = {
+    _id: id,
+    name: data.name.trim(),
+    type: data.type,
+    location: {
+      type: 'Point',
+      coordinates: [data.location.coordinates[0], data.location.coordinates[1]],
+    },
+    phone: data.phone ? data.phone.trim() : undefined,
+    source: data.source ? data.source.trim() : 'openstreetmap',
+    osmId: data.osmId ? data.osmId.trim() : undefined,
+    address: data.address ? data.address.trim() : undefined,
+    isSample: data.isSample !== undefined ? Boolean(data.isSample) : false,
+    createdAt: data.createdAt ? new Date(data.createdAt) : now,
+    updatedAt: data.updatedAt ? new Date(data.updatedAt) : now,
+    async save(): Promise<InMemoryEmergencyLocationDoc> {
+      validateEmergencyData(this);
+      this.updatedAt = new Date();
+      emergencyLocationsMap.set(this._id, this);
+      return this;
+    },
+    toJSON() {
+      return { ...this };
+    },
+    toObject() {
+      return { ...this };
+    },
+  };
+  return doc;
+}
+
+export const memoryEmergencyLocation = {
+  async init() {
+    return Promise.resolve();
+  },
+
+  async create(data: any): Promise<InMemoryEmergencyLocationDoc> {
+    const id = generateHexId();
+    const doc = createEmergencyDoc(id, data);
+    emergencyLocationsMap.set(id, doc);
+    return doc;
+  },
+
+  async insertMany(docs: any[]): Promise<InMemoryEmergencyLocationDoc[]> {
+    const created: InMemoryEmergencyLocationDoc[] = [];
+    for (const d of docs) {
+      const doc = await this.create(d);
+      created.push(doc);
+    }
+    return created;
+  },
+
+  find(query?: any) {
+    const listPromise = (async () => {
+      let results = Array.from(emergencyLocationsMap.values());
+      if (query) {
+        results = results.filter((r) => matchDoc(r, query));
+      }
+      return results;
+    })();
+
+    const queryObj = {
+      lean: () => queryObj,
+      select: () => queryObj,
+      sort: () => queryObj,
+      limit: (count: number) => {
+        const limited = listPromise.then((res) => res.slice(0, count));
+        return Object.assign(limited, queryObj);
+      },
+      skip: (count: number) => {
+        const skipped = listPromise.then((res) => res.slice(count));
+        return Object.assign(skipped, queryObj);
+      },
+      then: listPromise.then.bind(listPromise),
+      catch: listPromise.catch.bind(listPromise),
+      finally: listPromise.finally.bind(listPromise),
+    };
+
+    return queryObj;
+  },
+
+  async findOne(query: any): Promise<InMemoryEmergencyLocationDoc | null> {
+    for (const r of emergencyLocationsMap.values()) {
+      if (matchDoc(r, query)) {
+        return r;
+      }
+    }
+    return null;
+  },
+
+  async findOneAndUpdate(filter: any, update: any, options?: any): Promise<InMemoryEmergencyLocationDoc | null> {
+    let existing: InMemoryEmergencyLocationDoc | null = null;
+    for (const r of emergencyLocationsMap.values()) {
+      if (matchDoc(r, filter)) {
+        existing = r;
+        break;
+      }
+    }
+
+    if (!existing && options?.upsert) {
+      const rawData = {
+        ...filter,
+        ...(update.$set || update),
+        ...(update.$setOnInsert || {}),
+      };
+      const id = generateHexId();
+      const newDoc = createEmergencyDoc(id, rawData);
+      emergencyLocationsMap.set(id, newDoc);
+      return newDoc;
+    }
+
+    if (existing) {
+      const patch = update.$set || update;
+      if (patch.name !== undefined) existing.name = patch.name;
+      if (patch.type !== undefined) existing.type = patch.type;
+      if (patch.location) existing.location = patch.location;
+      if (patch.phone !== undefined) existing.phone = patch.phone;
+      if (patch.source !== undefined) existing.source = patch.source;
+      if (patch.osmId !== undefined) existing.osmId = patch.osmId;
+      if (patch.address !== undefined) existing.address = patch.address;
+      if (patch.isSample !== undefined) existing.isSample = patch.isSample;
+      validateEmergencyData(existing);
+      existing.updatedAt = new Date();
+      emergencyLocationsMap.set(existing._id, existing);
+      return existing;
+    }
+
+    return null;
+  },
+
+  async bulkWrite(ops: any[]): Promise<any> {
+    let matchedCount = 0;
+    let modifiedCount = 0;
+    let upsertedCount = 0;
+    const upsertedIds: Record<number, string> = {};
+
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i];
+      if (op.updateOne) {
+        const { filter, update, upsert } = op.updateOne;
+        let matched: InMemoryEmergencyLocationDoc | null = null;
+        for (const r of emergencyLocationsMap.values()) {
+          if (matchDoc(r, filter)) {
+            matched = r;
+            break;
+          }
+        }
+        if (matched) {
+          matchedCount++;
+          const patch = update.$set || update;
+          if (patch.name !== undefined) matched.name = patch.name;
+          if (patch.type !== undefined) matched.type = patch.type;
+          if (patch.location) matched.location = patch.location;
+          if (patch.phone !== undefined) matched.phone = patch.phone;
+          if (patch.source !== undefined) matched.source = patch.source;
+          if (patch.osmId !== undefined) matched.osmId = patch.osmId;
+          if (patch.address !== undefined) matched.address = patch.address;
+          if (patch.isSample !== undefined) matched.isSample = patch.isSample;
+          matched.updatedAt = new Date();
+          emergencyLocationsMap.set(matched._id, matched);
+          modifiedCount++;
+        } else if (upsert) {
+          const rawData = {
+            ...filter,
+            ...(update.$set || update),
+            ...(update.$setOnInsert || {}),
+          };
+          const id = generateHexId();
+          const newDoc = createEmergencyDoc(id, rawData);
+          emergencyLocationsMap.set(id, newDoc);
+          upsertedCount++;
+          upsertedIds[i] = id;
+        }
+      }
+    }
+
+    return {
+      ok: 1,
+      matchedCount,
+      modifiedCount,
+      upsertedCount,
+      upsertedIds,
+    };
+  },
+
+  async countDocuments(query?: any): Promise<number> {
+    if (!query || Object.keys(query).length === 0) {
+      return emergencyLocationsMap.size;
+    }
+    let count = 0;
+    for (const r of emergencyLocationsMap.values()) {
+      if (matchDoc(r, query)) count++;
+    }
+    return count;
+  },
+
+  async deleteMany(query?: any): Promise<{ deletedCount: number }> {
+    if (!query || Object.keys(query).length === 0) {
+      const count = emergencyLocationsMap.size;
+      emergencyLocationsMap.clear();
+      return { deletedCount: count };
+    }
+    let count = 0;
+    for (const [id, r] of emergencyLocationsMap.entries()) {
+      if (matchDoc(r, query)) {
+        emergencyLocationsMap.delete(id);
+        count++;
+      }
+    }
+    return { deletedCount: count };
+  },
+
+  async aggregate(pipeline: any[]): Promise<any[]> {
+    let records: any[] = Array.from(emergencyLocationsMap.values()).map((r) => ({
+      _id: r._id,
+      name: r.name,
+      type: r.type,
+      location: { ...r.location, coordinates: [...r.location.coordinates] },
+      phone: r.phone,
+      source: r.source,
+      osmId: r.osmId,
+      address: r.address,
+      isSample: r.isSample,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+
+    for (const stage of pipeline) {
+      if (stage.$geoNear) {
+        const geoNear = stage.$geoNear;
+        const targetCoords = geoNear.near?.coordinates || geoNear.near;
+        if (!Array.isArray(targetCoords) || targetCoords.length !== 2) {
+          throw new Error('$geoNear: near coordinates must be [longitude, latitude]');
+        }
+        const [targetLon, targetLat] = targetCoords;
+        const distanceField = geoNear.distanceField || 'distance';
+        const maxDistance = geoNear.maxDistance !== undefined ? geoNear.maxDistance : Infinity;
+        const minDistance = geoNear.minDistance !== undefined ? geoNear.minDistance : 0;
+
+        if (geoNear.query) {
+          records = records.filter((r) => matchDoc(r, geoNear.query));
+        }
+
+        const withDist = records.map((r) => {
+          const [rLon, rLat] = r.location.coordinates;
+          const dist = calculateHaversineMeters(targetLon, targetLat, rLon, rLat);
+          return {
+            ...r,
+            [distanceField]: dist,
+          };
+        });
+
+        records = withDist
+          .filter((r) => r[distanceField] >= minDistance && r[distanceField] <= maxDistance)
+          .sort((a, b) => a[distanceField] - b[distanceField]);
+      } else if (stage.$match) {
+        records = records.filter((r) => matchDoc(r, stage.$match));
+      } else if (stage.$limit) {
+        records = records.slice(0, stage.$limit);
+      } else if (stage.$skip) {
+        records = records.slice(stage.$skip);
+      }
+    }
+
+    return records;
+  },
+};
+

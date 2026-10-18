@@ -5,9 +5,12 @@
   "main": "src/server.ts",
   "scripts": {
     "build": "tsc",
-    "test": "tsx --test --test-force-exit src/tests/auth.test.ts src/tests/admin.test.ts src/tests/database.test.ts src/tests/api.test.ts src/tests/geocode.test.ts src/tests/routing.test.ts src/tests/e2e.test.ts",
+    "test": "tsx --test --test-force-exit src/tests/auth.test.ts src/tests/admin.test.ts src/tests/database.test.ts src/tests/api.test.ts src/tests/geocode.test.ts src/tests/routing.test.ts src/tests/e2e.test.ts src/tests/safetyData.test.ts",
     "db:init": "tsx src/config/initDatabase.ts",
     "admin:bootstrap": "tsx src/scripts/bootstrapAdmin.ts",
+    "seed": "tsx src/scripts/seed.ts",
+    "seed:safety": "tsx src/scripts/seedSafetyData.ts",
+    "seed:emergency": "tsx src/scripts/seedEmergency.ts",
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts"
   },

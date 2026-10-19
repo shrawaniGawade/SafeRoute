@@ -288,6 +288,91 @@
   color: #cbd5e1;
 }
 
+/* Recommendation Reason Strip (FRD F3.4) */
+.route-recommendation-reason-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.route-recommendation-reason-strip .recommendation-sparkle-icon {
+  color: #15803d;
+  flex-shrink: 0;
+}
+
+/* Recommendation Summary Banner (AC 3 & AC 4 / FR-5.4, FR-5.5) */
+.recommendation-summary-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  transition: all 0.2s ease;
+}
+
+.recommendation-summary-banner.recommended {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.recommendation-summary-banner.warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.recommendation-summary-banner .banner-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.recommendation-summary-banner.recommended .banner-icon-box {
+  color: #15803d;
+}
+
+.recommendation-summary-banner.warning .banner-icon-box {
+  color: #b45309;
+}
+
+.recommendation-summary-banner .banner-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recommendation-summary-banner .banner-text-content strong {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.recommendation-summary-banner.recommended .banner-text-content strong {
+  color: #14532d;
+}
+
+.recommendation-summary-banner.warning .banner-text-content strong {
+  color: #78350f;
+}
+
+.recommendation-summary-banner .banner-text-content span {
+  font-size: 12.5px;
+  color: inherit;
+  opacity: 0.95;
+}
+
 /* Caution Strip */
 .route-caution-strip {
   display: flex;

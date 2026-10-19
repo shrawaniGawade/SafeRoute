@@ -25,7 +25,10 @@ export const predictSafetySchema = z.object({
   emergency_proximity: z.coerce.number().min(0).max(10).optional(),
   travelMode: z.enum(['walking', 'driving', 'transit']).default('walking').optional(),
   clientRequestId: z.string().trim().optional(),
-});
+  maxDetour: z.union([z.number(), z.record(z.string(), z.any())]).optional(),
+  maxDetourMinutes: z.number().optional(),
+  preferences: z.record(z.string(), z.any()).optional(),
+}).passthrough();
 
 export const safetyHistoryQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1).optional(),

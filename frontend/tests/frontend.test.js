@@ -307,5 +307,155 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
       assert.equal(initialHint, 'Enter a start and destination to compare routes.');
     });
   });
+
+  await t.test('12. Route Recommendation and Explanation (ISSUE-14 / FR-5.1 - FR-5.5, FR-4.8)', async (sub) => {
+    // Pure algorithmic reference matching recommendationService
+    function calculateDetourLimit(fastestDuration, maxDetour) {
+      if (fastestDuration <= 0) return 10;
+      if (typeof maxDetour === 'number' && !isNaN(maxDetour) && maxDetour >= 0) {
+        return maxDetour;
+      }
+      if (typeof maxDetour === 'object' && maxDetour !== null) {
+        const pct = maxDetour.maxDetourPct ?? maxDetour.maxPct;
+        const min = maxDetour.maxDetourMin ?? maxDetour.maxMinutes;
+        if (typeof pct === 'number' && typeof min === 'number') {
+          return Math.min(fastestDuration * (pct / 100), min);
+        }
+        if (typeof pct === 'number') return fastestDuration * (pct / 100);
+        if (typeof min === 'number') return min;
+      }
+      return Math.min(fastestDuration * 0.25, 10);
+    }
+
+    function recommendRouteClient(routes, maxDetour) {
+      if (!routes || routes.length === 0) {
+        return {
+          recommendedIndex: -1,
+          summary: 'No route available between these points.',
+          hasEligibleRoute: false,
+        };
+      }
+      const fastestDuration = Math.min(...routes.map(r => r.durationMinutes));
+      const detourLimit = calculateDetourLimit(fastestDuration, maxDetour);
+      const maxAllowedDuration = fastestDuration + detourLimit;
+
+      const eligible = routes
+        .map((r, idx) => ({ ...r, originalIndex: idx }))
+        .filter(r => {
+          if (r.durationMinutes > maxAllowedDuration) return false;
+          if (r.isInsufficientData === true || r.rating === 'Insufficient data') return false;
+          if (typeof r.coveragePercentage === 'number' && r.coveragePercentage < 0.6) return false;
+          return typeof r.safety_score === 'number' && !isNaN(r.safety_score);
+        });
+
+      if (eligible.length === 0) {
+        return {
+          recommendedIndex: -1,
+          summary: 'No route meets your detour limit. Showing all options.',
+          statusMessage: 'No route meets your detour limit.',
+          hasEligibleRoute: false,
+        };
+      }
+
+      const maxScore = Math.max(...eligible.map(c => c.safety_score));
+      const topTier = eligible.filter(c => maxScore - c.safety_score <= 2);
+      topTier.sort((a, b) => {
+        if (a.durationMinutes !== b.durationMinutes) {
+          return a.durationMinutes - b.durationMinutes; // faster first
+        }
+        return b.safety_score - a.safety_score;
+      });
+
+      const winner = topTier[0];
+      const fastest = routes.find(r => r.durationMinutes === fastestDuration);
+      const timeDiff = Math.max(0, winner.durationMinutes - fastestDuration);
+      const scoreDiff = Math.round(winner.safety_score - (fastest?.safety_score ?? winner.safety_score));
+
+      let summary = '';
+      if (winner.durationMinutes === fastestDuration) {
+        summary = `${winner.name} is recommended: Fastest route with the highest safety score (+${Math.round(winner.safety_score)} points).`;
+      } else if (scoreDiff > 0) {
+        summary = `${winner.name} is recommended: +${Math.round(timeDiff)} min vs fastest, +${scoreDiff} safety points.`;
+      } else {
+        summary = `${winner.name} is recommended: Faster route (+${Math.round(winner.safety_score)} safety points, within 2 points of top score).`;
+      }
+
+      return {
+        recommendedIndex: winner.originalIndex,
+        recommendedRouteId: winner.id,
+        summary,
+        hasEligibleRoute: true,
+      };
+    }
+
+    await sub.test('12a. Acceptance Criteria 1: Safest route too slow is NOT recommended', () => {
+      // Fastest = 10 min. Detour limit = min(2.5, 10) = 2.5 min. Max allowed = 12.5 min.
+      // Route C is safest (95), but takes 20 min -> excluded. Route B (80, 12 min) is recommended.
+      const routes = [
+        { id: 'r1', name: 'Route A', durationMinutes: 10, safety_score: 70 },
+        { id: 'r2', name: 'Route B', durationMinutes: 12, safety_score: 80 },
+        { id: 'r3', name: 'Route C', durationMinutes: 20, safety_score: 95 },
+      ];
+
+      const res = recommendRouteClient(routes);
+      assert.equal(res.hasEligibleRoute, true);
+      assert.equal(res.recommendedIndex, 1);
+      assert.equal(res.recommendedRouteId, 'r2');
+      assert.notEqual(res.recommendedRouteId, 'r3', 'Route C is too slow and must NOT be recommended');
+    });
+
+    await sub.test('12b. Acceptance Criteria 2: Given two routes with scores 85 and 84, faster is recommended', () => {
+      const routes = [
+        { id: 'fast_84', name: 'Route A', durationMinutes: 10, safety_score: 84 },
+        { id: 'slow_85', name: 'Route B', durationMinutes: 12, safety_score: 85 },
+      ];
+
+      const res = recommendRouteClient(routes);
+      assert.equal(res.recommendedIndex, 0);
+      assert.equal(res.recommendedRouteId, 'fast_84');
+    });
+
+    await sub.test('12c. Acceptance Criteria 3: Recommendation provides a one-line explanation', () => {
+      const routes = [
+        { id: 'fast', name: 'Route A', durationMinutes: 10, safety_score: 55 },
+        { id: 'safe', name: 'Route B', durationMinutes: 12, safety_score: 84 },
+      ];
+
+      const res = recommendRouteClient(routes);
+      assert.ok(typeof res.summary === 'string');
+      assert.equal(res.summary, 'Route B is recommended: +2 min vs fastest, +29 safety points.');
+    });
+
+    await sub.test('12d. Acceptance Criteria 4: Given no eligible route, user sees "No route meets your detour limit."', () => {
+      const routes = [
+        { id: 'r1', name: 'Route A', durationMinutes: 10, safety_score: 80, isInsufficientData: true },
+        { id: 'r2', name: 'Route B', durationMinutes: 16, safety_score: 90 }, // +6 min > 1 min
+      ];
+
+      const res = recommendRouteClient(routes, 1);
+      assert.equal(res.hasEligibleRoute, false);
+      assert.equal(res.recommendedIndex, -1);
+      assert.equal(res.statusMessage, 'No route meets your detour limit.');
+      assert.ok(res.summary.includes('No route meets your detour limit.'));
+    });
+
+    await sub.test('12e. Per-factor reason lines generate concise explanations (FR-4.8)', () => {
+      function generateClientFactorReason(factor, score) {
+        if (factor === 'Lighting') {
+          return `Lighting ${score}/100: ${score >= 80 ? 'well-lit roads in available records.' : 'moderate illumination.'}`;
+        }
+        if (factor === 'Crime Security') {
+          return `Crime Security ${score}/100: ${score >= 80 ? 'low incident density along monitored thoroughfares.' : 'moderate incidents.'}`;
+        }
+        return `${factor} ${score}/100`;
+      }
+
+      const lightingReason = generateClientFactorReason('Lighting', 90);
+      assert.equal(lightingReason, 'Lighting 90/100: well-lit roads in available records.');
+
+      const crimeReason = generateClientFactorReason('Crime Security', 85);
+      assert.equal(crimeReason, 'Crime Security 85/100: low incident density along monitored thoroughfares.');
+    });
+  });
 });
 

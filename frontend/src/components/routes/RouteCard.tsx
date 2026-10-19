@@ -154,6 +154,14 @@ export const RouteCard: React.FC<RouteCardProps> = ({
         )}
       </div>
 
+      {/* Recommendation Reason Callout (FRD F3.4 / ISSUE-14) */}
+      {route.isRecommended && route.recommendationReason && (
+        <div className="route-recommendation-reason-strip" role="status">
+          <Sparkles size={12} className="recommendation-sparkle-icon" />
+          <span>{route.recommendationReason}</span>
+        </div>
+      )}
+
       {/* Caveat or Highlight strip if present */}
       {route.caveats && route.caveats.length > 0 && !route.isRecommended && (
         <div className="route-caution-strip">

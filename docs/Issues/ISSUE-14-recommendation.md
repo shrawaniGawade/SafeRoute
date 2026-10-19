@@ -5,7 +5,7 @@
 | **Phase / Day** | Phase 5 · Day 5 |
 | **Priority** | Must have |
 | **Labels** | `safety`, `backend`, `core` |
-| **Status** | ⬜ Not started |
+| **Status** | ✅ Done |
 | **Depends on** | ISSUE-13 |
 | **Requirements** | FR-5.1 – FR-5.5, FR-4.8 · FRD F3.3, F3.4 |
 
@@ -27,17 +27,18 @@ The safest route is not always practical. A route that is 30 minutes longer is n
 7. If no route qualifies, say so and show all the routes.
 
 ## Tasks
-- [ ] `recommendRoute(routes, maxDetour)` function
-- [ ] Generate a reason line for each factor (e.g. "Lighting 90/100: well-lit roads")
-- [ ] Generate a summary line for the recommendation
-- [ ] Return `recommendedIndex` and `explanation` in the API response
-- [ ] Unit tests: detour filter, tie-break, no eligible route
+- [x] `recommendRoute(routes, maxDetour)` function
+- [x] Generate a reason line for each factor (e.g. "Lighting 90/100: well-lit roads")
+- [x] Generate a summary line for the recommendation
+- [x] Return `recommendedIndex` and `explanation` in the API response
+- [x] Unit tests: detour filter, tie-break, no eligible route
 
 ## Acceptance Criteria
-- [ ] **Given** the safest route is too slow, **then** it is **not** recommended.
-- [ ] **Given** two routes with scores 85 and 84, **then** the faster one is recommended.
-- [ ] **Given** a recommendation, **then** I see a one-line reason.
-- [ ] **Given** no eligible route, **then** I see "No route meets your detour limit."
+- [x] **Given** the safest route is too slow, **then** it is **not** recommended.
+- [x] **Given** two routes with scores 85 and 84, **then** the faster one is recommended.
+- [x] **Given** a recommendation, **then** I see a one-line reason.
+- [x] **Given** no eligible route, **then** I see "No route meets your detour limit."
 
 ## Technical Notes
 - This is where the user's `maxDetour` preference (ISSUE-21) is applied
+

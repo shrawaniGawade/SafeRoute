@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, Layers, Compass, MapPinOff } from 'lucide-react';
+import { Info, Layers, Compass, MapPinOff, Sparkles, AlertCircle } from 'lucide-react';
 import { RouteCard } from './RouteCard';
 import { RouteCardSkeleton } from './RouteCardSkeleton';
 import { ErrorState } from '../common/ErrorState';
@@ -18,6 +18,8 @@ export interface RouteListProps {
   onRetry?: () => void;
   hasSearched?: boolean;
   onUseDemoLocations?: () => void;
+  recommendationSummary?: string;
+  hasEligibleRoute?: boolean;
   className?: string;
 }
 
@@ -32,6 +34,8 @@ export const RouteList: React.FC<RouteListProps> = ({
   onRetry,
   hasSearched = true,
   onUseDemoLocations,
+  recommendationSummary,
+  hasEligibleRoute = true,
   className = '',
 }) => {
   const letters = ['A', 'B', 'C', 'D', 'E'];
@@ -104,6 +108,27 @@ export const RouteList: React.FC<RouteListProps> = ({
               <div className="notice-text-content">
                 <strong>Provider returned one route.</strong>
                 <span>Direct or alternative navigable corridors are currently constrained for this specific pair of coordinates.</span>
+              </div>
+            </div>
+          )}
+
+          {/* Recommendation Summary Banner (AC 3: One-line reason / AC 4: No eligible route message) */}
+          {recommendationSummary && (
+            <div
+              className={`recommendation-summary-banner ${hasEligibleRoute === false ? 'warning' : 'recommended'}`}
+              role="status"
+              aria-live="polite"
+            >
+              <div className="banner-icon-box">
+                {hasEligibleRoute === false ? (
+                  <AlertCircle size={18} />
+                ) : (
+                  <Sparkles size={18} />
+                )}
+              </div>
+              <div className="banner-text-content">
+                <strong>{hasEligibleRoute === false ? 'Detour Limit Notice' : 'Route Recommendation'}</strong>
+                <span>{recommendationSummary}</span>
               </div>
             </div>
           )}

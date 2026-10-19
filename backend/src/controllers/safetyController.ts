@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { SafetyPrediction } from '../models/SafetyPrediction';
 import { predictRouteSafety } from '../services/aiService';
 import { getRouteAlternatives, RoutingError } from '../services/routingService';
+import { recommendRoute } from '../services/recommendationService';
 import {
   calculateSafetyScore,
   evaluateRouteSafetyScore,
@@ -110,12 +111,23 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
       })
     );
 
+    // 3. Evaluate route recommendation with detour limits, tie-break, and explanations (ISSUE-14 / FR-5.1 - FR-5.5, FR-4.8)
+    const userMaxDetour =
+      req.body.maxDetour !== undefined
+        ? req.body.maxDetour
+        : req.body.maxDetourMinutes !== undefined
+        ? req.body.maxDetourMinutes
+        : req.body.preferences?.maxDetour;
+
+    const recommendation = recommendRoute(evaluatedAlternatives, userMaxDetour);
+    const routesToReturn = recommendation.routes;
+    const recommendedRoute = recommendation.recommendedRoute || evaluatedAlternatives[0];
+
     // Primary route metrics
-    const primaryRoute = evaluatedAlternatives[0];
-    const score = primaryRoute ? primaryRoute.safety_score : 80;
-    const classification = primaryRoute ? primaryRoute.rating : 'Optimal (Safe Route)';
-    const primaryAiFactors = primaryRoute?.aiFactors;
-    const primaryModel = primaryRoute?.aiModel || 'SafeRoute ML Engine v1.0';
+    const score = recommendedRoute ? (recommendedRoute.safety_score ?? 80) : 80;
+    const classification = recommendedRoute ? recommendedRoute.rating : 'Optimal (Safe Route)';
+    const primaryAiFactors = recommendedRoute?.aiFactors;
+    const primaryModel = recommendedRoute?.aiModel || 'SafeRoute ML Engine v1.0';
 
     // Detailed explanation of AI scoring model
     const scoringExplanation = [
@@ -149,11 +161,12 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
       prediction_details: {
         classification: classification,
         recommendation:
-          score >= 80
+          recommendation.explanation.summary ||
+          (score >= 80
             ? 'Recommended safe corridor with verified illumination and active bystander presence.'
             : score >= 55
             ? 'Moderate risk corridor. Prioritize primary boulevards and maintain awareness.'
-            : 'Elevated risk detected along this path. Consider alternative transit or ride-sharing.',
+            : 'Elevated risk detected along this path. Consider alternative transit or ride-sharing.'),
         factor_breakdown: primaryAiFactors,
       },
       model_info: {
@@ -183,7 +196,11 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
         is_navigable: routingResult.isNavigable,
         navigability_notice: routingResult.navigabilityNotice,
         routing_provider: routingResult.provider,
-        alternatives: evaluatedAlternatives,
+        recommendedIndex: recommendation.recommendedIndex,
+        recommendedRouteId: recommendation.recommendedRouteId,
+        explanation: recommendation.explanation,
+        statusMessage: recommendation.statusMessage,
+        alternatives: routesToReturn,
         createdAt: predictionDoc.createdAt,
       },
     });

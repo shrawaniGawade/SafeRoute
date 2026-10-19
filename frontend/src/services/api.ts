@@ -13,6 +13,8 @@ export interface SafetyInput {
   departureTime?: string;
   travelMode?: 'walking' | 'driving' | 'transit';
   clientRequestId?: string;
+  maxDetour?: number | { maxDetourPct?: number; maxDetourMin?: number };
+  maxDetourMinutes?: number;
 }
 
 export interface RouteAlternativeItem {
@@ -22,6 +24,7 @@ export interface RouteAlternativeItem {
   safety_score: number;
   rating: string;
   isRecommended: boolean;
+  recommendationReason?: string;
   isNavigable: boolean;
   distanceText: string;
   durationText: string;
@@ -37,6 +40,18 @@ export interface RouteAlternativeItem {
     crowd_level: number;
     emergency_proximity?: number;
   };
+}
+
+export interface FactorReasonItem {
+  factor: string;
+  score: number;
+  reason: string;
+}
+
+export interface RecommendationExplanation {
+  summary: string;
+  factorReasons?: FactorReasonItem[];
+  disclaimer?: string;
 }
 
 export interface SafetyResult {
@@ -55,6 +70,10 @@ export interface SafetyResult {
   is_navigable?: boolean;
   navigability_notice?: string;
   routing_provider?: string;
+  recommendedIndex?: number;
+  recommendedRouteId?: string | null;
+  explanation?: RecommendationExplanation;
+  statusMessage?: string;
   alternatives?: RouteAlternativeItem[];
   createdAt?: string;
 }

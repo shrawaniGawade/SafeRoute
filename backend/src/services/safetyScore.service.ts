@@ -567,3 +567,5 @@ export async function evaluateRouteSafetyScore(
     samplePoints: samplePointsData,
   };
 }
+
+export * from './recommendationService';

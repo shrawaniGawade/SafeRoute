@@ -137,7 +137,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
         result,
       });
       if (result.alternatives && result.alternatives.length > 0) {
-        setSelectedRouteId(result.alternatives[0].id);
+        const targetId = result.recommendedRouteId || result.alternatives[0].id;
+        setSelectedRouteId(targetId);
       }
       showToast('Route safety score successfully evaluated!', 'success');
     } catch (err: any) {
@@ -550,6 +551,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
           onRetry={() => performEvaluation(source, destination)}
           hasSearched={hasSearched}
           onUseDemoLocations={handleLoadDemo}
+          recommendationSummary={activeResult?.explanation?.summary || activeResult?.statusMessage}
+          hasEligibleRoute={activeResult?.recommendedIndex !== undefined ? activeResult.recommendedIndex !== -1 : true}
           className="routes-sidebar"
         />
 
@@ -614,6 +617,69 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                 <p style={{ fontSize: '12px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
                   {activeResult.scoring_explanation}
                 </p>
+              </div>
+            )}
+
+            {/* Factor Explanations (FR-4.8: One-line reason per factor) */}
+            {activeResult?.explanation?.factorReasons && activeResult.explanation.factorReasons.length > 0 && (
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '14px 18px',
+                  margin: '12px 0',
+                }}
+              >
+                <h4
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#0f172a',
+                    margin: '0 0 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <ShieldCheck size={14} color="#087f8c" />
+                  <span>Recommendation Factor Explanations</span>
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {activeResult.explanation.factorReasons.map((fr, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        background: '#f8fafc',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                      }}
+                    >
+                      <span style={{ color: '#334155', fontWeight: 500 }}>{fr.reason}</span>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          color: fr.score >= 80 ? '#166534' : fr.score >= 50 ? '#854d0e' : '#991b1b',
+                          background: fr.score >= 80 ? '#dcfce7' : fr.score >= 50 ? '#fef9c3' : '#fee2e2',
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                          fontSize: '11px',
+                        }}
+                      >
+                        {fr.score}/100
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {activeResult.explanation.disclaimer && (
+                  <p style={{ fontSize: '11px', color: '#94a3b8', margin: '10px 0 0', fontStyle: 'italic' }}>
+                    {activeResult.explanation.disclaimer}
+                  </p>
+                )}
               </div>
             )}
 

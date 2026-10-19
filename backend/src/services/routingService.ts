@@ -55,6 +55,59 @@ export function getRouteCacheSize(): number {
   return ROUTE_CACHE.size;
 }
 
+export class RoutingError extends Error {
+  statusCode: number;
+  code: string;
+
+  constructor(statusCode: number, code: string, message: string) {
+    super(message);
+    this.name = 'RoutingError';
+    this.statusCode = statusCode;
+    this.code = code;
+    Object.setPrototypeOf(this, RoutingError.prototype);
+  }
+}
+
+export function mapProviderError(error: any): RoutingError {
+  const status = error?.response?.status || error?.status || error?.statusCode;
+  const data = error?.response?.data || error?.data;
+
+  // 429 Rate Limit
+  if (status === 429 || data?.error?.code === 429 || data?.code === 'RATE_LIMIT_EXCEEDED') {
+    return new RoutingError(429, 'RATE_LIMIT_EXCEEDED', 'Route service is busy. Please retry in a minute.');
+  }
+
+  // 404 No Route Found
+  if (
+    status === 404 ||
+    data?.code === 'NoRoute' ||
+    data?.code === 'NoSegment' ||
+    data?.error?.code === 2010 ||
+    data?.error?.code === 2099 ||
+    data?.error?.message?.toLowerCase().includes('no route') ||
+    data?.message?.toLowerCase().includes('no route') ||
+    error?.message?.toLowerCase().includes('no route')
+  ) {
+    return new RoutingError(404, 'NO_ROUTE_FOUND', 'No route available between these points.');
+  }
+
+  // 503 or Network / Provider down
+  return new RoutingError(503, 'SERVICE_UNAVAILABLE', "Couldn't load routes.");
+}
+
+type MockRoutingProvider = (
+  origin: string,
+  destination: string,
+  travelMode?: string,
+  customFactors?: any
+) => Promise<RoutingEngineResult> | RoutingEngineResult;
+
+let mockRoutingProvider: MockRoutingProvider | null = null;
+
+export function setMockRoutingProvider(mock: MockRoutingProvider | null): void {
+  mockRoutingProvider = mock;
+}
+
 function buildCacheKey(
   origin: string,
   destination: string,
@@ -91,6 +144,11 @@ export async function getRouteAlternatives(
     emergency_proximity?: number;
   }
 ): Promise<RoutingEngineResult> {
+  // Support unit test and resilience mocking (ISSUE-11)
+  if (mockRoutingProvider) {
+    return await mockRoutingProvider(origin, destination, travelMode, customFactors);
+  }
+
   // Check 10-minute in-memory cache
   const cacheKey = buildCacheKey(origin, destination, travelMode, customFactors);
   const cached = ROUTE_CACHE.get(cacheKey);
@@ -195,8 +253,9 @@ export async function getRouteAlternatives(
         ROUTE_CACHE.set(cacheKey, { timestamp: Date.now(), data: result });
         return result;
       }
-    } catch (orsError) {
-      console.warn('[RoutingService] OpenRouteService live call failed, falling back to clean sandbox mode:', orsError);
+    } catch (orsError: any) {
+      console.warn('[RoutingService] OpenRouteService call failed, mapping error to clear status code:', orsError?.message);
+      throw mapProviderError(orsError);
     }
   }
 
@@ -279,8 +338,9 @@ export async function getRouteAlternatives(
         ROUTE_CACHE.set(cacheKey, { timestamp: Date.now(), data: result });
         return result;
       }
-    } catch (osrmError) {
-      console.warn('[RoutingService] OSRM call failed, falling back to sandbox mode:', osrmError);
+    } catch (osrmError: any) {
+      console.warn('[RoutingService] OSRM call failed, mapping error to clear status code:', osrmError?.message);
+      throw mapProviderError(osrmError);
     }
   }
 

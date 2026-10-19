@@ -5,7 +5,7 @@
 | **Phase / Day** | Phase 4 · Day 4 |
 | **Priority** | Must have |
 | **Labels** | `ux`, `frontend`, `resilience` |
-| **Status** | ⬜ Not started |
+| **Status** | ✅ Complete |
 | **Depends on** | ISSUE-10 |
 | **Requirements** | FR-3.5, NFR-7 · FRD F2.2 |
 
@@ -28,17 +28,17 @@ External services can be slow or fail. Instead of a blank screen or a crash, the
 | Before any search | A friendly hint: "Enter a start and destination to compare routes." |
 
 ## Tasks
-- [ ] `RouteCardSkeleton` component (pulse animation)
-- [ ] Empty-state component with an icon and a hint
-- [ ] Error-state component with a Retry button
-- [ ] Backend maps provider errors to clear status codes (404, 429, 503)
-- [ ] Frontend `.catch()` on every request; raw errors are never shown
-- [ ] Respect `prefers-reduced-motion` for animations
+- [x] `RouteCardSkeleton` component (pulse animation)
+- [x] Empty-state component with an icon and a hint
+- [x] Error-state component with a Retry button
+- [x] Backend maps provider errors to clear status codes (404, 429, 503)
+- [x] Frontend `.catch()` on every request; raw errors are never shown
+- [x] Respect `prefers-reduced-motion` for animations
 
 ## Acceptance Criteria
-- [ ] **Given** a slow network, **then** I see skeleton cards, not a blank screen.
-- [ ] **Given** the routing API returns 429, **then** I see the "busy" message.
-- [ ] **Given** a network error, **when** I click Retry, **then** the search runs again.
+- [x] **Given** a slow network, **then** I see skeleton cards, not a blank screen.
+- [x] **Given** the routing API returns 429, **then** I see the "busy" message.
+- [x] **Given** a network error, **when** I click Retry, **then** the search runs again.
 
 ## Technical Notes
 - Test these by mocking the routing service in the backend tests

@@ -6,8 +6,12 @@ import {
   getUserRouteHistory,
   deleteUserRouteHistory,
 } from '../controllers/routeHistoryController';
+import { predict } from '../controllers/safetyController';
 
 const router = Router();
+
+// ISSUE-11 / FRD F2.2: Route Search and Safety Alternatives Evaluation
+router.post('/search', optionalAuth, predict);
 
 // Evaluate AI prediction and automatically persist SafetyPrediction document
 router.post('/predict', optionalAuth, evaluateAndSavePrediction);

@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { SafetyPrediction } from '../models/SafetyPrediction';
 import { predictRouteSafety } from '../services/aiService';
-import { getRouteAlternatives } from '../services/routingService';
+import { getRouteAlternatives, RoutingError } from '../services/routingService';
 import {
   calculateSafetyScore,
   evaluateRouteSafetyScore,
@@ -60,9 +60,17 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
       lighting: Number(lighting),
       crime_risk: Number(crime_risk),
       accident_risk: Number(accident_risk),
-      crowd_level: Number(crowd_level),
-      emergency_proximity: emergency_proximity !== undefined ? Number(emergency_proximity) : undefined,
     });
+
+    // Check for empty route alternatives (ISSUE-11: 404 No Route Found)
+    if (!routingResult?.routes || routingResult.routes.length === 0) {
+      res.status(404).json({
+        success: false,
+        code: 'NO_ROUTES_FOUND',
+        message: 'No route available between these points.',
+      });
+      return;
+    }
 
     // 2. Evaluate each route alternative with FastAPI AI Service / internal scoring
     const letters: Array<'A' | 'B' | 'C'> = ['A', 'B', 'C'];
@@ -181,10 +189,26 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
     });
   } catch (error: any) {
     console.error('[SafetyController] Error predicting route safety:', error);
+    if (error instanceof RoutingError) {
+      res.status(error.statusCode).json({
+        success: false,
+        code: error.code,
+        message: error.message,
+      });
+      return;
+    }
+    if (error?.statusCode && typeof error.statusCode === 'number') {
+      res.status(error.statusCode).json({
+        success: false,
+        code: error.code || 'ROUTING_ERROR',
+        message: error.message || "Couldn't load routes.",
+      });
+      return;
+    }
     res.status(500).json({
       success: false,
-      message: error?.message || 'Failed to evaluate route safety prediction',
-      code: 'PREDICTION_ERROR',
+      code: error?.code || 'PREDICTION_ERROR',
+      message: error?.message || "Couldn't load routes.",
     });
   }
 }

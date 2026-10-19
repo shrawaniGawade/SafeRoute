@@ -1,23 +1,36 @@
 import React, { type ReactNode } from 'react';
 import { Compass } from 'lucide-react';
 
-interface EmptyStateProps {
+export interface EmptyStateProps {
   icon?: ReactNode;
   title: string;
   description: string;
+  hint?: string;
   actionLabel?: string;
   onAction?: () => void;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
+  className?: string;
+  role?: string;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
   title,
   description,
+  hint,
   actionLabel,
   onAction,
+  secondaryActionLabel,
+  onSecondaryAction,
+  className = '',
+  role = 'status',
 }) => {
   return (
     <div
+      className={`sr-empty-state-panel ${className}`}
+      role={role}
+      aria-live="polite"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -42,6 +55,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: '16px',
+          boxShadow: '0 2px 8px rgba(8, 127, 140, 0.12)',
         }}
       >
         {icon || <Compass size={28} />}
@@ -62,32 +76,76 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           color: '#64748b',
           maxWidth: '440px',
           lineHeight: 1.5,
-          margin: '0 0 20px',
+          margin: hint ? '0 0 8px' : '0 0 20px',
         }}
       >
         {description}
       </p>
-      {actionLabel && onAction && (
-        <button
-          type="button"
-          onClick={onAction}
+
+      {hint && (
+        <div
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 20px',
-            background: '#087f8c',
-            color: '#ffffff',
-            border: 'none',
+            fontSize: '12px',
+            color: '#087f8c',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
             borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'background 0.2s',
+            padding: '6px 14px',
+            marginBottom: '20px',
+            fontWeight: 500,
           }}
         >
-          {actionLabel}
-        </button>
+          {hint}
+        </div>
+      )}
+
+      {(actionLabel || secondaryActionLabel) && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {actionLabel && onAction && (
+            <button
+              type="button"
+              onClick={onAction}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 20px',
+                background: '#087f8c',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                boxShadow: '0 2px 6px rgba(8, 127, 140, 0.25)',
+              }}
+            >
+              {actionLabel}
+            </button>
+          )}
+
+          {secondaryActionLabel && onSecondaryAction && (
+            <button
+              type="button"
+              onClick={onSecondaryAction}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '9px 18px',
+                background: '#f8fafc',
+                color: '#475569',
+                border: '1px solid #cbd5e1',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              {secondaryActionLabel}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

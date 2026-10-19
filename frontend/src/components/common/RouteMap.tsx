@@ -19,6 +19,7 @@ interface RouteMapProps {
   routes?: RouteAlternativeItem[];
   selectedRouteId?: string;
   onSelectRoute?: (routeId: string) => void;
+  isLoading?: boolean;
   // Backwards compatibility with previous interface
   selectedAlternative?: 'safe' | 'fastest';
   onSelectAlternative?: (alt: 'safe' | 'fastest') => void;
@@ -33,6 +34,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   routes,
   selectedRouteId,
   onSelectRoute,
+  isLoading = false,
   selectedAlternative = 'safe',
   onSelectAlternative,
 }) => {
@@ -310,6 +312,28 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           />
         </g>
 
+        {/* Loading Corridor Line on Map (ISSUE-11 Task 1) */}
+        {isLoading && (
+          <g id="map-loading-line-group" role="status" aria-label="Searching routes on map">
+            <path
+              d="M 120 360 C 240 360, 240 220, 480 220 S 480 120, 680 120"
+              fill="none"
+              stroke="#38bdf8"
+              strokeWidth="6"
+              strokeDasharray="14 8"
+              className="map-loading-line"
+              filter="url(#neon-glow)"
+            />
+            <circle r="7" fill="#38bdf8" className="map-loading-pulse-dot" filter="url(#neon-glow)">
+              <animateMotion
+                path="M 120 360 C 240 360, 240 220, 480 220 S 480 120, 680 120"
+                dur="2.2s"
+                repeatCount="indefinite"
+              />
+            </circle>
+          </g>
+        )}
+
         {/* Origin Marker A */}
         <g transform="translate(120, 360)">
           <circle r="18" fill="rgba(8, 127, 140, 0.35)" className="pulse-ring" />
@@ -340,6 +364,14 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           )}
         </g>
       </svg>
+
+      {/* Searching / Loading Overlay Badge (ISSUE-11 Workflow) */}
+      {isLoading && (
+        <div className="map-loading-overlay-badge" role="status" aria-live="polite">
+          <span className="map-loading-spinner-ring" />
+          <span>Searching & evaluating safe corridors...</span>
+        </div>
+      )}
 
       {/* Floating Status Overlay */}
       <div className="map-status-overlay">

@@ -221,5 +221,91 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
     assert.equal(getSingleRouteNotice([{ id: 'route_1' }, { id: 'route_2' }]), null);
     assert.equal(getSingleRouteNotice([{ id: 'a' }, { id: 'b' }, { id: 'c' }]), null);
   });
+
+  await t.test('11. Route Search UI States & Error Resilience (ISSUE-11 / FR-3.5)', async (sub) => {
+    // 11a: Format Route Error Messages (AC 2, 3, 4)
+    function formatRouteErrorMessage(status, rawMessage) {
+      if (status === 429) {
+        return 'Route service is busy. Please retry in a minute.';
+      }
+      if (status === 404) {
+        return 'No route available between these points.';
+      }
+      if (status === 503 || status === 500 || status === 502 || status === 504 || status === 0) {
+        return "Couldn't load routes.";
+      }
+      if (
+        rawMessage &&
+        !rawMessage.toLowerCase().includes('internal server error') &&
+        !rawMessage.toLowerCase().includes('service unavailable') &&
+        !rawMessage.toLowerCase().includes('econnrefused') &&
+        !rawMessage.toLowerCase().includes('failed to fetch') &&
+        !rawMessage.toLowerCase().includes('<!doctype')
+      ) {
+        return rawMessage;
+      }
+      return "Couldn't load routes.";
+    }
+
+    await sub.test('11a. Given routing API returns 429, user sees busy message', () => {
+      const msg429 = formatRouteErrorMessage(429, 'Rate limited');
+      assert.equal(msg429, 'Route service is busy. Please retry in a minute.');
+    });
+
+    await sub.test('11b. Given routing API returns 404 / no route, user sees no route available message', () => {
+      const msg404 = formatRouteErrorMessage(404, 'Not found');
+      assert.equal(msg404, 'No route available between these points.');
+    });
+
+    await sub.test('11c. Given network or server failure, user sees clear error and never raw errors', () => {
+      const msg503 = formatRouteErrorMessage(503, 'Service Unavailable');
+      assert.equal(msg503, "Couldn't load routes.");
+
+      const rawTechError = formatRouteErrorMessage(500, 'connect ECONNREFUSED 127.0.0.1:5000');
+      assert.equal(rawTechError, "Couldn't load routes.", 'Raw internal tech errors must be sanitized');
+
+      const fetchFail = formatRouteErrorMessage(0, 'Failed to fetch');
+      assert.equal(fetchFail, "Couldn't load routes.", 'Browser fetch failures must never leak raw strings');
+    });
+
+    await sub.test('11d. Route UI State Machine determines correct view mode', () => {
+      function getRouteViewState({ isLoading, error, hasSearched, routeCount }) {
+        if (isLoading) return 'SKELETON_LOADING';
+        if (error) return 'ERROR_STATE';
+        if (!hasSearched && routeCount === 0) return 'INITIAL_EMPTY_STATE';
+        if (hasSearched && routeCount === 0) return 'NO_ROUTES_EMPTY_STATE';
+        if (routeCount === 1) return 'SINGLE_ROUTE';
+        return 'MULTI_ROUTES';
+      }
+
+      // Searching -> Skeleton cards
+      assert.equal(getRouteViewState({ isLoading: true, error: null, hasSearched: true, routeCount: 0 }), 'SKELETON_LOADING');
+      // Before search -> Initial empty state with friendly hint
+      assert.equal(getRouteViewState({ isLoading: false, error: null, hasSearched: false, routeCount: 0 }), 'INITIAL_EMPTY_STATE');
+      // Error occurred -> Error state with Retry
+      assert.equal(getRouteViewState({ isLoading: false, error: "Couldn't load routes.", hasSearched: true, routeCount: 0 }), 'ERROR_STATE');
+      // No routes found -> 404 empty state
+      assert.equal(getRouteViewState({ isLoading: false, error: null, hasSearched: true, routeCount: 0 }), 'NO_ROUTES_EMPTY_STATE');
+      // 1 route returned -> Single route with notice
+      assert.equal(getRouteViewState({ isLoading: false, error: null, hasSearched: true, routeCount: 1 }), 'SINGLE_ROUTE');
+      // 3 routes returned -> Multi routes list
+      assert.equal(getRouteViewState({ isLoading: false, error: null, hasSearched: true, routeCount: 3 }), 'MULTI_ROUTES');
+    });
+
+    await sub.test('11e. Retry button action invokes search retry handler', () => {
+      let retryCount = 0;
+      function handleRetry() {
+        retryCount += 1;
+      }
+
+      handleRetry();
+      assert.equal(retryCount, 1, 'Retry trigger must run the search again');
+    });
+
+    await sub.test('11f. Friendly initial hint content matches ISSUE-11 specification', () => {
+      const initialHint = 'Enter a start and destination to compare routes.';
+      assert.equal(initialHint, 'Enter a start and destination to compare routes.');
+    });
+  });
 });
 

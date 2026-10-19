@@ -138,28 +138,75 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
   return response;
 }
 
+export class RouteApiError extends Error {
+  statusCode: number;
+  code?: string;
+  userMessage: string;
+
+  constructor(statusCode: number, userMessage: string, code?: string) {
+    super(userMessage);
+    this.name = 'RouteApiError';
+    this.statusCode = statusCode;
+    this.code = code;
+    this.userMessage = userMessage;
+    Object.setPrototypeOf(this, RouteApiError.prototype);
+  }
+}
+
+export function formatRouteErrorMessage(status: number, rawMessage?: string): string {
+  if (status === 429) {
+    return 'Route service is busy. Please retry in a minute.';
+  }
+  if (status === 404) {
+    return 'No route available between these points.';
+  }
+  if (status === 503 || status === 500 || status === 502 || status === 504 || status === 0) {
+    return "Couldn't load routes.";
+  }
+  if (
+    rawMessage &&
+    !rawMessage.toLowerCase().includes('internal server error') &&
+    !rawMessage.toLowerCase().includes('service unavailable') &&
+    !rawMessage.toLowerCase().includes('econnrefused') &&
+    !rawMessage.toLowerCase().includes('failed to fetch') &&
+    !rawMessage.toLowerCase().includes('<!doctype')
+  ) {
+    return rawMessage;
+  }
+  return "Couldn't load routes.";
+}
+
 /**
  * 1. AI Safety Prediction: Evaluates route safety score
  */
 export async function predictRouteSafety(
   input: SafetyInput
 ): Promise<SafetyResult> {
-  const response = await fetchWithAuth(getApiUrl('/safety/predict'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
+  try {
+    const response = await fetchWithAuth(getApiUrl('/safety/predict'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Request failed: ${response.status}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const userMessage = formatRouteErrorMessage(response.status, errorData.message);
+      throw new RouteApiError(response.status, userMessage, errorData.code);
+    }
+
+    const resJson = await response.json();
+    // Support both { success: true, data: { ... } } and direct object
+    return (resJson.data ? resJson.data : resJson) as SafetyResult;
+  } catch (err: any) {
+    if (err instanceof RouteApiError) {
+      throw err;
+    }
+    // Frontend .catch(): Raw network / connection errors are NEVER shown
+    throw new RouteApiError(0, "Couldn't load routes.", 'NETWORK_ERROR');
   }
-
-  const resJson = await response.json();
-  // Support both { success: true, data: { ... } } and direct object
-  return (resJson.data ? resJson.data : resJson) as SafetyResult;
 }
 
 /**

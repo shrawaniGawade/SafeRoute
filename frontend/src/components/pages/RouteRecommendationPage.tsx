@@ -10,7 +10,6 @@ import {
   Car
 } from 'lucide-react';
 import { RouteMap } from '../common/RouteMap';
-import { LoadingSpinner } from '../common/LoadingSpinner';
 import { LocationInput } from '../common/LocationInput';
 import { RouteList } from '../routes/RouteList';
 import { predictRouteSafety, type SafetyInput, type SafetyResult, type RouteAlternativeItem } from '../../services/api';
@@ -43,6 +42,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errorStatus, setErrorStatus] = useState<number | null>(null);
+  const [hasSearched, setHasSearched] = useState<boolean>(Boolean(currentPrediction?.result));
   const [selectedRouteId, setSelectedRouteId] = useState<string>('alt_safe_corridor');
 
   // Handle Preset Changes
@@ -79,6 +80,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
     setSourceCoords(destCoords);
     setDestCoords(tempCoords);
     if (error) setError('');
+    setErrorStatus(null);
   };
 
   const isSameLocation = Boolean(
@@ -93,38 +95,41 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
     !isSameLocation
   );
 
-  const handleEvaluate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!source.trim() || !destination.trim()) {
+  const performEvaluation = async (startLoc: string, endLoc: string) => {
+    if (!startLoc.trim() || !endLoc.trim()) {
       setError('Please provide both starting point and destination.');
+      setErrorStatus(400);
       return;
     }
 
-    if (source.trim().toLowerCase() === destination.trim().toLowerCase()) {
+    if (startLoc.trim().toLowerCase() === endLoc.trim().toLowerCase()) {
       setError('Choose two different locations');
+      setErrorStatus(400);
       return;
     }
 
     setLoading(true);
     setError('');
+    setErrorStatus(null);
 
     const factors: SafetyInput = {
       lighting,
       crime_risk: crimeRisk,
       accident_risk: accidentRisk,
       crowd_level: crowdLevel,
-      origin: source.trim(),
-      source: source.trim(),
-      destination: destination.trim(),
+      origin: startLoc.trim(),
+      source: startLoc.trim(),
+      destination: endLoc.trim(),
       departureTime,
       travelMode,
     };
 
     try {
       const result: SafetyResult = await predictRouteSafety(factors);
+      setHasSearched(true);
       recordPrediction({
-        source: source.trim(),
-        destination: destination.trim(),
+        source: startLoc.trim(),
+        destination: endLoc.trim(),
         departureTime,
         travelMode,
         profile,
@@ -136,10 +141,44 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
       }
       showToast('Route safety score successfully evaluated!', 'success');
     } catch (err: any) {
-      setError(err?.message || 'Could not connect to AI safety engine. Please verify the backend service.');
+      setHasSearched(true);
+      const status =
+        err?.statusCode ||
+        (err?.message?.includes('429')
+          ? 429
+          : err?.message?.includes('404')
+          ? 404
+          : 500);
+      setErrorStatus(status);
+
+      // Clean error messaging (ISSUE-11 Task 5: Raw errors are never shown)
+      if (status === 429) {
+        setError('Route service is busy. Please retry in a minute.');
+      } else if (status === 404) {
+        setError('No route available between these points.');
+      } else {
+        setError(err?.userMessage || "Couldn't load routes.");
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEvaluate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performEvaluation(source, destination);
+  };
+
+  const handleLoadDemo = () => {
+    const demoStart = 'North Station, Boston, MA';
+    const demoEnd = 'Boston Public Library, MA';
+    setSource(demoStart);
+    setDestination(demoEnd);
+    setSourceCoords({ lat: 42.3662, lng: -71.0603 });
+    setDestCoords({ lat: 42.3498, lng: -71.0776 });
+    setError('');
+    setErrorStatus(null);
+    performEvaluation(demoStart, demoEnd);
   };
 
   const activeResult = currentPrediction?.result;
@@ -219,7 +258,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
   const currentRoutes: RouteAlternativeItem[] =
     activeResult?.alternatives && activeResult.alternatives.length > 0
       ? activeResult.alternatives
-      : defaultDemoRoutes;
+      : (hasSearched && !error && currentPrediction?.result ? defaultDemoRoutes : []);
 
   return (
     <div className="route-page-grid">
@@ -486,31 +525,37 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
 
       {/* Right Column: Interactive Map & Route Recommendations */}
       <div className="route-results-column">
-        {loading ? (
-          <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid #e2e8f0',
-              padding: '60px 20px',
-            }}
-          >
-            <LoadingSpinner message="Evaluating real-time crime indexes, streetlights, and crowd density..." />
-          </div>
-        ) : (
-          <>
-            {/* Interactive Vector Map */}
-            <RouteMap
-              source={source}
-              destination={destination}
-              sourceCoords={sourceCoords}
-              destinationCoords={destCoords}
-              safetyScore={activeResult?.safety_score || 88}
-              routes={currentRoutes}
-              selectedRouteId={selectedRouteId}
-              onSelectRoute={(id) => setSelectedRouteId(id)}
-            />
+        {/* Interactive Vector Map with Animated Loading Corridor Line (ISSUE-11 Task 1) */}
+        <RouteMap
+          source={source}
+          destination={destination}
+          sourceCoords={sourceCoords}
+          destinationCoords={destCoords}
+          safetyScore={activeResult?.safety_score || 88}
+          routes={currentRoutes}
+          selectedRouteId={selectedRouteId}
+          onSelectRoute={(id) => setSelectedRouteId(id)}
+          isLoading={loading}
+        />
 
+        {/* Modular Route Alternatives List: Loading Skeletons, Error State, Empty States, and Route Cards */}
+        <RouteList
+          routes={currentRoutes}
+          selectedRouteId={selectedRouteId}
+          onSelectRoute={(id) => setSelectedRouteId(id)}
+          onNavigateDetails={() => onNavigate('prediction-details')}
+          isLoading={loading}
+          error={error}
+          errorStatus={errorStatus}
+          onRetry={() => performEvaluation(source, destination)}
+          hasSearched={hasSearched}
+          onUseDemoLocations={handleLoadDemo}
+          className="routes-sidebar"
+        />
+
+        {/* Evaluated Telemetry and Score Breakdown (Rendered when routes are successfully displayed) */}
+        {!loading && !error && currentRoutes.length > 0 && (
+          <>
             {/* Navigability & Safety Policy Disclaimer */}
             <div
               style={{
@@ -540,15 +585,6 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                   'Demonstration safety preview. SafeRoute prioritizes illuminated, active corridors over shortest transit distance. No route can be guaranteed 100% safe.'}
               </p>
             </div>
-
-            {/* Modular Route Alternatives List with Bidirectional Selection & Single-Route Notice */}
-            <RouteList
-              routes={currentRoutes}
-              selectedRouteId={selectedRouteId}
-              onSelectRoute={(id) => setSelectedRouteId(id)}
-              onNavigateDetails={() => onNavigate('prediction-details')}
-              className="routes-sidebar"
-            />
 
             {/* AI Scoring Logic Explanation */}
             {activeResult?.scoring_explanation && (

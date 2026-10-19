@@ -39,7 +39,7 @@ Related documents: [BRD01](../BRD01.md) · [SRS01](../SRS01.md) · [FRD01](../FR
 | 08 | [Location search (geocoding)](ISSUE-08-location-search.md) | 3 | M | ⬜ |
 | 09 | [Show a route on the map](ISSUE-09-single-route.md) | 3 | M | ⬜ |
 | 10 | [Alternative routes and route cards](ISSUE-10-alternative-routes.md) | 4 | M | ⬜ |
-| 11 | [Loading, error and empty states](ISSUE-11-route-ui-states.md) | 4 | M | ⬜ |
+| 11 | [Loading, error and empty states](ISSUE-11-route-ui-states.md) | 4 | M | ✅ |
 | 12 | [Safety data models and seed data](ISSUE-12-safety-data.md) | 5 | M | ⬜ |
 | 13 | [Safety Score engine](ISSUE-13-safety-score-engine.md) | 5 | M | ⬜ |
 | 14 | [Route recommendation and explanation](ISSUE-14-recommendation.md) | 5 | M | ⬜ |

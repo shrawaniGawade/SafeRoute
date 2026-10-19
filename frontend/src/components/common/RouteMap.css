@@ -212,6 +212,65 @@
   transform-origin: center;
 }
 
+/* Animated Loading Corridor Line on Map (ISSUE-11 Task 1) */
+@keyframes mapDashFlow {
+  to {
+    stroke-dashoffset: -44;
+  }
+}
+
+.map-loading-line {
+  animation: mapDashFlow 1.4s linear infinite;
+}
+
+.map-loading-pulse-dot {
+  filter: drop-shadow(0 0 6px #38bdf8);
+}
+
+.map-loading-overlay-badge {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid #38bdf8;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e0f2fe;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.map-loading-spinner-ring {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(56, 189, 248, 0.3);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: mapSpin 0.8s linear infinite;
+}
+
+@keyframes mapSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Accessibility: Respect prefers-reduced-motion (AC requirement) */
+@media (prefers-reduced-motion: reduce) {
+  .map-loading-line,
+  .pulse-ring,
+  .map-loading-spinner-ring {
+    animation: none !important;
+  }
+}
+
 @media (max-width: 640px) {
   .route-map-container {
     height: 360px;

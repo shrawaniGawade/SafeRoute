@@ -85,6 +85,11 @@ export async function sendOtp(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  const isDev = process.env.NODE_ENV === 'development';
+  console.log('\n=========================================================');
+  console.log(`[SafeRoute OTP] >>> VERIFICATION OTP CODE: ${rawOtp} <<< (for ${normalizedEmail})`);
+  console.log('=========================================================\n');
+
   res.status(200).json({
     success: true,
     message: 'Verification code sent. Please check your inbox and spam folder.',
@@ -352,6 +357,11 @@ export async function resendOtp(req: Request, res: Response): Promise<void> {
     });
     return;
   }
+
+  const isDev = process.env.NODE_ENV === 'development';
+  console.log('\n=========================================================');
+  console.log(`[SafeRoute OTP] >>> RESENT OTP CODE: ${rawOtp} <<< (for ${normalizedEmail})`);
+  console.log('=========================================================\n');
 
   res.status(200).json({
     success: true,

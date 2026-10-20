@@ -111,10 +111,19 @@ export const RegisterForm: React.FC = () => {
       const res = await sendOtp(trimmedEmail, 'EMAIL_VERIFICATION');
       setOtpSent(true);
       setCooldown(60);
-      setOtpMessage({
-        type: 'success',
-        text: res.message || 'Verification code sent. Please check your inbox and spam folder.',
-      });
+      const devCode = (res as any)?.devOtp || (res as any)?.otp;
+      if (devCode) {
+        setOtp(devCode);
+        setOtpMessage({
+          type: 'success',
+          text: `Verification code sent! (Code: ${devCode})`,
+        });
+      } else {
+        setOtpMessage({
+          type: 'success',
+          text: res.message || 'Verification code sent. Please check your inbox and spam folder.',
+        });
+      }
     } catch (err: any) {
       setError(err?.message || 'Failed to send verification code. Please check your email configuration.');
     } finally {
@@ -335,7 +344,8 @@ export const RegisterForm: React.FC = () => {
           </div>
 
           {!isEmailVerified ? (
-            <div className="otp-inline-row">
+            <>
+              <div className="otp-inline-row">
               <input
                 id="register-otp"
                 type="text"
@@ -367,6 +377,12 @@ export const RegisterForm: React.FC = () => {
                 )}
               </button>
             </div>
+            {otp.length > 0 && otp.length < 6 && (
+              <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#b45309' }}>
+                Please enter all 6 digits ({otp.length}/6 entered)
+              </p>
+            )}
+          </>
           ) : (
             <div className="auth-alert success" style={{ margin: 0, padding: '8px 12px' }}>
               <CheckCircle2 size={16} />

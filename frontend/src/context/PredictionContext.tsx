@@ -5,6 +5,7 @@ export interface RoutePredictionRecord {
   id: string;
   source: string;
   destination: string;
+  destinations?: any[];
   departureTime: string;
   travelMode: 'walking' | 'driving' | 'transit';
   profile: string;

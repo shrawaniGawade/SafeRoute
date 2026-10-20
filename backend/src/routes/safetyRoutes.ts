@@ -3,8 +3,13 @@ import { requireAuth, optionalAuth } from '../middleware/authMiddleware';
 import { validateBody } from '../middleware/validate';
 import { predictSafetySchema, evaluateSafetyScoreSchema } from '../validators/safetyValidators';
 import { predict, evaluateScore, getHistory, getPredictionById } from '../controllers/safetyController';
+import { geocode } from '../controllers/geocodingController';
+import { geocodeLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
+
+// GET /api/safety/geocode?q= (Autocomplete / Forward geocoding with rate limit)
+router.get('/geocode', geocodeLimiter, geocode);
 
 // POST /api/safety/predict
 router.post('/predict', optionalAuth, validateBody(predictSafetySchema), predict);

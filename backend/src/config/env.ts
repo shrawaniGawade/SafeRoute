@@ -31,5 +31,8 @@ export const ENV = {
 
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   AI_SERVICE_URL: process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000',
+  ROUTING_PROVIDER: (process.env.ROUTING_PROVIDER || 'openrouteservice').toLowerCase(),
+  ROUTING_API_KEY: process.env.ROUTING_API_KEY || '',
+  GEOCODE_COUNTRY: (process.env.GEOCODE_COUNTRY || 'IN').toUpperCase(),
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
 };

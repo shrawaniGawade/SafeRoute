@@ -7,12 +7,23 @@ import {
   RotateCw,
   Sparkles,
   Footprints,
-  Car
+  Car,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { RouteMap } from '../common/RouteMap';
 import { LocationInput } from '../common/LocationInput';
 import { RouteList } from '../routes/RouteList';
-import { predictRouteSafety, type SafetyInput, type SafetyResult, type RouteAlternativeItem } from '../../services/api';
+import { AddPlaceModal } from '../common/AddPlaceModal';
+import {
+  predictRouteSafety,
+  type SafetyInput,
+  type SafetyResult,
+  type RouteAlternativeItem,
+  type GeocodeResult,
+} from '../../services/api';
 import { usePredictions } from '../../context/PredictionContext';
 import { useAuth } from '../../context/AuthContext';
 import './RouteRecommendationPage.css';
@@ -21,14 +32,36 @@ interface RouteRecommendationPageProps {
   onNavigate: (route: string) => void;
 }
 
+export interface DestinationStop {
+  id: string;
+  address: string;
+  coords?: { lat: number; lng: number };
+}
+
 export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = ({ onNavigate }) => {
   const { currentPrediction, recordPrediction } = usePredictions();
   const { showToast } = useAuth();
 
   const [source, setSource] = useState(currentPrediction?.source || 'North Station, Boston, MA');
-  const [destination, setDestination] = useState(currentPrediction?.destination || 'Boston Public Library, MA');
   const [sourceCoords, setSourceCoords] = useState<{ lat: number; lng: number } | undefined>();
-  const [destCoords, setDestCoords] = useState<{ lat: number; lng: number } | undefined>();
+
+  const [destinations, setDestinations] = useState<DestinationStop[]>(() => {
+    if (currentPrediction?.destinations && currentPrediction.destinations.length > 0) {
+      return currentPrediction.destinations.map((d: any, idx: number) => ({
+        id: d.id || `dest-${idx}-${Date.now()}`,
+        address: typeof d === 'string' ? d : d.address || d.name || '',
+        coords: typeof d === 'object' ? d.coords : undefined,
+      }));
+    }
+    return [
+      {
+        id: 'dest-0',
+        address: currentPrediction?.destination || 'Boston Public Library, MA',
+        coords: undefined,
+      },
+    ];
+  });
+
   const [departureTime, setDepartureTime] = useState(currentPrediction?.departureTime || 'Now');
   const [travelMode, setTravelMode] = useState<'walking' | 'driving'>(currentPrediction?.travelMode === 'driving' ? 'driving' : 'walking');
   const [profile, setProfile] = useState<'night' | 'commute' | 'maximum' | 'custom'>('night');
@@ -45,6 +78,108 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
   const [hasSearched, setHasSearched] = useState<boolean>(Boolean(currentPrediction?.result));
   const [selectedRouteId, setSelectedRouteId] = useState<string>('alt_safe_corridor');
+
+  // Missing Place & Interactive Pin Placement State
+  const [isAddPlaceModalOpen, setIsAddPlaceModalOpen] = useState(false);
+  const [modalInitialQuery, setModalInitialQuery] = useState('');
+  const [modalInitialCoords, setModalInitialCoords] = useState<{ lat: number; lng: number } | undefined>();
+  const [isPinDropMode, setIsPinDropMode] = useState(false);
+  const [activeInputTarget, setActiveInputTarget] = useState<'origin' | number>('origin');
+
+  const handleOpenAddPlace = (target: 'origin' | number, queryText = '') => {
+    setActiveInputTarget(target);
+    setModalInitialQuery(queryText);
+    setIsAddPlaceModalOpen(true);
+  };
+
+  const handlePlaceAdded = (place: GeocodeResult) => {
+    if (activeInputTarget === 'origin') {
+      setSource(place.displayName);
+      setSourceCoords({ lat: place.lat, lng: place.lng });
+    } else if (typeof activeInputTarget === 'number') {
+      handleDestinationSelect(activeInputTarget, {
+        displayName: place.displayName,
+        lat: place.lat,
+        lng: place.lng,
+      });
+    }
+    showToast(`Added "${place.name}" to SafeRoute!`, 'success');
+  };
+
+  const handlePinDropped = (coords: { lat: number; lng: number }) => {
+    setModalInitialCoords(coords);
+    showToast(`Pin dropped at ${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}. Opening place form...`, 'info');
+    setIsPinDropMode(false);
+    setIsAddPlaceModalOpen(true);
+  };
+
+  // Handle destination list modifications
+  const handleAddDestination = () => {
+    setDestinations((prev) => [
+      ...prev,
+      {
+        id: `dest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        address: '',
+        coords: undefined,
+      },
+    ]);
+  };
+
+  const handleRemoveDestination = (idx: number) => {
+    if (destinations.length <= 1) return;
+    setDestinations((prev) => prev.filter((_, i) => i !== idx));
+    if (error) setError('');
+    setErrorStatus(null);
+  };
+
+  const handleMoveDestination = (idx: number, direction: 'up' | 'down') => {
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= destinations.length) return;
+    setDestinations((prev) => {
+      const copy = [...prev];
+      const temp = copy[idx];
+      copy[idx] = copy[targetIdx];
+      copy[targetIdx] = temp;
+      return copy;
+    });
+    if (error) setError('');
+    setErrorStatus(null);
+  };
+
+  const handleDestinationAddressChange = (
+    idx: number,
+    address: string,
+    coords?: { lat: number; lng: number }
+  ) => {
+    setDestinations((prev) => {
+      const copy = [...prev];
+      copy[idx] = {
+        ...copy[idx],
+        address,
+        coords: coords || (address !== copy[idx].address ? undefined : copy[idx].coords),
+      };
+      return copy;
+    });
+    if (error) setError('');
+    setErrorStatus(null);
+  };
+
+  const handleDestinationSelect = (
+    idx: number,
+    loc: { displayName: string; lat: number; lng: number }
+  ) => {
+    setDestinations((prev) => {
+      const copy = [...prev];
+      copy[idx] = {
+        ...copy[idx],
+        address: loc.displayName,
+        coords: { lat: loc.lat, lng: loc.lng },
+      };
+      return copy;
+    });
+    if (error) setError('');
+    setErrorStatus(null);
+  };
 
   // Handle Preset Changes
   const handleSelectPreset = (preset: 'night' | 'commute' | 'maximum' | 'custom') => {
@@ -73,36 +208,72 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
   };
 
   const handleSwap = () => {
-    const temp = source;
-    setSource(destination);
-    setDestination(temp);
-    const tempCoords = sourceCoords;
-    setSourceCoords(destCoords);
-    setDestCoords(tempCoords);
+    if (destinations.length === 1) {
+      const tempSource = source;
+      const tempSourceCoords = sourceCoords;
+      setSource(destinations[0].address);
+      setSourceCoords(destinations[0].coords);
+      setDestinations([
+        {
+          ...destinations[0],
+          address: tempSource,
+          coords: tempSourceCoords,
+        },
+      ]);
+    } else {
+      const allPoints = [{ address: source, coords: sourceCoords }, ...destinations];
+      allPoints.reverse();
+      setSource(allPoints[0].address);
+      setSourceCoords(allPoints[0].coords);
+      setDestinations(
+        allPoints.slice(1).map((pt, idx) => ({
+          id: destinations[idx]?.id || `dest-${idx}-${Date.now()}`,
+          address: pt.address,
+          coords: pt.coords,
+        }))
+      );
+    }
     if (error) setError('');
     setErrorStatus(null);
   };
 
   const isSameLocation = Boolean(
     source.trim() &&
-    destination.trim() &&
-    source.trim().toLowerCase() === destination.trim().toLowerCase()
+    destinations.some(
+      (d) => d.address.trim() && d.address.trim().toLowerCase() === source.trim().toLowerCase()
+    )
+  );
+
+  const hasDuplicateDestinations = Boolean(
+    destinations.some(
+      (d, i) =>
+        d.address.trim() &&
+        destinations.some(
+          (other, j) => i !== j && other.address.trim().toLowerCase() === d.address.trim().toLowerCase()
+        )
+    )
   );
 
   const isFormValid = Boolean(
     source.trim() &&
-    destination.trim() &&
-    !isSameLocation
+    destinations.length > 0 &&
+    destinations.every((d) => d.address.trim().length > 0) &&
+    !isSameLocation &&
+    !hasDuplicateDestinations
   );
 
-  const performEvaluation = async (startLoc: string, endLoc: string) => {
-    if (!startLoc.trim() || !endLoc.trim()) {
-      setError('Please provide both starting point and destination.');
+  const performEvaluation = async (startLoc: string, currentDestinations: DestinationStop[]) => {
+    if (!startLoc.trim() || currentDestinations.length === 0 || !currentDestinations.every((d) => d.address.trim())) {
+      setError('Please provide starting point and all destination stops.');
       setErrorStatus(400);
       return;
     }
 
-    if (startLoc.trim().toLowerCase() === endLoc.trim().toLowerCase()) {
+    if (
+      currentDestinations.some(
+        (d) => d.address.trim().toLowerCase() === startLoc.trim().toLowerCase()
+      )
+    ) {
       setError('Choose two different locations');
       setErrorStatus(400);
       return;
@@ -112,6 +283,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
     setError('');
     setErrorStatus(null);
 
+    const primaryFinalDest = currentDestinations[currentDestinations.length - 1];
+
     const factors: SafetyInput = {
       lighting,
       crime_risk: crimeRisk,
@@ -119,17 +292,54 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
       crowd_level: crowdLevel,
       origin: startLoc.trim(),
       source: startLoc.trim(),
-      destination: endLoc.trim(),
+      destination: primaryFinalDest.address.trim(),
+      destinations: currentDestinations.map((d) => ({
+        id: d.id,
+        address: d.address.trim(),
+        name: d.address.trim(),
+        coords: d.coords,
+      })),
       departureTime,
       travelMode,
+      originCoords: sourceCoords,
+      destinationCoords: primaryFinalDest.coords,
     };
 
     try {
       const result: SafetyResult = await predictRouteSafety(factors);
       setHasSearched(true);
+      if (result.originCoords) {
+        setSourceCoords(result.originCoords);
+      }
+      if (result.destinationPoints && result.destinationPoints.length > 0) {
+        setDestinations((prev) =>
+          prev.map((d, i) => {
+            const pt = result.destinationPoints?.[i];
+            if (pt && typeof pt.lat === 'number' && typeof pt.lng === 'number') {
+              return { ...d, coords: { lat: pt.lat, lng: pt.lng } };
+            }
+            return d;
+          })
+        );
+      } else if (result.destinationCoords) {
+        setDestinations((prev) =>
+          prev.map((d, i) => {
+            if (i === prev.length - 1) {
+              return { ...d, coords: result.destinationCoords };
+            }
+            return d;
+          })
+        );
+      }
       recordPrediction({
         source: startLoc.trim(),
-        destination: endLoc.trim(),
+        destination: primaryFinalDest.address.trim(),
+        destinations: currentDestinations.map((d) => ({
+          id: d.id,
+          address: d.address.trim(),
+          name: d.address.trim(),
+          coords: d.coords,
+        })),
         departureTime,
         travelMode,
         profile,
@@ -149,6 +359,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
           ? 429
           : err?.message?.includes('404')
           ? 404
+          : err?.message?.includes('422')
+          ? 422
           : 500);
       setErrorStatus(status);
 
@@ -157,6 +369,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
         setError('Route service is busy. Please retry in a minute.');
       } else if (status === 404) {
         setError('No route available between these points.');
+      } else if (status === 422) {
+        setError(err?.userMessage || err?.message || 'Unable to resolve destination location. Please verify addresses.');
       } else {
         setError(err?.userMessage || "Couldn't load routes.");
       }
@@ -167,19 +381,25 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
 
   const handleEvaluate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await performEvaluation(source, destination);
+    await performEvaluation(source, destinations);
   };
 
   const handleLoadDemo = () => {
     const demoStart = 'North Station, Boston, MA';
     const demoEnd = 'Boston Public Library, MA';
     setSource(demoStart);
-    setDestination(demoEnd);
     setSourceCoords({ lat: 42.3662, lng: -71.0603 });
-    setDestCoords({ lat: 42.3498, lng: -71.0776 });
+    const demoStops: DestinationStop[] = [
+      {
+        id: 'dest-0',
+        address: demoEnd,
+        coords: { lat: 42.3498, lng: -71.0776 },
+      },
+    ];
+    setDestinations(demoStops);
     setError('');
     setErrorStatus(null);
-    performEvaluation(demoStart, demoEnd);
+    performEvaluation(demoStart, demoStops);
   };
 
   const activeResult = currentPrediction?.result;
@@ -312,6 +532,28 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             </div>
           )}
 
+          {hasDuplicateDestinations && !isSameLocation && (
+            <div
+              className="location-duplicate-warning"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                background: '#fffbeb',
+                border: '1px solid #fde047',
+                color: '#854d0e',
+                fontSize: '13px',
+                fontWeight: 500,
+              }}
+              role="alert"
+            >
+              <AlertTriangle size={16} />
+              <span>Please ensure all destination stops are unique</span>
+            </div>
+          )}
+
           <div className="location-inputs-cluster">
             <LocationInput
               id="route-source"
@@ -327,7 +569,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                 setSourceCoords({ lat: loc.lat, lng: loc.lng });
                 if (error) setError('');
               }}
-              placeholder="Search origin (e.g. Central Station)..."
+              onAddMissingPlace={(q) => handleOpenAddPlace('origin', q)}
+              placeholder="Search origin (e.g. Saiangel Society, Thorala Paduka Temple)..."
               icon="origin"
               required
             />
@@ -344,24 +587,89 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
               </button>
             </div>
 
-            <LocationInput
-              id="route-dest"
-              label="Destination"
-              value={destination}
-              onChange={(val, coords) => {
-                setDestination(val);
-                if (coords) setDestCoords(coords);
-                if (error) setError('');
-              }}
-              onSelectLocation={(loc) => {
-                setDestination(loc.displayName);
-                setDestCoords({ lat: loc.lat, lng: loc.lng });
-                if (error) setError('');
-              }}
-              placeholder="Search destination (e.g. Millennium Park)..."
-              icon="destination"
-              required
-            />
+            <div className="destinations-stack">
+              {destinations.map((dest, idx) => {
+                const isOnlyOne = destinations.length === 1;
+                const isFirst = idx === 0;
+                const isLast = idx === destinations.length - 1;
+                const letter = String.fromCharCode(66 + idx);
+                const labelText = isOnlyOne
+                  ? 'Destination'
+                  : isLast
+                  ? `Final Destination (${letter})`
+                  : `Stop ${idx + 1} (${letter})`;
+
+                return (
+                  <div key={dest.id} className="destination-item-wrapper">
+                    <LocationInput
+                      id={`route-dest-${dest.id}`}
+                      label={labelText}
+                      value={dest.address}
+                      onChange={(val, coords) => {
+                        handleDestinationAddressChange(idx, val, coords);
+                      }}
+                      onSelectLocation={(loc) => {
+                        handleDestinationSelect(idx, loc);
+                      }}
+                      onAddMissingPlace={(q) => handleOpenAddPlace(idx, q)}
+                      placeholder={
+                        isLast
+                          ? 'Search destination (e.g. Saiangel Society, Alandi)...'
+                          : `Search Stop ${idx + 1}...`
+                      }
+                      icon={isLast ? 'destination' : 'origin'}
+                      required
+                      headerAction={
+                        destinations.length > 1 ? (
+                          <div className="dest-row-actions">
+                            <button
+                              type="button"
+                              className="dest-action-btn"
+                              disabled={isFirst}
+                              onClick={() => handleMoveDestination(idx, 'up')}
+                              title="Move stop earlier"
+                              aria-label={`Move ${labelText} earlier`}
+                            >
+                              <ArrowUp size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              className="dest-action-btn"
+                              disabled={isLast}
+                              onClick={() => handleMoveDestination(idx, 'down')}
+                              title="Move stop later"
+                              aria-label={`Move ${labelText} later`}
+                            >
+                              <ArrowDown size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              className="dest-action-btn delete-btn"
+                              onClick={() => handleRemoveDestination(idx)}
+                              title="Remove this stop"
+                              aria-label={`Remove ${labelText}`}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        ) : undefined
+                      }
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="add-destination-container">
+              <button
+                type="button"
+                className="add-destination-btn"
+                onClick={handleAddDestination}
+              >
+                <Plus size={15} />
+                <span>Add Destination / Stop</span>
+              </button>
+            </div>
           </div>
 
           {/* Time & Travel Mode Row */}
@@ -529,14 +837,26 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
         {/* Interactive Vector Map with Animated Loading Corridor Line (ISSUE-11 Task 1) */}
         <RouteMap
           source={source}
-          destination={destination}
+          destination={destinations[destinations.length - 1]?.address || ''}
+          destinations={destinations.map((d, idx) => ({
+            id: d.id,
+            name: d.address,
+            coords: d.coords,
+            label: String.fromCharCode(66 + idx),
+            isFinal: idx === destinations.length - 1,
+          }))}
           sourceCoords={sourceCoords}
-          destinationCoords={destCoords}
+          destinationCoords={destinations[destinations.length - 1]?.coords}
           safetyScore={activeResult?.safety_score || 88}
           routes={currentRoutes}
           selectedRouteId={selectedRouteId}
           onSelectRoute={(id) => setSelectedRouteId(id)}
           isLoading={loading}
+          error={error || null}
+          isPinDropMode={isPinDropMode}
+          onPinDropped={handlePinDropped}
+          onCancelPinDrop={() => setIsPinDropMode(false)}
+          onOpenAddPlace={() => handleOpenAddPlace('origin', '')}
         />
 
         {/* Modular Route Alternatives List: Loading Skeletons, Error State, Empty States, and Route Cards */}
@@ -548,7 +868,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
           isLoading={loading}
           error={error}
           errorStatus={errorStatus}
-          onRetry={() => performEvaluation(source, destination)}
+          onRetry={() => performEvaluation(source, destinations)}
           hasSearched={hasSearched}
           onUseDemoLocations={handleLoadDemo}
           recommendationSummary={activeResult?.explanation?.summary || activeResult?.statusMessage}
@@ -743,6 +1063,16 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
           </>
         )}
       </div>
+
+      {/* Missing Place & Manual Pin Placement Modal */}
+      <AddPlaceModal
+        isOpen={isAddPlaceModalOpen}
+        onClose={() => setIsAddPlaceModalOpen(false)}
+        onPlaceAdded={handlePlaceAdded}
+        initialQuery={modalInitialQuery}
+        initialCoords={modalInitialCoords}
+        onStartPinPlacement={() => setIsPinDropMode(true)}
+      />
     </div>
   );
 };

@@ -37,6 +37,8 @@ jobs:
           NODE_ENV: test
           ADMIN_EMAIL: admin@saferoute.com
           ADMIN_PASSWORD: Admin@12345
+          JWT_ACCESS_SECRET: saferoute_ci_access_secret_key_32chars_test!
+          JWT_REFRESH_SECRET: saferoute_ci_refresh_secret_key_32chars_test!
         run: npm test
 
   frontend-check:

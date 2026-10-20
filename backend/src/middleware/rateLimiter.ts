@@ -27,3 +27,20 @@ export const otpLimiter = rateLimit({
     message: 'Too many OTP requests. Please wait a few minutes before trying again.',
   },
 });
+
+/**
+ * Limiter for geocode autocomplete requests.
+ * Max 20 requests per minute per user/client IP.
+ */
+export const geocodeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    code: 'RATE_LIMIT_EXCEEDED',
+    message: 'Too many geocoding requests. Please retry in a minute.',
+  },
+});
+

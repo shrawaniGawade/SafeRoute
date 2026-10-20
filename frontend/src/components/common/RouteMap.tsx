@@ -246,7 +246,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         }
 
         const isSelected = route.id === currentSelectedId || (idx === 0 && !currentSelectedId);
-        const defaultColor = idx === 0 ? '#087f8c' : idx === 1 ? '#8b5cf6' : '#f59e0b';
+        const defaultColor = idx === 0 ? '#0d9488' : idx === 1 ? '#8b5cf6' : '#f59e0b';
         const routeColor = route.color || defaultColor;
 
         // Visual distinction per route letter
@@ -323,7 +323,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
           const safeZone1 = L.circleMarker(mid1, {
             radius: 8,
-            fillColor: '#087f8c',
+            fillColor: '#0d9488',
             color: '#38bdf8',
             weight: 2,
             fillOpacity: 0.85,
@@ -480,8 +480,8 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           html: `
             <div class="leaflet-pin destination-pin">
               <div class="pin-pulse-ring destination"></div>
-              <div class="pin-core pin-destination" style="background:#087f8c; border: 2px solid #fff; font-size: 14px;">📍</div>
-              <div class="pin-label-tag destination" style="background:#087f8c; color:#fff;">Drag Pin to Adjust</div>
+              <div class="pin-core pin-destination" style="background:#0d9488; border: 2px solid #fff; font-size: 14px;">📍</div>
+              <div class="pin-label-tag destination" style="background:#0d9488; color:#fff;">Drag Pin to Adjust</div>
             </div>
           `,
           iconSize: [36, 36],
@@ -578,7 +578,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
         const marker = L.circleMarker([lat, lng], {
           radius: 6,
-          fillColor: '#087f8c',
+          fillColor: '#0d9488',
           color: '#ffffff',
           weight: 2,
           fillOpacity: 0.9,
@@ -587,7 +587,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         marker.bindPopup(`
           <div style="font-family: inherit; font-size: 13px; max-width: 220px;">
             <div style="font-weight: 700; color: #0f172a;">🏢 ${cp.name}</div>
-            <div style="color: #087f8c; font-size: 11px; font-weight: 600;">
+            <div style="color: #0d9488; font-size: 11px; font-weight: 600;">
               ${cp.verificationStatus === 'verified' ? '✓ Verified SafeRoute Place' : 'Community Submitted'}
             </div>
             ${cp.landmark ? `<div style="font-size: 11px; color: #64748b; margin-top: 2px;">Near: ${cp.landmark}</div>` : ''}
@@ -746,7 +746,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           <button
             type="button"
             className="map-layer-chip"
-            style={{ background: '#087f8c', color: '#ffffff', border: 'none', fontWeight: 700 }}
+            style={{ background: '#0d9488', color: '#ffffff', border: 'none', fontWeight: 700 }}
             onClick={onOpenAddPlace}
             title="Add Missing Society or Landmark"
           >

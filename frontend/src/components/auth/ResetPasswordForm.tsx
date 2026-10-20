@@ -23,7 +23,7 @@ export const ResetPasswordForm: React.FC = () => {
     newPassword.length === 0 ? 0 : criteriaMet <= 2 ? 1 : criteriaMet <= 3 ? 2 : criteriaMet <= 4 ? 3 : 4;
 
   const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
-  const strengthColors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#087f8c'];
+  const strengthColors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#0d9488'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

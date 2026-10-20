@@ -254,7 +254,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         <section className="dash-panel" aria-label="Quick Route Evaluation">
           <div className="dash-panel-header">
             <div className="dash-panel-title">
-              <MapPin size={20} color="#087f8c" />
+              <MapPin size={20} color="#0d9488" />
               <div>
                 <h3>Quick Route Safety Evaluation</h3>
                 <span>Run instant machine learning scoring</span>
@@ -438,7 +438,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         <section className="dash-panel" aria-label="Recent Prediction History">
           <div className="dash-panel-header">
             <div className="dash-panel-title">
-              <History size={20} color="#087f8c" />
+              <History size={20} color="#0d9488" />
               <div>
                 <h3>Recent Route Evaluations</h3>
                 <span>Saved predictions ({history.length})</span>

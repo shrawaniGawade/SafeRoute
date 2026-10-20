@@ -57,7 +57,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               onClick={() => onNavigate('profile')}
               title="View Profile"
             >
-              <ShieldCheck size={16} color="#087f8c" />
+              <ShieldCheck size={16} color="#0d9488" />
               <span>{user?.name || 'My Account'}</span>
             </button>
           </div>

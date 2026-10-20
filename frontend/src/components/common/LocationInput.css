@@ -67,8 +67,8 @@
 
 .location-input-box:focus-within,
 .location-input-box.active-dropdown {
-  border-color: #087f8c;
-  box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.12);
+  border-color: var(--primary, #0d9488);
+  box-shadow: 0 0 0 3px var(--primary-subtle, rgba(13, 148, 136, 0.12));
 }
 
 .location-box-icon {
@@ -80,7 +80,7 @@
 }
 
 .icon-origin {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 .icon-destination {
@@ -93,13 +93,13 @@
   background: transparent;
   padding: 11px 0;
   font-size: 14px;
-  color: #0f172a;
+  color: var(--text-main, #0f172a);
   outline: none;
   font-family: inherit;
 }
 
 .location-text-input::placeholder {
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
 }
 
 .location-box-actions {
@@ -111,7 +111,7 @@
 }
 
 .input-loading-indicator {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   display: flex;
   align-items: center;
 }
@@ -274,7 +274,7 @@
 
 .suggestion-landmark-tag {
   font-size: 11px;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   font-weight: 500;
 }
 
@@ -284,13 +284,13 @@
   align-items: center;
   gap: 8px;
   padding: 16px 16px;
-  color: #64748b;
+  color: var(--text-muted, #64748b);
   font-size: 13px;
   text-align: center;
 }
 
 .no-places-icon {
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
 }
 
 .add-missing-place-trigger-btn {
@@ -298,7 +298,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: #ffffff;
   border: none;
   font-size: 12px;
@@ -307,10 +307,11 @@
   cursor: pointer;
   transition: all 0.15s ease;
   margin-top: 4px;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
 }
 
 .add-missing-place-trigger-btn:hover {
-  background: #066670;
+  background: var(--primary-hover, #0f766e);
 }
 
 .add-missing-place-footer-item {
@@ -318,17 +319,17 @@
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  border-top: 1px solid #f1f5f9;
-  background: #f8fafc;
-  color: #087f8c;
+  border-top: 1px solid var(--border-subtle, #f1f5f9);
+  background: var(--surface-hover, #f8fafc);
+  color: var(--primary, #0d9488);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .add-missing-place-footer-item:hover {
-  background: #e0f2fe;
+  background: var(--primary-subtle, rgba(13, 148, 136, 0.08));
 }

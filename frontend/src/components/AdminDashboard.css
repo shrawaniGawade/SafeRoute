@@ -1,7 +1,7 @@
 .admin-page-layout {
   min-height: 100vh;
   width: 100%;
-  background: radial-gradient(circle at 18% 25%, rgba(8, 127, 140, 0.12) 0%, transparent 45%),
+  background: radial-gradient(circle at 18% 25%, rgba(13, 148, 136, 0.12) 0%, transparent 45%),
               radial-gradient(circle at 82% 75%, rgba(37, 99, 235, 0.1) 0%, transparent 45%),
               #070d18;
   display: flex;
@@ -30,7 +30,7 @@
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   background: #e0f2fe;
   border: 1px solid #bae6fd;
   border-radius: 8px;
@@ -245,12 +245,12 @@
 }
 
 .admin-tab:hover {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 .admin-tab.active {
-  color: #087f8c;
-  border-bottom-color: #087f8c;
+  color: var(--primary, #0d9488);
+  border-bottom-color: var(--primary, #0d9488);
 }
 
 .admin-body {
@@ -487,7 +487,7 @@
 
 .service-endpoint {
   font-size: 11px;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   font-family: monospace;
 }
 
@@ -548,7 +548,7 @@
 
 .slider-group input[type="range"] {
   width: 100%;
-  accent-color: #087f8c;
+  accent-color: var(--primary, #0d9488);
 }
 
 .toggle-row {
@@ -611,7 +611,7 @@
 }
 
 input:checked + .slider {
-  background-color: #087f8c;
+  background-color: var(--primary, #0d9488);
 }
 
 input:checked + .slider:before {
@@ -638,7 +638,7 @@ input:checked + .slider:before {
 
 .admin-dismiss-btn {
   padding: 8px 18px;
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -671,7 +671,7 @@ input:checked + .slider:before {
 .view-all-link {
   background: none;
   border: none;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -766,7 +766,7 @@ input:checked + .slider:before {
   width: 100%;
   margin-top: 14px;
   padding: 12px 20px;
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: white;
   border: none;
   border-radius: 10px;
@@ -823,7 +823,7 @@ input:checked + .slider:before {
   height: 110px;
   border-radius: 50%;
   background: linear-gradient(135deg, #e0f2fe, #dcfce7);
-  border: 4px solid #087f8c;
+  border: 4px solid var(--primary, #0d9488);
   display: flex;
   align-items: baseline;
   justify-content: center;
@@ -834,7 +834,7 @@ input:checked + .slider:before {
 .big-score {
   font-size: 38px;
   font-weight: 800;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   line-height: 1;
 }
 

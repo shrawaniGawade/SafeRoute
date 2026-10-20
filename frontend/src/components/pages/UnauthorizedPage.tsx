@@ -138,14 +138,14 @@ export const UnauthorizedPage: React.FC<UnauthorizedPageProps> = ({ onNavigate, 
               alignItems: 'center',
               gap: '8px',
               padding: '12px 24px',
-              background: 'linear-gradient(135deg, #087f8c, #0284c7)',
+              background: 'linear-gradient(135deg, #0d9488, #0f766e)',
               color: 'white',
               border: 'none',
               borderRadius: '10px',
               fontWeight: 700,
               fontSize: '14px',
               cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(8, 127, 140, 0.3)',
+              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.3)',
             }}
           >
             <Home size={16} />

@@ -42,7 +42,7 @@ export const PredictionDetailsPage: React.FC<PredictionDetailsPageProps> = ({ on
             gap: '8px',
             background: 'none',
             border: 'none',
-            color: '#087f8c',
+            color: '#0d9488',
             fontSize: '14px',
             fontWeight: 700,
             cursor: 'pointer',
@@ -84,7 +84,7 @@ export const PredictionDetailsPage: React.FC<PredictionDetailsPageProps> = ({ on
         {/* Left Column: Quantitative Factor Breakdown */}
         <div className="audit-card">
           <h3 className="audit-card-title">
-            <ShieldCheck size={20} color="#087f8c" />
+            <ShieldCheck size={20} color="#0d9488" />
             <span>Environmental Factor Evaluation</span>
           </h3>
 
@@ -94,7 +94,7 @@ export const PredictionDetailsPage: React.FC<PredictionDetailsPageProps> = ({ on
                 <strong>Illumination & Streetlights</strong>
                 <span>Continuous LED streetlights & commercial storefronts</span>
               </div>
-              <span style={{ fontWeight: 800, color: '#087f8c', fontSize: '15px' }}>
+              <span style={{ fontWeight: 800, color: '#0d9488', fontSize: '15px' }}>
                 {factors.lighting}/10
               </span>
             </div>
@@ -114,7 +114,7 @@ export const PredictionDetailsPage: React.FC<PredictionDetailsPageProps> = ({ on
                 <strong>Pedestrian Density & Activity</strong>
                 <span>Foot-traffic and active evening venues</span>
               </div>
-              <span style={{ fontWeight: 800, color: '#087f8c', fontSize: '15px' }}>
+              <span style={{ fontWeight: 800, color: '#0d9488', fontSize: '15px' }}>
                 {factors.crowd_level}/10
               </span>
             </div>
@@ -134,7 +134,7 @@ export const PredictionDetailsPage: React.FC<PredictionDetailsPageProps> = ({ on
         {/* Right Column: AI Reasoning & Explanation */}
         <div className="audit-card">
           <h3 className="audit-card-title">
-            <Info size={20} color="#087f8c" />
+            <Info size={20} color="#0d9488" />
             <span>AI Decision Explainability</span>
           </h3>
 

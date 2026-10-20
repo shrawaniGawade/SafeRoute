@@ -4,4 +4,6 @@ uvicorn[standard]
 pandas
 numpy
 scikit-learn
-joblib
+joblib
+httpx
+pytest

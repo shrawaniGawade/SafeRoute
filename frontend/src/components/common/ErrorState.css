@@ -1,0 +1,141 @@
+/* SafeRoute Error State Component Styles (ISSUE-11) */
+
+.sr-error-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  background: #ffffff;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px -2px rgba(239, 68, 68, 0.08);
+  margin: 16px 0;
+  gap: 16px;
+}
+
+.sr-error-state-card.rate-limited {
+  border-color: #fde68a;
+  box-shadow: 0 4px 16px -2px rgba(245, 158, 11, 0.08);
+}
+
+.error-icon-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #fef2f2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.12);
+}
+
+.sr-error-state-card.rate-limited .error-icon-box {
+  background: #fffbeb;
+  color: #d97706;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.12);
+}
+
+.error-content-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 440px;
+}
+
+.error-code-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  margin-bottom: 8px;
+}
+
+.sr-error-state-card.rate-limited .error-code-badge {
+  color: #b45309;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.error-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+.error-description {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.error-actions-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.error-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: #087f8c;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(8, 127, 140, 0.25);
+}
+
+.error-retry-btn:hover {
+  background: #066570;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(8, 127, 140, 0.35);
+}
+
+.error-retry-btn:active {
+  transform: translateY(0);
+}
+
+.error-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 18px;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.error-secondary-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-retry-btn,
+  .error-secondary-btn {
+    transition: none !important;
+    transform: none !important;
+  }
+}

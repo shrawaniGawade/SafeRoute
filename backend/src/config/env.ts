@@ -18,7 +18,15 @@ export const ENV = {
     PORT: Number(process.env.SMTP_PORT) || 587,
     USER: process.env.SMTP_USER || '',
     PASS: process.env.SMTP_PASS || '',
-    FROM: process.env.SMTP_FROM || 'SafeRoute Security <no-reply@saferoute.com>',
+    FROM: process.env.SMTP_FROM || process.env.EMAIL_FROM || 'SafeRoute Security <no-reply@saferoute.com>',
+  },
+
+  RESEND_API_KEY: process.env.RESEND_API_KEY || '',
+  EMAIL_FROM: process.env.EMAIL_FROM || process.env.SMTP_FROM || 'SafeRoute Security <onboarding@resend.dev>',
+
+  NOMINATIM: {
+    BASE_URL: process.env.NOMINATIM_BASE_URL || 'https://nominatim.openstreetmap.org/search',
+    USER_AGENT: process.env.NOMINATIM_USER_AGENT || 'SafeRoute/1.0 (contact: info@saferoute.local)',
   },
 
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',

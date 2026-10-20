@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   register,
+  sendOtp,
   verifyOtp,
   resendOtp,
   login,
@@ -15,6 +16,7 @@ import { authLimiter, otpLimiter } from '../middleware/rateLimiter';
 import { requireAuth } from '../middleware/authMiddleware';
 import {
   registerSchema,
+  sendOtpSchema,
   loginSchema,
   verifyOtpSchema,
   resendOtpSchema,
@@ -25,6 +27,7 @@ import {
 const router = Router();
 
 // Registration and OTP Verification
+router.post('/send-otp', otpLimiter, validateBody(sendOtpSchema), sendOtp);
 router.post('/register', authLimiter, validateBody(registerSchema), register);
 router.post('/verify-otp', otpLimiter, validateBody(verifyOtpSchema), verifyOtp);
 router.post('/resend-otp', otpLimiter, validateBody(resendOtpSchema), resendOtp);

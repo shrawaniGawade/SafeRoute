@@ -15,7 +15,8 @@ import {
   UserCheck,
   Zap,
   Play,
-  Check
+  Check,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -27,11 +28,20 @@ import {
 import type { AdminStatsResponse, SafetyResult } from '../services/api';
 
 interface AdminDashboardProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  isStandalone?: boolean;
+  onClose?: () => void;
+  onGoToPlanner?: () => void;
+  onLogout?: () => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({
+  isOpen = true,
+  isStandalone = false,
+  onClose,
+  onGoToPlanner,
+  onLogout
+}) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'users' | 'ai-model'>('overview');
   const [data, setData] = useState<AdminStatsResponse | null>(null);
@@ -128,38 +138,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     return `${hrs > 0 ? `${hrs}h ` : ''}${mins}m ${secs}s`;
   };
 
-  return (
-    <div className="admin-overlay" onClick={onClose}>
-      <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="admin-header">
-          <div className="admin-title-group">
-            <div className="admin-badge-icon">
-              <Shield size={24} color="#087f8c" />
-            </div>
-            <div>
-              <h2>SafeRoute Admin Command Center</h2>
-              <p className="admin-subtitle">
-                Logged in as <strong>{user?.name}</strong> ({user?.email}) &bull;{' '}
-                <span className="status-live-dot"></span> System Live &bull; Uptime: {formatUptime(data?.server?.uptimeSeconds)}
-              </p>
-            </div>
+  const dashboardCard = (
+    <div className={isStandalone ? "admin-page-card" : "admin-modal"} onClick={(e) => e.stopPropagation()}>
+      {/* Header */}
+      <div className="admin-header">
+        <div className="admin-title-group">
+          <div className="admin-badge-icon">
+            <Shield size={24} color="#087f8c" />
           </div>
-          <div className="admin-header-actions">
+          <div>
+            <h2>SafeRoute Admin Command Center</h2>
+            <p className="admin-subtitle">
+              Logged in as <strong>{user?.name}</strong> ({user?.email}) &bull;{' '}
+              <span className="status-live-dot"></span> System Live &bull; Uptime: {formatUptime(data?.server?.uptimeSeconds)}
+            </p>
+          </div>
+        </div>
+        <div className="admin-header-actions">
+          {onGoToPlanner && (
             <button
-              className={`refresh-btn ${loading ? 'spinning' : ''}`}
-              onClick={loadStats}
-              title="Refresh Telemetry"
-              disabled={loading}
+              type="button"
+              className="planner-switch-btn"
+              onClick={onGoToPlanner}
             >
-              <RefreshCw size={16} />
-              <span>{loading ? 'Syncing...' : 'Sync Data'}</span>
+              <span>Route Planner &rarr;</span>
             </button>
+          )}
+          <button
+            className={`refresh-btn ${loading ? 'spinning' : ''}`}
+            onClick={loadStats}
+            title="Refresh Telemetry"
+            disabled={loading}
+          >
+            <RefreshCw size={16} />
+            <span>{loading ? 'Syncing...' : 'Sync Data'}</span>
+          </button>
+          {onLogout && (
+            <button
+              type="button"
+              className="admin-logout-btn"
+              onClick={onLogout}
+              title="Sign Out"
+            >
+              <LogOut size={16} />
+              <span>Logout</span>
+            </button>
+          )}
+          {!isStandalone && onClose && (
             <button className="admin-close-btn" onClick={onClose} aria-label="Close dashboard">
               <X size={20} />
             </button>
-          </div>
+          )}
         </div>
+      </div>
 
         {actionMessage && (
           <div className="admin-action-banner">
@@ -567,11 +598,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
           <div className="admin-footer-info">
             <Shield size={14} /> SafeRoute Administration Console &bull; Security Level: High
           </div>
-          <button className="admin-dismiss-btn" onClick={onClose}>
-            Close Console
-          </button>
+          {isStandalone && onLogout ? (
+            <button className="admin-dismiss-btn" onClick={onLogout} style={{ background: '#ef4444', color: '#ffffff' }}>
+              Sign Out
+            </button>
+          ) : onClose ? (
+            <button className="admin-dismiss-btn" onClick={onClose}>
+              Close Console
+            </button>
+          ) : null}
         </div>
       </div>
+  );
+
+  if (isStandalone) {
+    return (
+      <div className="admin-page-layout">
+        {dashboardCard}
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-overlay" onClick={onClose}>
+      {dashboardCard}
     </div>
   );
 };

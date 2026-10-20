@@ -1,0 +1,3 @@
+# SafeRoute AI Raw Data Directory
+# Raw downloads from Chicago Data Portal, OSM, or other sources belong here.
+# Files in this directory are git-ignored to prevent bloating repository size.

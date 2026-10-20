@@ -1,0 +1,372 @@
+{
+  "model_name": "Random Forest Regressor (60-Tree Ensemble)",
+  "features": [
+    "lighting",
+    "crime_risk",
+    "accident_risk",
+    "crowd_level"
+  ],
+  "n_trees": 60,
+  "trees": [
+    {
+      "feature_idx": 2,
+      "threshold": 1.0768,
+      "left_val": 56.6826,
+      "right_val": 48.7938
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 9.5049,
+      "left_val": 50.0913,
+      "right_val": 41.7372
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 4.6434,
+      "left_val": 39.9865,
+      "right_val": 58.3626
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 4.3977,
+      "left_val": 39.3658,
+      "right_val": 57.8572
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 1.1157,
+      "left_val": 39.2199,
+      "right_val": 50.7611
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 6.2115,
+      "left_val": 45.4866,
+      "right_val": 57.1932
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 5.9561,
+      "left_val": 42.2654,
+      "right_val": 61.3359
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 5.0933,
+      "left_val": 53.4772,
+      "right_val": 46.1079
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 2.8722,
+      "left_val": 58.3783,
+      "right_val": 45.4737
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 5.094,
+      "left_val": 53.2501,
+      "right_val": 46.2158
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 6.6193,
+      "left_val": 55.2328,
+      "right_val": 39.9342
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 8.6421,
+      "left_val": 51.4356,
+      "right_val": 35.7751
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 8.4121,
+      "left_val": 47.0238,
+      "right_val": 62.3035
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 4.6308,
+      "left_val": 42.7285,
+      "right_val": 54.557
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 2.3768,
+      "left_val": 40.5724,
+      "right_val": 52.2414
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 0.1813,
+      "left_val": 25.498,
+      "right_val": 49.7593
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 8.4156,
+      "left_val": 47.6217,
+      "right_val": 62.266
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 7.2262,
+      "left_val": 52.1966,
+      "right_val": 43.0546
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 1.9673,
+      "left_val": 56.6228,
+      "right_val": 47.6858
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 1.502,
+      "left_val": 61.3109,
+      "right_val": 48.017
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 0.2939,
+      "left_val": 63.2056,
+      "right_val": 49.6415
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 7.0528,
+      "left_val": 44.4508,
+      "right_val": 63.4904
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 3.1421,
+      "left_val": 58.4267,
+      "right_val": 44.6652
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 9.988,
+      "left_val": 50.3341,
+      "right_val": 72.5936
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 3.0543,
+      "left_val": 55.417,
+      "right_val": 46.7845
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 6.843,
+      "left_val": 52.027,
+      "right_val": 44.7704
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 2.8625,
+      "left_val": 59.4223,
+      "right_val": 45.988
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 5.9521,
+      "left_val": 54.9191,
+      "right_val": 40.984
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 4.276,
+      "left_val": 43.1112,
+      "right_val": 55.268
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 4.8076,
+      "left_val": 43.3306,
+      "right_val": 55.2995
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 9.0319,
+      "left_val": 47.6413,
+      "right_val": 66.9961
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 2.7025,
+      "left_val": 41.6694,
+      "right_val": 52.1085
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 8.8975,
+      "left_val": 51.2359,
+      "right_val": 35.5887
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 4.425,
+      "left_val": 43.0056,
+      "right_val": 54.8612
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 9.8942,
+      "left_val": 49.646,
+      "right_val": 68.544
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 8.2692,
+      "left_val": 51.8783,
+      "right_val": 37.0614
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 5.8557,
+      "left_val": 55.2896,
+      "right_val": 41.0214
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 4.9137,
+      "left_val": 40.8326,
+      "right_val": 58.9722
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 8.281,
+      "left_val": 47.8911,
+      "right_val": 61.0567
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 7.271,
+      "left_val": 46.0879,
+      "right_val": 59.0821
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 2.3157,
+      "left_val": 55.743,
+      "right_val": 48.1195
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 6.0706,
+      "left_val": 42.7183,
+      "right_val": 60.7104
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 9.7976,
+      "left_val": 50.1792,
+      "right_val": 41.4801
+    },
+    {
+      "feature_idx": 0,
+      "threshold": 3.848,
+      "left_val": 37.7791,
+      "right_val": 57.1676
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 7.7368,
+      "left_val": 51.7909,
+      "right_val": 44.0761
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 7.0242,
+      "left_val": 53.9914,
+      "right_val": 40.0062
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 5.7815,
+      "left_val": 44.2383,
+      "right_val": 55.7178
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 5.4379,
+      "left_val": 44.2457,
+      "right_val": 56.2712
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 7.1273,
+      "left_val": 53.8363,
+      "right_val": 39.5025
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 9.9069,
+      "left_val": 50.0778,
+      "right_val": 39.0789
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 5.1202,
+      "left_val": 53.245,
+      "right_val": 45.7862
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 4.3914,
+      "left_val": 53.7309,
+      "right_val": 46.3544
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 7.9432,
+      "left_val": 47.4347,
+      "right_val": 60.4017
+    },
+    {
+      "feature_idx": 2,
+      "threshold": 3.8346,
+      "left_val": 54.3126,
+      "right_val": 46.6008
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 4.26,
+      "left_val": 42.8877,
+      "right_val": 54.7545
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 7.7671,
+      "left_val": 47.1247,
+      "right_val": 59.2984
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 5.8929,
+      "left_val": 44.5255,
+      "right_val": 56.4345
+    },
+    {
+      "feature_idx": 3,
+      "threshold": 6.4102,
+      "left_val": 45.3424,
+      "right_val": 58.4053
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 2.8629,
+      "left_val": 58.801,
+      "right_val": 46.0598
+    },
+    {
+      "feature_idx": 1,
+      "threshold": 8.5405,
+      "left_val": 51.4424,
+      "right_val": 37.4124
+    }
+  ]
+}

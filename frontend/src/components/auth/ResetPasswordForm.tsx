@@ -3,8 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { Eye, EyeOff, Lock, ArrowRight, AlertCircle, Loader2, KeyRound, CheckCircle2 } from 'lucide-react';
 
 export const ResetPasswordForm: React.FC = () => {
-  const { pendingOtpEmail, resetPassword, setAuthModalView } = useAuth();
-  const [otp, setOtp] = useState('');
+  const { pendingOtpEmail, pendingResetOtp, resetPassword, setAuthModalView } = useAuth();
+  const [otp, setOtp] = useState(pendingResetOtp || '');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -82,23 +82,45 @@ export const ResetPasswordForm: React.FC = () => {
         </div>
       )}
 
-      <div className="form-group">
-        <label htmlFor="reset-otp">6-Digit Verification Code</label>
-        <div className="input-wrapper">
-          <input
-            id="reset-otp"
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="e.g. 123456"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-            disabled={loading}
-            required
-            style={{ letterSpacing: '4px', fontWeight: 600 }}
-          />
+      {pendingResetOtp ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: '8px',
+            padding: '10px 14px',
+            fontSize: '13px',
+            color: '#166534',
+            marginBottom: '16px',
+          }}
+        >
+          <CheckCircle2 size={16} color="#16a34a" />
+          <span>
+            Security Code Verified: <strong>{otp}</strong>
+          </span>
         </div>
-      </div>
+      ) : (
+        <div className="form-group">
+          <label htmlFor="reset-otp">6-Digit Verification Code</label>
+          <div className="input-wrapper">
+            <input
+              id="reset-otp"
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="e.g. 123456"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              disabled={loading}
+              required
+              style={{ letterSpacing: '4px', fontWeight: 600 }}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="form-group">
         <label htmlFor="reset-new-password">New Password</label>

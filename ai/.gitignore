@@ -1,0 +1,12 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+
+# Raw Data Downloads (large files)
+data/raw/*
+!data/raw/.gitignore
+!data/raw/.gitkeep

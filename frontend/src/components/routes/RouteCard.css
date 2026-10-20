@@ -1,0 +1,467 @@
+/* SafeRoute Alternatives & Route Cards Styling */
+
+.routes-container-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.routes-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 2px;
+}
+
+.routes-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a;
+}
+
+.routes-header-title h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.routes-header-title .header-icon {
+  color: #087f8c;
+}
+
+.route-count-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+/* Single Route Fallback Notice */
+.single-route-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  color: #1e40af;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.notice-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #2563eb;
+}
+
+.notice-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notice-text-content strong {
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.notice-text-content span {
+  font-size: 12px;
+  color: #3b82f6;
+}
+
+/* Route Cards Stack */
+.route-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Individual Route Card */
+.route-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-left: 5px solid var(--route-accent, #087f8c);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: relative;
+  outline: none;
+}
+
+.route-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.route-card:focus-visible {
+  box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.35);
+  border-color: #087f8c;
+}
+
+/* Selected Card Highlight */
+.route-card.selected {
+  background: #f8fafc;
+  border-color: var(--route-accent, #087f8c);
+  box-shadow: 0 0 0 1px var(--route-accent, #087f8c), 0 8px 24px rgba(8, 127, 140, 0.12);
+}
+
+/* Header Row */
+.route-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.route-badge-cluster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.route-letter-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 9px;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.route-recommended-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+/* Explicit Risk Badges (Never indicated by color alone) */
+.risk-text-cluster {
+  display: flex;
+  align-items: center;
+}
+
+.risk-text-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
+}
+
+.risk-text-pill.risk-optimal {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.risk-text-pill.risk-moderate {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.risk-text-pill.risk-elevated {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* Card Body */
+.route-card-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.route-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  flex-shrink: 0;
+}
+
+.route-type-icon.safe {
+  color: #087f8c;
+}
+
+.route-type-icon.balanced {
+  color: #8b5cf6;
+}
+
+.route-type-icon.shortcut {
+  color: #f59e0b;
+}
+
+.route-info-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.route-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 3px 0;
+  line-height: 1.35;
+}
+
+.route-summary {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.route-score-cluster {
+  flex-shrink: 0;
+}
+
+/* Metrics Bar */
+.route-metrics-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  font-size: 12px;
+  color: #475569;
+  flex-wrap: wrap;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.metric-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.metric-value {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.metric-separator {
+  color: #cbd5e1;
+}
+
+/* Recommendation Reason Strip (FRD F3.4) */
+.route-recommendation-reason-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.route-recommendation-reason-strip .recommendation-sparkle-icon {
+  color: #15803d;
+  flex-shrink: 0;
+}
+
+/* Recommendation Summary Banner (AC 3 & AC 4 / FR-5.4, FR-5.5) */
+.recommendation-summary-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  transition: all 0.2s ease;
+}
+
+.recommendation-summary-banner.recommended {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.recommendation-summary-banner.warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.recommendation-summary-banner .banner-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.recommendation-summary-banner.recommended .banner-icon-box {
+  color: #15803d;
+}
+
+.recommendation-summary-banner.warning .banner-icon-box {
+  color: #b45309;
+}
+
+.recommendation-summary-banner .banner-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recommendation-summary-banner .banner-text-content strong {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.recommendation-summary-banner.recommended .banner-text-content strong {
+  color: #14532d;
+}
+
+.recommendation-summary-banner.warning .banner-text-content strong {
+  color: #78350f;
+}
+
+.recommendation-summary-banner .banner-text-content span {
+  font-size: 12.5px;
+  color: inherit;
+  opacity: 0.95;
+}
+
+/* Caution Strip */
+.route-caution-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #fffbeb;
+  border-radius: 6px;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Card Footer */
+.route-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.selection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.status-indicator.active {
+  background: var(--route-accent, #087f8c);
+  box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.25);
+}
+
+.status-indicator.active + .status-text {
+  color: var(--route-accent, #087f8c);
+  font-weight: 700;
+}
+
+.card-audit-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #087f8c;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.card-audit-action-btn:hover {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* Responsive Layout */
+/* Desktop Layout: Sidebar alongside map */
+@media (min-width: 900px) {
+  .routes-container-panel.routes-sidebar {
+    position: sticky;
+    top: 20px;
+  }
+}
+
+/* Mobile Layout: Bottom Sheet / Horizontal Scroll or Stack (<900px) */
+@media (max-width: 899px) {
+  .routes-container-panel.routes-bottom-sheet {
+    background: #ffffff;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    padding: 16px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .route-card {
+    padding: 14px;
+  }
+}

@@ -1,0 +1,7 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+tests/
+model/train_*.py
+model/*.joblib

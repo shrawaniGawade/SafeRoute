@@ -2,64 +2,150 @@ name: SafeRoute Continuous Integration (CI)
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main, master, develop, 'feature/**']
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 jobs:
   backend-test:
-    name: Backend Test Suite
+    name: Backend Build & Unit/Integration Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
+          cache: 'npm'
+          cache-dependency-path: backend/package.json
+
       - name: Install Dependencies
-        run: npm ci
-      - name: Run Test Suite
+        run: npm install
+
+      - name: TypeScript Compilation Check
+        run: npm run build
+
+      - name: Run Backend Test Suites (Auth, RBAC, DB, API, E2E)
+        env:
+          NODE_ENV: test
+          ADMIN_EMAIL: admin@saferoute.com
+          ADMIN_PASSWORD: Admin@12345
         run: npm test
 
-  frontend-build:
-    name: Frontend Build & Typecheck
+  frontend-check:
+    name: Frontend Tests & Production Build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache: 'npm'
+          cache-dependency-path: frontend/package.json
+
       - name: Install Dependencies
-        run: npm ci
-      - name: Verify Build
+        run: |
+          npm install
+          npm install @rolldown/binding-linux-x64-gnu lightningcss-linux-x64-gnu @oxlint/binding-linux-x64-gnu
+
+      - name: Run Frontend Logic & Architecture Tests
+        run: npm test
+
+      - name: Verify Production Vite Bundle Build
         run: npm run build
 
-  ai-lint:
-    name: AI Service Validation
+  ai-service:
+    name: Python AI Microservice Tests & Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ai
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Dependencies
+          cache: 'pip'
+          cache-dependency-path: ai/requirements.txt
+
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Syntax Check
+
+      - name: Python Syntax & Bytecode Compilation
         run: python -m py_compile app/main.py
+
+      - name: Run AI Safety & Dataset Verification Tests
+        run: python -m unittest discover -s tests -v
+
+  full-stack-integration:
+    name: Full-Stack Live Services Integration Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [backend-test, frontend-check, ai-service]
+    services:
+      mongo:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12 for AI Engine
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install & Start AI Microservice
+        working-directory: ai
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > uvicorn.log 2>&1 &
+          sleep 4
+          curl -f http://127.0.0.1:8000/health
+
+      - name: Setup Node.js 20 for Backend
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Integration Tests Against Live Mongo & AI
+        working-directory: backend
+        env:
+          PORT: 5000
+          NODE_ENV: test
+          MONGO_URI: mongodb://127.0.0.1:27017/saferoute_ci
+          AI_SERVICE_URL: http://127.0.0.1:8000
+          JWT_ACCESS_SECRET: saferoute_ci_access_secret_key_32chars_test!
+          JWT_REFRESH_SECRET: saferoute_ci_refresh_secret_key_32chars_test!
+          ADMIN_EMAIL: admin@saferoute.com
+          ADMIN_PASSWORD: Admin@12345
+        run: |
+          npm install
+          npm test

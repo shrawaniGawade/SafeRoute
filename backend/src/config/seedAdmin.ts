@@ -6,7 +6,7 @@ export async function seedDefaultAdmin(): Promise<void> {
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
     const adminName = process.env.ADMIN_NAME || 'System Admin';
 
-    const existingUser = await User.findOne({ email: adminEmail });
+    const existingUser = await User.findOne({ email: adminEmail }).select('+password');
 
     if (!existingUser) {
       await User.create({
@@ -17,11 +17,25 @@ export async function seedDefaultAdmin(): Promise<void> {
         isVerified: true,
       });
       console.log(`[AdminSeeder] Successfully initialized default Admin account: ${adminEmail}`);
-    } else if (existingUser.role !== 'admin') {
-      existingUser.role = 'admin';
-      existingUser.isVerified = true;
-      await existingUser.save();
-      console.log(`[AdminSeeder] Upgraded account to Admin privileges: ${adminEmail}`);
+    } else {
+      let needsSave = false;
+      if (existingUser.role !== 'admin') {
+        existingUser.role = 'admin';
+        needsSave = true;
+      }
+      if (!existingUser.isVerified) {
+        existingUser.isVerified = true;
+        needsSave = true;
+      }
+      const isPasswordMatch = await existingUser.comparePassword(adminPassword);
+      if (!isPasswordMatch) {
+        existingUser.password = adminPassword;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await existingUser.save();
+        console.log(`[AdminSeeder] Synchronized Admin privileges and credentials: ${adminEmail}`);
+      }
     }
   } catch (error) {
     console.error('[AdminSeeder] Admin seed error:', error);

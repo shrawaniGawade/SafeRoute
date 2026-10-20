@@ -122,11 +122,19 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
       destination: endLoc.trim(),
       departureTime,
       travelMode,
+      originCoords: sourceCoords,
+      destinationCoords: destCoords,
     };
 
     try {
       const result: SafetyResult = await predictRouteSafety(factors);
       setHasSearched(true);
+      if (result.originCoords) {
+        setSourceCoords(result.originCoords);
+      }
+      if (result.destinationCoords) {
+        setDestCoords(result.destinationCoords);
+      }
       recordPrediction({
         source: startLoc.trim(),
         destination: endLoc.trim(),
@@ -537,6 +545,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
           selectedRouteId={selectedRouteId}
           onSelectRoute={(id) => setSelectedRouteId(id)}
           isLoading={loading}
+          error={error || null}
         />
 
         {/* Modular Route Alternatives List: Loading Skeletons, Error State, Empty States, and Route Cards */}

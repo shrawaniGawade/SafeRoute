@@ -13,6 +13,8 @@ describe('ISSUE-12: Safety Data Models & Seed Data Suite', () => {
     await connectDB();
     if (mongoose.connection.readyState === 1) {
       try {
+        await SafetyRecord.deleteMany({ 'metadata.testSuite': true });
+        await EmergencyLocation.deleteMany({ 'metadata.testSuite': true });
         await SafetyRecord.init();
         await EmergencyLocation.init();
       } catch (_) {}
@@ -163,6 +165,7 @@ describe('ISSUE-12: Safety Data Models & Seed Data Suite', () => {
   // --------------------------------------------------------------------------
   describe('2. EmergencyLocation Model Schema & Facility Types', () => {
     test('2a. Creates valid emergency facility with phone and address', async () => {
+      await EmergencyLocation.deleteOne({ osmId: 'test_osm_unit_001' });
       const facility = await EmergencyLocation.create({
         name: 'Chicago Central First Aid Station',
         type: 'emergency_care',

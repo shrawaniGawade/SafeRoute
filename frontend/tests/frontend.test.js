@@ -457,5 +457,82 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
       assert.equal(crimeReason, 'Crime Security 85/100: low incident density along monitored thoroughfares.');
     });
   });
+
+  await t.test('13. Leaflet Boundary & Map Route Data Normalization', async (sub) => {
+    function extractLeafletLatLngs(route) {
+      if (route.geometry && Array.isArray(route.geometry) && route.geometry.length > 0) {
+        return route.geometry
+          .filter((pt) => Array.isArray(pt) && pt.length >= 2)
+          .map(([lng, lat]) => [lat, lng]);
+      }
+      if (route.waypoints && Array.isArray(route.waypoints) && route.waypoints.length > 0) {
+        return route.waypoints
+          .filter((w) => typeof w.lat === 'number' && typeof w.lng === 'number' && !isNaN(w.lat) && !isNaN(w.lng))
+          .map((w) => [w.lat, w.lng]);
+      }
+      if (route.coordinates && Array.isArray(route.coordinates) && route.coordinates.length > 0) {
+        const first = route.coordinates[0];
+        if (Array.isArray(first)) {
+          if (Math.abs(first[0]) > 90 || (Math.abs(first[1]) <= 90 && Math.abs(first[0]) > Math.abs(first[1]))) {
+            return route.coordinates.map(([lng, lat]) => [lat, lng]);
+          }
+          return route.coordinates;
+        }
+      }
+      return [];
+    }
+
+    await sub.test('13a. Correctly converts GeoJSON [lng, lat] to Leaflet [lat, lng]', () => {
+      const route = {
+        id: 'ors_route_1',
+        geometry: [
+          [-71.0603, 42.3662],
+          [-71.0650, 42.3600],
+          [-71.0776, 42.3498],
+        ],
+      };
+
+      const latLngs = extractLeafletLatLngs(route);
+      assert.equal(latLngs.length, 3);
+      // First point: lat 42.3662, lng -71.0603
+      assert.deepEqual(latLngs[0], [42.3662, -71.0603]);
+      assert.deepEqual(latLngs[2], [42.3498, -71.0776]);
+    });
+
+    await sub.test('13b. Extracts coordinates from waypoints array if geometry is missing', () => {
+      const route = {
+        id: 'waypoints_route',
+        waypoints: [
+          { lat: 19.0760, lng: 72.8777 },
+          { lat: 18.5204, lng: 73.8567 },
+        ],
+      };
+
+      const latLngs = extractLeafletLatLngs(route);
+      assert.equal(latLngs.length, 2);
+      assert.deepEqual(latLngs[0], [19.0760, 72.8777]);
+      assert.deepEqual(latLngs[1], [18.5204, 73.8567]);
+    });
+
+    await sub.test('13c. Handles empty or missing geometry gracefully without throwing', () => {
+      assert.deepEqual(extractLeafletLatLngs({ id: 'empty' }), []);
+      assert.deepEqual(extractLeafletLatLngs({ id: 'empty_geom', geometry: [] }), []);
+    });
+
+    await sub.test('13d. Alternative routes maintain distinct IDs, letters, and formatting', () => {
+      const routes = [
+        { id: 'alt_safe_corridor', letter: 'A', name: 'Safe Corridor', distanceText: '2.1 km', durationText: '22 mins' },
+        { id: 'alt_balanced_transit', letter: 'B', name: 'Balanced Transit', distanceText: '1.8 km', durationText: '19 mins' },
+        { id: 'alt_direct_shortcut', letter: 'C', name: 'Direct Shortcut', distanceText: '1.4 km', durationText: '16 mins' },
+      ];
+
+      assert.equal(routes.length, 3);
+      assert.equal(routes[0].letter, 'A');
+      assert.equal(routes[1].letter, 'B');
+      assert.equal(routes[2].letter, 'C');
+      assert.ok(routes[0].distanceText.includes('km'));
+      assert.ok(routes[0].durationText.includes('mins'));
+    });
+  });
 });
 

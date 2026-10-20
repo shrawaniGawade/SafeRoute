@@ -15,6 +15,8 @@ export interface SafetyInput {
   clientRequestId?: string;
   maxDetour?: number | { maxDetourPct?: number; maxDetourMin?: number };
   maxDetourMinutes?: number;
+  originCoords?: { lat: number; lng: number };
+  destinationCoords?: { lat: number; lng: number };
 }
 
 export interface RouteAlternativeItem {
@@ -25,14 +27,21 @@ export interface RouteAlternativeItem {
   rating: string;
   isRecommended: boolean;
   recommendationReason?: string;
+  isRealRoutingData?: boolean;
   isNavigable: boolean;
+  distanceKm?: number | null;
   distanceText: string;
+  durationMinutes?: number | null;
   durationText: string;
   summary: string;
   color?: string;
   type?: 'safe_corridor' | 'balanced_transit' | 'direct_shortcut' | string;
   safetyAttributes?: string[];
   caveats?: string[];
+  waypoints?: Array<{ lat: number; lng: number }>;
+  geometry?: [number, number][]; // GeoJSON [lng, lat][]
+  coordinates?: [number, number][];
+  instructions?: string[];
   factors: {
     lighting: number;
     crime_risk: number;
@@ -64,10 +73,13 @@ export interface SafetyResult {
   latency_ms?: number;
   origin?: string;
   destination?: string;
+  originCoords?: { lat: number; lng: number; label: string };
+  destinationCoords?: { lat: number; lng: number; label: string };
   departureTime?: string;
   travelMode?: string;
   scoring_explanation?: string;
   is_navigable?: boolean;
+  isRealRoutingData?: boolean;
   navigability_notice?: string;
   routing_provider?: string;
   recommendedIndex?: number;
@@ -380,18 +392,25 @@ export interface GeocodeResult {
  */
 export async function geocodeLocations(query: string, limit = 5): Promise<GeocodeResult[]> {
   const q = query.trim();
-  if (q.length < 3) return [];
+  if (q.length < 3 && !/^[-+]?\d/.test(q)) return [];
 
-  const url = getApiUrl(`/geocode?q=${encodeURIComponent(q)}&limit=${limit}`);
-  const response = await fetch(url, {
+  // Try /api/safety/geocode first, fallback to /api/geocode
+  let url = getApiUrl(`/safety/geocode?q=${encodeURIComponent(q)}&limit=${limit}`);
+  let response = await fetch(url, {
     method: 'GET',
-    headers: {
-      Accept: 'application/json',
-    },
+    headers: { Accept: 'application/json' },
   });
 
+  if (!response.ok && response.status === 404) {
+    url = getApiUrl(`/geocode?q=${encodeURIComponent(q)}&limit=${limit}`);
+    response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+  }
+
   if (!response.ok) {
-    if (response.status === 400) return [];
+    if (response.status === 400 || response.status === 422) return [];
     throw new Error(`Location search failed: ${response.status}`);
   }
 

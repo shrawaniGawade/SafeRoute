@@ -8,6 +8,14 @@ import {
 } from '../services/routingService';
 
 test('SafeRoute Routing & Alternative Routes Service Test Suite (ISSUE-10)', async (t) => {
+  const originalProvider = process.env.ROUTING_PROVIDER;
+  t.before(() => {
+    process.env.ROUTING_PROVIDER = 'synthetic_demo';
+  });
+  t.after(() => {
+    process.env.ROUTING_PROVIDER = originalProvider;
+  });
+
   t.beforeEach(() => {
     clearRouteCache();
   });
@@ -109,5 +117,70 @@ test('SafeRoute Routing & Alternative Routes Service Test Suite (ISSUE-10)', asy
     assert.strictEqual(routeA.factors.lighting, 10);
     assert.strictEqual(routeA.factors.crime_risk, 0.5);
     assert.strictEqual(routeA.factors.crowd_level, 9.5);
+  });
+
+  await t.test('6. Accepts typed GeoPoint objects directly for origin and destination', async () => {
+    const originGeoPoint = {
+      lat: 42.3662,
+      lng: -71.0603,
+      label: 'North Station, Boston',
+      confidence: 1.0,
+    };
+    const destGeoPoint = {
+      lat: 42.3498,
+      lng: -71.0776,
+      label: 'Boston Public Library',
+      confidence: 1.0,
+    };
+
+    const result = await getRouteAlternatives(originGeoPoint, destGeoPoint, 'walking');
+    assert.ok(result);
+    assert.ok(result.routes.length > 0);
+    assert.strictEqual(result.routes[0].letter, 'A');
+    assert.ok(result.routes[0].distanceText);
+    assert.ok(result.routes[0].durationText);
+  });
+
+  await t.test('7. Normalizes route alternatives structure, geometry, and instructions', async () => {
+    const result = await getRouteAlternatives('Point A', 'Point B', 'walking');
+    assert.ok(result.routes.length >= 1);
+
+    for (const r of result.routes) {
+      assert.ok(r.id, 'Route must have id');
+      assert.ok(r.letter, 'Route must have letter A, B, or C');
+      assert.ok(r.name, 'Route must have name');
+      assert.ok(r.summary, 'Route must have summary');
+      assert.ok(typeof r.safety_score === 'number', 'Route must have numeric safety_score');
+      assert.ok(typeof r.isRecommended === 'boolean', 'Route must have isRecommended boolean');
+      assert.ok(typeof r.distanceText === 'string');
+      assert.ok(typeof r.durationText === 'string');
+      assert.ok(Array.isArray(r.safetyAttributes));
+      assert.ok(Array.isArray(r.caveats));
+      assert.ok(r.factors, 'Route must have factors object');
+      assert.ok(typeof r.factors.lighting === 'number');
+      assert.ok(typeof r.factors.crime_risk === 'number');
+
+      // Geometry validation: GeoJSON coordinates are [longitude, latitude]
+      if (r.geometry && r.geometry.length > 0) {
+        const firstCoord = r.geometry[0];
+        assert.ok(Array.isArray(firstCoord));
+        assert.strictEqual(firstCoord.length, 2);
+        // GeoJSON ordering: [lng, lat]
+        const [lng, lat] = firstCoord;
+        assert.ok(lat >= -90 && lat <= 90, `Latitude ${lat} must be between -90 and 90`);
+        assert.ok(lng >= -180 && lng <= 180, `Longitude ${lng} must be between -180 and 180`);
+      }
+    }
+  });
+
+  await t.test('8. Rejects identical origin and destination points with structured error', async () => {
+    await assert.rejects(
+      async () => {
+        await getRouteAlternatives('Same Place', 'Same Place', 'walking');
+      },
+      (err: any) => {
+        return err.statusCode === 400 || err.message.includes('different') || err.message.includes('Identical');
+      }
+    );
   });
 });

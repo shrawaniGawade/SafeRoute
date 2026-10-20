@@ -2,8 +2,9 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { SafetyPrediction } from '../models/SafetyPrediction';
 import { predictRouteSafety } from '../services/aiService';
-import { getRouteAlternatives, RoutingError } from '../services/routingService';
+import { getRouteAlternatives, RoutingError, hasMockRoutingProvider } from '../services/routingService';
 import { recommendRoute } from '../services/recommendationService';
+import { geocode, isValidCoordinate, type GeoPoint } from '../services/geocodingService';
 import {
   calculateSafetyScore,
   evaluateRouteSafetyScore,
@@ -26,10 +27,28 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
       clientRequestId,
     } = req.body;
 
-    const startLocation = origin || source || 'Origin';
-    const endLocation = destination || 'Destination';
+    const startLocation = (origin || source || '').trim();
+    const endLocation = (destination || '').trim();
     const mode = travelMode || 'walking';
     const depTime = departureTime || timeOfDay || 'Immediate';
+
+    if (!startLocation || !endLocation) {
+      res.status(400).json({
+        success: false,
+        code: 'VALIDATION_ERROR',
+        message: 'Please provide both starting point and destination.',
+      });
+      return;
+    }
+
+    if (startLocation.toLowerCase() === endLocation.toLowerCase()) {
+      res.status(400).json({
+        success: false,
+        code: 'VALIDATION_ERROR',
+        message: 'Choose two different locations.',
+      });
+      return;
+    }
 
     // Idempotent retry check: if clientRequestId is provided, check if already evaluated
     if (clientRequestId) {
@@ -56,12 +75,75 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
       }
     }
 
-    // 1. Obtain Route Alternatives from Routing Engine
-    const routingResult = await getRouteAlternatives(startLocation, endLocation, mode, {
-      lighting: Number(lighting),
-      crime_risk: Number(crime_risk),
-      accident_risk: Number(accident_risk),
-    });
+    // 1. Resolve Origin and Destination Geocoding
+    let originGeo: GeoPoint | null = null;
+    let destGeo: GeoPoint | null = null;
+
+    const reqOriginCoords = req.body.originCoords || req.body.sourceCoords;
+    if (
+      reqOriginCoords &&
+      isValidCoordinate(Number(reqOriginCoords.lat), Number(reqOriginCoords.lng))
+    ) {
+      originGeo = {
+        lat: Number(reqOriginCoords.lat),
+        lng: Number(reqOriginCoords.lng),
+        label: startLocation || `${Number(reqOriginCoords.lat).toFixed(6)}, ${Number(reqOriginCoords.lng).toFixed(6)}`,
+        confidence: 1.0,
+      };
+    }
+
+    const reqDestCoords = req.body.destinationCoords || req.body.destCoords;
+    if (
+      reqDestCoords &&
+      isValidCoordinate(Number(reqDestCoords.lat), Number(reqDestCoords.lng))
+    ) {
+      destGeo = {
+        lat: Number(reqDestCoords.lat),
+        lng: Number(reqDestCoords.lng),
+        label: endLocation || `${Number(reqDestCoords.lat).toFixed(6)}, ${Number(reqDestCoords.lng).toFixed(6)}`,
+        confidence: 1.0,
+      };
+    }
+
+    if (!hasMockRoutingProvider()) {
+      if (!originGeo) {
+        originGeo = await geocode(startLocation);
+      }
+      if (!originGeo || !isValidCoordinate(originGeo.lat, originGeo.lng)) {
+        res.status(422).json({
+          success: false,
+          code: 'UNRESOLVED_LOCATION',
+          message: `Unable to resolve starting location: "${startLocation}". Please provide a valid address or coordinates.`,
+        });
+        return;
+      }
+
+      if (!destGeo) {
+        destGeo = await geocode(endLocation);
+      }
+      if (!destGeo || !isValidCoordinate(destGeo.lat, destGeo.lng)) {
+        res.status(422).json({
+          success: false,
+          code: 'UNRESOLVED_LOCATION',
+          message: `Unable to resolve destination location: "${endLocation}". Please provide a valid address or coordinates.`,
+        });
+        return;
+      }
+    }
+
+    // 2. Obtain Route Alternatives from Routing Engine
+    const routingResult = await getRouteAlternatives(
+      originGeo || startLocation,
+      destGeo || endLocation,
+      mode,
+      {
+        lighting: Number(lighting),
+        crime_risk: Number(crime_risk),
+        accident_risk: Number(accident_risk),
+        crowd_level: Number(crowd_level),
+        emergency_proximity: emergency_proximity !== undefined ? Number(emergency_proximity) : undefined,
+      }
+    );
 
     // Check for empty route alternatives (ISSUE-11: 404 No Route Found)
     if (!routingResult?.routes || routingResult.routes.length === 0) {
@@ -73,7 +155,7 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
       return;
     }
 
-    // 2. Evaluate each route alternative with FastAPI AI Service / internal scoring
+    // 3. Evaluate each route alternative with FastAPI AI Service / internal scoring
     const letters: Array<'A' | 'B' | 'C'> = ['A', 'B', 'C'];
     const evaluatedAlternatives = await Promise.all(
       routingResult.routes.map(async (route, index) => {
@@ -98,9 +180,15 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
           safety_score: routeScore,
           rating: evalAi.rating || routeClassification,
           isRecommended: route.isRecommended,
+          isRealRoutingData: route.isRealRoutingData,
           isNavigable: route.isNavigable,
+          distanceKm: route.distanceKm,
           distanceText: route.distanceText,
+          durationMinutes: route.durationMinutes,
           durationText: route.durationText,
+          geometry: route.geometry,
+          waypoints: route.waypoints,
+          instructions: route.instructions,
           factors: route.factors,
           safetyAttributes: route.safetyAttributes || [],
           caveats: route.caveats || [],
@@ -188,12 +276,17 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
         factors: primaryAiFactors,
         origin: startLocation,
         destination: endLocation,
+        originCoords: routingResult.originCoords || (originGeo ? { lat: originGeo.lat, lng: originGeo.lng, label: originGeo.label } : undefined),
+        destinationCoords: routingResult.destinationCoords || (destGeo ? { lat: destGeo.lat, lng: destGeo.lng, label: destGeo.label } : undefined),
         departureTime: depTime,
         travelMode: mode,
-        data_type: 'synthetic_demonstration',
-        warning: 'Demonstration only. Not validated for real-world emergency dispatch.',
+        data_type: routingResult.isRealRoutingData ? 'live_road_network' : 'synthetic_demonstration',
+        warning: routingResult.isRealRoutingData
+          ? 'Live road network telemetry. Maintain personal situational awareness.'
+          : 'Demonstration only. Not validated for real-world emergency dispatch.',
         scoring_explanation: scoringExplanation,
         is_navigable: routingResult.isNavigable,
+        isRealRoutingData: routingResult.isRealRoutingData,
         navigability_notice: routingResult.navigabilityNotice,
         routing_provider: routingResult.provider,
         recommendedIndex: recommendation.recommendedIndex,

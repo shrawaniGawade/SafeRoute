@@ -2,7 +2,16 @@ import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'http';
 import app from '../server';
-import { searchLocations, clearGeocodeCache, getGeocodeCacheSize } from '../services/geocodingService';
+import {
+  searchLocations,
+  clearGeocodeCache,
+  getGeocodeCacheSize,
+  geocode,
+  suggest,
+  reverseGeocode,
+  parseDirectCoordinates,
+  isValidCoordinate,
+} from '../services/geocodingService';
 
 let server: http.Server;
 let baseUrl: string;
@@ -112,5 +121,98 @@ describe('SafeRoute Geocoding API & Location Search Suite', () => {
     assert.ok(res1.length > 0);
     assert.ok(res2.length > 0);
     assert.equal(res1[0].displayName, res2[0].displayName);
+  });
+
+  test('8. Direct coordinate input parses without external API call and normalizes to GeoPoint', () => {
+    const directValid = parseDirectCoordinates('19.0760, 72.8777');
+    assert.ok(directValid, 'Must parse valid lat,lng coordinate string');
+    assert.equal(directValid.lat, 19.076);
+    assert.equal(directValid.lng, 72.8777);
+    assert.equal(directValid.confidence, 1.0);
+    assert.equal(directValid.type, 'coordinate');
+
+    const withSpaces = parseDirectCoordinates('  -33.8688 ,  151.2093  ');
+    assert.ok(withSpaces);
+    assert.equal(withSpaces.lat, -33.8688);
+    assert.equal(withSpaces.lng, 151.2093);
+  });
+
+  test('9. Coordinate range validation rejects out-of-bounds latitude and longitude', () => {
+    assert.equal(isValidCoordinate(90, 180), true);
+    assert.equal(isValidCoordinate(-90, -180), true);
+    assert.equal(isValidCoordinate(0, 0), true);
+
+    // Invalid ranges
+    assert.equal(isValidCoordinate(90.1, 0), false, 'Lat > 90 must be invalid');
+    assert.equal(isValidCoordinate(-91, 0), false, 'Lat < -90 must be invalid');
+    assert.equal(isValidCoordinate(0, 180.1), false, 'Lng > 180 must be invalid');
+    assert.equal(isValidCoordinate(0, -180.5), false, 'Lng < -180 must be invalid');
+    assert.equal(isValidCoordinate(NaN as any, 50), false, 'NaN lat must be invalid');
+    assert.equal(isValidCoordinate(50, NaN as any), false, 'NaN lng must be invalid');
+
+    // parseDirectCoordinates rejects out-of-bounds coordinates
+    assert.equal(parseDirectCoordinates('95.0, 72.0'), null);
+    assert.equal(parseDirectCoordinates('20.0, 190.0'), null);
+  });
+
+  test('10. Empty or invalid query handling returns null gracefully', async () => {
+    const emptyRes = await geocode('');
+    assert.equal(emptyRes, null);
+
+    const spaceRes = await geocode('   ');
+    assert.equal(spaceRes, null);
+  });
+
+  test('11. geocode() resolves valid landmark to GeoPoint and caches result', async () => {
+    const point = await geocode('Central Station, Chicago');
+    assert.ok(point, 'Must resolve landmark to GeoPoint');
+    assert.equal(typeof point.lat, 'number');
+    assert.equal(typeof point.lng, 'number');
+    assert.ok(point.confidence > 0);
+    assert.ok(point.label.length > 0);
+
+    // Repeated call hits cache
+    const cachedPoint = await geocode('Central Station, Chicago');
+    assert.deepEqual(cachedPoint, point);
+  });
+
+  test('12. reverseGeocode() converts coordinates to GeoPoint', async () => {
+    const result = await reverseGeocode(41.8584, -87.6277);
+    assert.ok(result);
+    assert.equal(typeof result.label, 'string');
+    assert.ok(result.label.length > 0);
+
+    // Invalid coordinates return null
+    const invalidRev = await reverseGeocode(999, 999);
+    assert.equal(invalidRev, null);
+  });
+
+  test('13. suggest() returns GeoPoint suggestions or direct coordinate', async () => {
+    const suggestions = await suggest('Chicago');
+    assert.ok(Array.isArray(suggestions));
+    assert.ok(suggestions.length > 0);
+    assert.ok(suggestions[0].label);
+
+    const directSuggest = await suggest('28.6139, 77.2090');
+    assert.ok(Array.isArray(directSuggest));
+    assert.equal(directSuggest.length, 1);
+    assert.equal(directSuggest[0].lat, 28.6139);
+  });
+
+  test('14. GET /api/safety/geocode?q= supports autocomplete with validation', async () => {
+    const res = await fetch(`${baseUrl}/api/safety/geocode?q=Boston`);
+    assert.equal(res.status, 200);
+
+    const data = (await res.json()) as any;
+    assert.equal(data.success, true);
+    assert.ok(Array.isArray(data.results));
+
+    // Short query rejected with 400
+    const shortRes = await fetch(`${baseUrl}/api/safety/geocode?q=a`);
+    assert.equal(shortRes.status, 400);
+
+    // Missing query rejected with 400
+    const missingRes = await fetch(`${baseUrl}/api/safety/geocode`);
+    assert.equal(missingRes.status, 400);
   });
 });

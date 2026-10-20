@@ -170,6 +170,62 @@ export interface InMemoryEmergencyLocationDoc {
   toObject(): Record<string, any>;
 }
 
+export interface InMemoryCustomPlaceDoc {
+  _id: string;
+  name: string;
+  aliases: string[];
+  category: string;
+  pinType: string;
+  location: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  lat: number;
+  lng: number;
+  address?: string;
+  locality?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
+  landmark?: string;
+  description?: string;
+  creatorName?: string;
+  creatorId?: any;
+  source: string;
+  verificationStatus: string;
+  reportCount: number;
+  reportReasons: string[];
+  isPublic: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  save(): Promise<InMemoryCustomPlaceDoc>;
+  toJSON(): Record<string, any>;
+  toObject(): Record<string, any>;
+}
+
+export interface InMemoryHazardReportDoc {
+  _id: string;
+  hazardType: string;
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+  location: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  lat: number;
+  lng: number;
+  landmark?: string;
+  reportedBy?: string;
+  status: 'active' | 'resolved' | 'expired';
+  verificationCount: number;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  save(): Promise<InMemoryHazardReportDoc>;
+  toJSON(): Record<string, any>;
+  toObject(): Record<string, any>;
+}
+
 const usersMap = new Map<string, InMemoryUserDoc>();
 const otpsMap = new Map<string, InMemoryOtpDoc>();
 const refreshTokensMap = new Map<string, InMemoryRefreshTokenDoc>();
@@ -178,6 +234,8 @@ const routeHistoriesMap = new Map<string, InMemoryRouteHistoryDoc>();
 const auditLogsMap = new Map<string, InMemoryAuditLogDoc>();
 const safetyRecordsMap = new Map<string, InMemorySafetyRecordDoc>();
 const emergencyLocationsMap = new Map<string, InMemoryEmergencyLocationDoc>();
+const customPlacesMap = new Map<string, InMemoryCustomPlaceDoc>();
+const hazardReportsMap = new Map<string, InMemoryHazardReportDoc>();
 
 export const memoryUser = {
   findOne(query: { email?: string; _id?: any }) {
@@ -815,9 +873,34 @@ function matchDoc(doc: any, query: any): boolean {
       continue;
     }
     const actual = doc[key];
+    if (expected instanceof RegExp) {
+      if (Array.isArray(actual)) {
+        if (!actual.some((item) => (expected as RegExp).test(String(item)))) return false;
+      } else if (typeof actual === 'string') {
+        if (!(expected as RegExp).test(actual)) return false;
+      } else {
+        return false;
+      }
+      continue;
+    }
     if (expected && typeof expected === 'object' && !Array.isArray(expected) && !(expected instanceof Date)) {
       const expObj = expected as Record<string, any>;
-      if ('$in' in expObj && Array.isArray(expObj.$in)) {
+      if ('$regex' in expObj) {
+        const pattern = typeof expObj.$regex === 'string' ? expObj.$regex : expObj.$regex.source;
+        const flags = expObj.$options || '';
+        try {
+          const re = new RegExp(pattern, flags);
+          if (Array.isArray(actual)) {
+            if (!actual.some((item) => re.test(String(item)))) return false;
+          } else if (typeof actual === 'string') {
+            if (!re.test(actual)) return false;
+          } else {
+            return false;
+          }
+        } catch {
+          return false;
+        }
+      } else if ('$in' in expObj && Array.isArray(expObj.$in)) {
         if (!expObj.$in.includes(actual)) return false;
       } else if ('$nin' in expObj && Array.isArray(expObj.$nin)) {
         if (!expObj.$nin.includes(actual)) return false;
@@ -831,6 +914,8 @@ function matchDoc(doc: any, query: any): boolean {
         if (actual <= expObj.$gt) return false;
       } else if ('$lt' in expObj) {
         if (actual >= expObj.$lt) return false;
+      } else {
+        if (actual !== expected) return false;
       }
     } else {
       if (actual !== expected) return false;
@@ -1466,4 +1551,424 @@ export const memoryEmergencyLocation = {
     return records;
   },
 };
+
+// ============================================================================
+// MEMORY CUSTOM PLACES STORE
+// ============================================================================
+function createCustomPlaceDoc(id: string, data: any): InMemoryCustomPlaceDoc {
+  const now = new Date();
+  const lng = Number(data.lng ?? data.location?.coordinates?.[0]);
+  const lat = Number(data.lat ?? data.location?.coordinates?.[1]);
+
+  return {
+    _id: id,
+    name: (data.name || '').trim(),
+    aliases: Array.isArray(data.aliases) ? data.aliases : [],
+    category: data.category || 'residential_society',
+    pinType: data.pinType || 'general_place',
+    location: {
+      type: 'Point',
+      coordinates: [lng, lat],
+    },
+    lat,
+    lng,
+    address: data.address ? data.address.trim() : undefined,
+    locality: data.locality ? data.locality.trim() : undefined,
+    city: data.city ? data.city.trim() : undefined,
+    state: data.state ? data.state.trim() : 'Maharashtra',
+    postcode: data.postcode ? data.postcode.trim() : undefined,
+    landmark: data.landmark ? data.landmark.trim() : undefined,
+    description: data.description ? data.description.trim() : undefined,
+    creatorName: data.creatorName || 'Community User',
+    creatorId: data.creatorId || null,
+    source: data.source || 'user_manual_pin',
+    verificationStatus: data.verificationStatus || 'community_submitted',
+    reportCount: data.reportCount || 0,
+    reportReasons: data.reportReasons || [],
+    isPublic: data.isPublic !== undefined ? Boolean(data.isPublic) : true,
+    createdAt: data.createdAt ? new Date(data.createdAt) : now,
+    updatedAt: data.updatedAt ? new Date(data.updatedAt) : now,
+    async save(): Promise<InMemoryCustomPlaceDoc> {
+      this.updatedAt = new Date();
+      customPlacesMap.set(this._id, this);
+      return this;
+    },
+    toJSON() {
+      return { ...this };
+    },
+    toObject() {
+      return { ...this };
+    },
+  };
+}
+
+// Seed initial memory places around Thorala Paduka Temple / Alandi / Pune
+const INITIAL_MEMORY_PLACES = [
+  {
+    id: 'cp_saiangel_society',
+    name: 'Saiangel Society',
+    aliases: ['Sai Angel Society', 'Saiangel', 'Sai Angel', 'साई एंजेल सोसायटी'],
+    category: 'residential_society',
+    pinType: 'complex_gate',
+    lat: 18.642953,
+    lng: 73.876243,
+    address: 'Saiangel Society, Sant Dnyaneshwar Marg, Near Thorala Paduka Temple, Bhosari / Dighi, Pune, Maharashtra 411039',
+    locality: 'Bhosari / Dighi, Alandi Road',
+    city: 'Pimpri-Chinchwad, Pune',
+    state: 'Maharashtra',
+    postcode: '411039',
+    landmark: 'Near Thorya / Thorala Paduka Temple',
+    description: 'Residential gated housing society near Thorala Paduka Temple on Alandi Road.',
+    source: 'verified_partner',
+    verificationStatus: 'verified',
+  },
+  {
+    id: 'cp_saiangel_gate',
+    name: 'Saiangel Society Main Entrance Gate',
+    aliases: ['Saiangel Gate', 'Sai Angel Society Gate'],
+    category: 'society_entrance',
+    pinType: 'exact_entrance',
+    lat: 18.642820,
+    lng: 73.876350,
+    address: 'Saiangel Society Main Gate, Internal Access Lane off Alandi Road, Bhosari, Pune, Maharashtra 411039',
+    locality: 'Bhosari / Dighi',
+    city: 'Pimpri-Chinchwad, Pune',
+    landmark: 'Facing Thorala Paduka Temple corridor',
+    description: 'Vehicle and pedestrian security gate access for Saiangel Society.',
+    source: 'verified_partner',
+    verificationStatus: 'verified',
+  },
+  {
+    id: 'cp_thorala_paduka',
+    name: 'Thorya / Thorala Paduka Temple',
+    aliases: ['Thorala Paduka Temple', 'Thorala Paduka', 'Thorya Paduka', 'Thorlya Paduka Temple', 'थोरल्या पादुका मंदिर'],
+    category: 'temple_religious',
+    pinType: 'general_place',
+    lat: 18.6403704,
+    lng: 73.8769770,
+    address: 'Thorya Paduka Temple, Sant Dyaneshwar Marg Flyover, Bhosari, Pimpri-Chinchwad, Pune, Maharashtra 411039',
+    locality: 'Alandi Road, Bhosari',
+    city: 'Pimpri-Chinchwad, Pune',
+    state: 'Maharashtra',
+    postcode: '411039',
+    landmark: 'Sant Dnyaneshwar Marg Flyover',
+    description: 'Historic Paduka temple marking the sacred Warkari Palkhi pilgrimage route between Alandi and Pandharpur.',
+    source: 'verified_partner',
+    verificationStatus: 'verified',
+  },
+  {
+    id: 'cp_alandi_samadhi_mandir',
+    name: 'Shree Sant Dnyaneshwar Maharaj Sanjeevan Samadhi Mandir, Alandi',
+    aliases: ['Alandi Mandir', 'Alandi Samadhi Mandir', 'Dnyaneshwar Samadhi Mandir', 'Sant Dnyaneshwar Mandir', 'Alandi Temple', 'श्री संत ज्ञानेश्वर महाराज समाधी मंदिर'],
+    category: 'temple_religious',
+    pinType: 'general_place',
+    lat: 18.6760109,
+    lng: 73.8964305,
+    address: 'Shree Dnyaneshwar Maharaj Sanjeevan Samadhi Mandir, Alandi Devachi, Khed, Pune, Maharashtra 412105',
+    locality: 'Alandi Devachi',
+    city: 'Pune',
+    state: 'Maharashtra',
+    postcode: '412105',
+    landmark: 'Indrayani River Ghat',
+    description: 'World-renowned sacred pilgrimage shrine and 13th-century samadhi of Sant Dnyaneshwar Maharaj.',
+    source: 'verified_partner',
+    verificationStatus: 'verified',
+  },
+  {
+    id: 'cp_alandi_police_chowky',
+    name: 'Alandi Police Chowky',
+    aliases: ['Alandi Police Station'],
+    category: 'junction_lane',
+    pinType: 'general_place',
+    lat: 18.6755,
+    lng: 73.8972,
+    address: 'Alandi Police Chowky, Near Municipal Council, Alandi, Pune, Maharashtra 412105',
+    locality: 'Alandi Town',
+    city: 'Pune',
+    state: 'Maharashtra',
+    landmark: 'Near Alandi Bus Stand',
+    source: 'verified_partner',
+    verificationStatus: 'verified',
+  },
+  {
+    id: 'cp_bhosari_police_station',
+    name: 'Bhosari Police Station',
+    aliases: ['Bhosari Police'],
+    category: 'hospital_clinic',
+    pinType: 'general_place',
+    lat: 18.6256,
+    lng: 73.8505,
+    address: 'Bhosari Police Station, MIDC Bhosari, Pimpri-Chinchwad, Pune, Maharashtra 411026',
+    locality: 'Bhosari MIDC',
+    city: 'Pimpri-Chinchwad, Pune',
+    source: 'verified_partner',
+    verificationStatus: 'verified',
+  },
+];
+
+for (const p of INITIAL_MEMORY_PLACES) {
+  const doc = createCustomPlaceDoc(p.id, p);
+  customPlacesMap.set(p.id, doc);
+}
+
+export const memoryCustomPlace = {
+  async init() {
+    return Promise.resolve();
+  },
+
+  async create(data: any): Promise<InMemoryCustomPlaceDoc> {
+    const id = generateHexId();
+    const doc = createCustomPlaceDoc(id, data);
+    customPlacesMap.set(id, doc);
+    return doc;
+  },
+
+  async insertMany(docs: any[]): Promise<InMemoryCustomPlaceDoc[]> {
+    const created: InMemoryCustomPlaceDoc[] = [];
+    for (const d of docs) {
+      const doc = await this.create(d);
+      created.push(doc);
+    }
+    return created;
+  },
+
+  find(query?: any) {
+    let limitCount: number | null = null;
+    let skipCount = 0;
+
+    const execute = async () => {
+      let results = Array.from(customPlacesMap.values());
+      if (query) {
+        results = results.filter((r) => matchDoc(r, query));
+      }
+      if (skipCount > 0) {
+        results = results.slice(skipCount);
+      }
+      if (limitCount !== null) {
+        results = results.slice(0, limitCount);
+      }
+      return results;
+    };
+
+    const queryObj: any = {
+      lean: () => queryObj,
+      select: () => queryObj,
+      sort: () => queryObj,
+      limit: (count: number) => {
+        limitCount = count;
+        return queryObj;
+      },
+      skip: (count: number) => {
+        skipCount = count;
+        return queryObj;
+      },
+      then: (onfulfilled?: any, onrejected?: any) => execute().then(onfulfilled, onrejected),
+      catch: (onrejected?: any) => execute().catch(onrejected),
+      finally: (onfinally?: any) => execute().finally(onfinally),
+    };
+
+    return queryObj;
+  },
+
+  async findOne(query: any): Promise<InMemoryCustomPlaceDoc | null> {
+    for (const r of customPlacesMap.values()) {
+      if (matchDoc(r, query)) {
+        return r;
+      }
+    }
+    return null;
+  },
+
+  async findById(id: string): Promise<InMemoryCustomPlaceDoc | null> {
+    return customPlacesMap.get(id.toString()) || null;
+  },
+
+  async findByIdAndUpdate(id: string, update: any): Promise<InMemoryCustomPlaceDoc | null> {
+    const existing = customPlacesMap.get(id.toString());
+    if (!existing) return null;
+    const patch = update.$set || update;
+    Object.assign(existing, patch);
+    if (update.$inc?.reportCount) {
+      existing.reportCount = (existing.reportCount || 0) + update.$inc.reportCount;
+    }
+    if (update.$push?.reportReasons) {
+      existing.reportReasons.push(update.$push.reportReasons);
+    }
+    existing.updatedAt = new Date();
+    customPlacesMap.set(id.toString(), existing);
+    return existing;
+  },
+
+  async countDocuments(query?: any): Promise<number> {
+    if (!query || Object.keys(query).length === 0) {
+      return customPlacesMap.size;
+    }
+    let count = 0;
+    for (const r of customPlacesMap.values()) {
+      if (matchDoc(r, query)) count++;
+    }
+    return count;
+  },
+
+  async aggregate(pipeline: any[]): Promise<any[]> {
+    let records: any[] = Array.from(customPlacesMap.values()).map((r) => ({
+      _id: r._id,
+      name: r.name,
+      aliases: [...r.aliases],
+      category: r.category,
+      pinType: r.pinType,
+      location: { ...r.location, coordinates: [...r.location.coordinates] },
+      lat: r.lat,
+      lng: r.lng,
+      address: r.address,
+      locality: r.locality,
+      city: r.city,
+      state: r.state,
+      landmark: r.landmark,
+      description: r.description,
+      source: r.source,
+      verificationStatus: r.verificationStatus,
+      reportCount: r.reportCount,
+      reportReasons: r.reportReasons,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+
+    for (const stage of pipeline) {
+      if (stage.$geoNear) {
+        const geoNear = stage.$geoNear;
+        const targetCoords = geoNear.near?.coordinates || geoNear.near;
+        if (!Array.isArray(targetCoords) || targetCoords.length !== 2) {
+          throw new Error('$geoNear: near coordinates must be [longitude, latitude]');
+        }
+        const [targetLon, targetLat] = targetCoords;
+        const distanceField = geoNear.distanceField || 'distance';
+        const maxDistance = geoNear.maxDistance !== undefined ? geoNear.maxDistance : Infinity;
+        const minDistance = geoNear.minDistance !== undefined ? geoNear.minDistance : 0;
+
+        if (geoNear.query) {
+          records = records.filter((r) => matchDoc(r, geoNear.query));
+        }
+
+        const withDist = records.map((r) => {
+          const [rLon, rLat] = r.location.coordinates;
+          const dist = calculateHaversineMeters(targetLon, targetLat, rLon, rLat);
+          return {
+            ...r,
+            [distanceField]: dist,
+          };
+        });
+
+        records = withDist
+          .filter((r) => r[distanceField] >= minDistance && r[distanceField] <= maxDistance)
+          .sort((a, b) => a[distanceField] - b[distanceField]);
+      } else if (stage.$match) {
+        records = records.filter((r) => matchDoc(r, stage.$match));
+      } else if (stage.$limit) {
+        records = records.slice(0, stage.$limit);
+      } else if (stage.$skip) {
+        records = records.slice(stage.$skip);
+      }
+    }
+
+    return records;
+  },
+};
+
+// ============================================================================
+// MEMORY HAZARD REPORTS STORE
+// ============================================================================
+function createHazardDoc(id: string, data: any): InMemoryHazardReportDoc {
+  const now = new Date();
+  const lng = Number(data.lng ?? data.location?.coordinates?.[0]);
+  const lat = Number(data.lat ?? data.location?.coordinates?.[1]);
+
+  return {
+    _id: id,
+    hazardType: data.hazardType || 'broken_streetlight',
+    severity: data.severity || 'medium',
+    description: (data.description || '').trim(),
+    location: {
+      type: 'Point',
+      coordinates: [lng, lat],
+    },
+    lat,
+    lng,
+    landmark: data.landmark ? data.landmark.trim() : undefined,
+    reportedBy: data.reportedBy || 'Community User',
+    status: data.status || 'active',
+    verificationCount: data.verificationCount || 1,
+    expiresAt: data.expiresAt ? new Date(data.expiresAt) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    createdAt: data.createdAt ? new Date(data.createdAt) : now,
+    updatedAt: data.updatedAt ? new Date(data.updatedAt) : now,
+    async save(): Promise<InMemoryHazardReportDoc> {
+      this.updatedAt = new Date();
+      hazardReportsMap.set(this._id, this);
+      return this;
+    },
+    toJSON() {
+      return { ...this };
+    },
+    toObject() {
+      return { ...this };
+    },
+  };
+}
+
+export const memoryHazardReport = {
+  async init() {
+    return Promise.resolve();
+  },
+
+  async create(data: any): Promise<InMemoryHazardReportDoc> {
+    const id = generateHexId();
+    const doc = createHazardDoc(id, data);
+    hazardReportsMap.set(id, doc);
+    return doc;
+  },
+
+  find(query?: any) {
+    let limitCount: number | null = null;
+    let skipCount = 0;
+
+    const execute = async () => {
+      let results = Array.from(hazardReportsMap.values());
+      if (query) {
+        results = results.filter((r) => matchDoc(r, query));
+      }
+      results = results.filter((r) => r.status === 'active' && r.expiresAt.getTime() > Date.now());
+      if (skipCount > 0) {
+        results = results.slice(skipCount);
+      }
+      if (limitCount !== null) {
+        results = results.slice(0, limitCount);
+      }
+      return results;
+    };
+
+    const queryObj: any = {
+      lean: () => queryObj,
+      select: () => queryObj,
+      sort: () => queryObj,
+      limit: (count: number) => {
+        limitCount = count;
+        return queryObj;
+      },
+      skip: (count: number) => {
+        skipCount = count;
+        return queryObj;
+      },
+      then: (onfulfilled?: any, onrejected?: any) => execute().then(onfulfilled, onrejected),
+      catch: (onrejected?: any) => execute().catch(onrejected),
+      finally: (onfinally?: any) => execute().finally(onfinally),
+    };
+
+    return queryObj;
+  },
+
+  async countDocuments(query?: any): Promise<number> {
+    return hazardReportsMap.size;
+  },
+};
+
 

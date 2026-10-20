@@ -16,11 +16,13 @@ export interface LocationInputProps {
   value: string;
   onChange: (value: string, coords?: { lat: number; lng: number }) => void;
   onSelectLocation?: (location: SelectedLocation) => void;
+  onAddMissingPlace?: (searchQuery: string) => void;
   placeholder?: string;
   icon?: 'origin' | 'destination';
   required?: boolean;
   disabled?: boolean;
   enableCurrentLocation?: boolean;
+  headerAction?: React.ReactNode;
   className?: string;
 }
 
@@ -30,11 +32,13 @@ export const LocationInput: React.FC<LocationInputProps> = ({
   value,
   onChange,
   onSelectLocation,
+  onAddMissingPlace,
   placeholder = 'Search place or address...',
   icon = 'origin',
   required = false,
   disabled = false,
   enableCurrentLocation = true,
+  headerAction,
   className = '',
 }) => {
   const [inputValue, setInputValue] = useState(value);
@@ -236,23 +240,26 @@ export const LocationInput: React.FC<LocationInputProps> = ({
             {label}
             {required && <span className="required-star">*</span>}
           </label>
-          {enableCurrentLocation && (
-            <button
-              type="button"
-              className="use-my-location-chip"
-              onClick={handleUseMyLocation}
-              disabled={isLocating || disabled}
-              title="Detect current GPS location"
-              aria-label="Use my current GPS location"
-            >
-              {isLocating ? (
-                <Loader2 size={12} className="spin-icon" />
-              ) : (
-                <LocateFixed size={12} />
-              )}
-              <span>{isLocating ? 'Detecting...' : 'Use my location'}</span>
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {headerAction}
+            {enableCurrentLocation && (
+              <button
+                type="button"
+                className="use-my-location-chip"
+                onClick={handleUseMyLocation}
+                disabled={isLocating || disabled}
+                title="Detect current GPS location"
+                aria-label="Use my current GPS location"
+              >
+                {isLocating ? (
+                  <Loader2 size={12} className="spin-icon" />
+                ) : (
+                  <LocateFixed size={12} />
+                )}
+                <span>{isLocating ? 'Detecting...' : 'Use my location'}</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -326,40 +333,93 @@ export const LocationInput: React.FC<LocationInputProps> = ({
           role="listbox"
         >
           {suggestions.length > 0 ? (
-            <ul className="suggestions-list">
-              {suggestions.map((item, idx) => {
-                const isHighlighted = idx === highlightedIndex;
-                const cleanName = item.name || item.displayName.split(',')[0].trim();
-                const addressSub = item.displayName.replace(cleanName, '').replace(/^,\s*/, '');
+            <>
+              <ul className="suggestions-list">
+                {suggestions.map((item, idx) => {
+                  const isHighlighted = idx === highlightedIndex;
+                  const cleanName = item.name || item.displayName.split(',')[0].trim();
+                  const addressSub = item.displayName.replace(cleanName, '').replace(/^,\s*/, '');
+                  const isVerified = item.verificationStatus === 'verified';
+                  const isCommunity = item.source === 'user_manual_pin' || item.source === 'community';
 
-                return (
-                  <li
-                    key={item.placeId || idx}
-                    id={`${id}-opt-${idx}`}
-                    role="option"
-                    aria-selected={isHighlighted}
-                    className={`suggestion-item ${isHighlighted ? 'highlighted' : ''}`}
-                    onClick={() => handleSelectSuggestion(item)}
-                    onMouseEnter={() => setHighlightedIndex(idx)}
-                  >
-                    <div className="suggestion-icon-wrap" aria-hidden="true">
-                      <MapPin size={16} />
-                    </div>
-                    <div className="suggestion-details">
-                      <span className="suggestion-title">{cleanName}</span>
-                      {addressSub && (
-                        <span className="suggestion-address">{addressSub}</span>
-                      )}
-                    </div>
-                    <span className="suggestion-type-badge">{item.type || 'place'}</span>
-                  </li>
-                );
-              })}
-            </ul>
+                  let categoryLabel = item.category || item.type || 'place';
+                  if (item.category === 'residential_society') categoryLabel = 'Society';
+                  else if (item.category === 'society_entrance') categoryLabel = 'Gate';
+                  else if (item.category === 'temple_religious') categoryLabel = 'Temple';
+                  else if (item.category === 'hospital_clinic') categoryLabel = 'Hospital';
+                  else if (item.type === 'station') categoryLabel = 'Station';
+
+                  return (
+                    <li
+                      key={item.placeId || idx}
+                      id={`${id}-opt-${idx}`}
+                      role="option"
+                      aria-selected={isHighlighted}
+                      className={`suggestion-item ${isHighlighted ? 'highlighted' : ''}`}
+                      onClick={() => handleSelectSuggestion(item)}
+                      onMouseEnter={() => setHighlightedIndex(idx)}
+                    >
+                      <div className="suggestion-icon-wrap" aria-hidden="true">
+                        <MapPin size={16} />
+                      </div>
+                      <div className="suggestion-details">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span className="suggestion-title">{cleanName}</span>
+                          {isVerified && <span className="suggestion-badge-verified">✓ Verified</span>}
+                          {isCommunity && !isVerified && <span className="suggestion-badge-community">Community</span>}
+                        </div>
+                        {item.landmark && (
+                          <span className="suggestion-landmark-tag">Near {item.landmark}</span>
+                        )}
+                        {addressSub && (
+                          <span className="suggestion-address">{addressSub}</span>
+                        )}
+                      </div>
+                      <span className="suggestion-type-badge">{categoryLabel}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {onAddMissingPlace && (
+                <div
+                  className="add-missing-place-footer-item"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onAddMissingPlace(inputValue);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <MapPin size={14} />
+                  <span>Can’t find your place? Add it to SafeRoute</span>
+                </div>
+              )}
+            </>
           ) : hasSearched && !isLoading ? (
             <div className="no-suggestions-state" role="status">
-              <MapPin size={18} className="no-places-icon" />
-              <span>No places found</span>
+              <MapPin size={22} className="no-places-icon" />
+              <div>
+                <div style={{ fontWeight: 600, color: '#334155' }}>
+                  No places found for "{inputValue}"
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  SafeRoute lets you add residential societies, gates, and local landmarks.
+                </div>
+              </div>
+              {onAddMissingPlace && (
+                <button
+                  type="button"
+                  className="add-missing-place-trigger-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(false);
+                    onAddMissingPlace(inputValue);
+                  }}
+                >
+                  + Add to SafeRoute
+                </button>
+              )}
             </div>
           ) : null}
         </div>

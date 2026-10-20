@@ -19,6 +19,8 @@ import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
 import routeHistoryRoutes from './routes/routeHistoryRoutes';
 import geocodingRoutes from './routes/geocodingRoutes';
+import placeRoutes from './routes/placeRoutes';
+import { seedDefaultPlaces } from './config/seedPlaces';
 
 // Direct controller for root /health
 import { getHealth } from './controllers/healthController';
@@ -78,9 +80,10 @@ app.use(
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 
-// Connect to MongoDB and seed default admin account
+// Connect to MongoDB and seed default admin account and places
 connectDB().finally(() => {
   seedDefaultAdmin();
+  seedDefaultPlaces();
 });
 
 // Root Health Endpoint: GET /health
@@ -94,6 +97,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/routes', routeHistoryRoutes);
 app.use('/api/geocode', geocodingRoutes);
+app.use('/api/places', placeRoutes);
 
 // Catch-all 404 handler for undefined routes
 app.use(notFoundHandler);

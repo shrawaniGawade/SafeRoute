@@ -77,7 +77,6 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
 
     // 1. Resolve Origin and Destination Geocoding
     let originGeo: GeoPoint | null = null;
-    let destGeo: GeoPoint | null = null;
 
     const reqOriginCoords = req.body.originCoords || req.body.sourceCoords;
     if (
@@ -88,19 +87,6 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
         lat: Number(reqOriginCoords.lat),
         lng: Number(reqOriginCoords.lng),
         label: startLocation || `${Number(reqOriginCoords.lat).toFixed(6)}, ${Number(reqOriginCoords.lng).toFixed(6)}`,
-        confidence: 1.0,
-      };
-    }
-
-    const reqDestCoords = req.body.destinationCoords || req.body.destCoords;
-    if (
-      reqDestCoords &&
-      isValidCoordinate(Number(reqDestCoords.lat), Number(reqDestCoords.lng))
-    ) {
-      destGeo = {
-        lat: Number(reqDestCoords.lat),
-        lng: Number(reqDestCoords.lng),
-        label: endLocation || `${Number(reqDestCoords.lat).toFixed(6)}, ${Number(reqDestCoords.lng).toFixed(6)}`,
         confidence: 1.0,
       };
     }
@@ -117,24 +103,89 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
         });
         return;
       }
-
-      if (!destGeo) {
-        destGeo = await geocode(endLocation);
-      }
-      if (!destGeo || !isValidCoordinate(destGeo.lat, destGeo.lng)) {
-        res.status(422).json({
-          success: false,
-          code: 'UNRESOLVED_LOCATION',
-          message: `Unable to resolve destination location: "${endLocation}". Please provide a valid address or coordinates.`,
-        });
-        return;
-      }
     }
+
+    // Resolve all destinations (supports multi-destination routing)
+    const rawDestinations: any[] = Array.isArray(req.body.destinations) && req.body.destinations.length > 0
+      ? req.body.destinations
+      : [endLocation];
+
+    const resolvedDestinations: GeoPoint[] = [];
+
+    for (let i = 0; i < rawDestinations.length; i++) {
+      const item = rawDestinations[i];
+      let destLabel = '';
+      let destCoords: { lat: number; lng: number } | undefined;
+
+      if (typeof item === 'string') {
+        destLabel = item.trim();
+      } else if (item && typeof item === 'object') {
+        destLabel = (item.address || item.name || item.label || '').trim();
+        if (item.coords && isValidCoordinate(item.coords.lat, item.coords.lng)) {
+          destCoords = item.coords;
+        } else if (isValidCoordinate(item.lat, item.lng)) {
+          destCoords = { lat: Number(item.lat), lng: Number(item.lng) };
+        }
+      }
+
+      // Check top-level destinationCoords fallback for the last destination
+      if (!destCoords && (i === rawDestinations.length - 1 || rawDestinations.length === 1)) {
+        const topDestCoords = req.body.destinationCoords || req.body.destCoords;
+        if (topDestCoords && isValidCoordinate(Number(topDestCoords.lat), Number(topDestCoords.lng))) {
+          destCoords = { lat: Number(topDestCoords.lat), lng: Number(topDestCoords.lng) };
+        }
+      }
+
+      let geoPoint: GeoPoint | null = null;
+      if (destCoords && isValidCoordinate(destCoords.lat, destCoords.lng)) {
+        geoPoint = {
+          lat: Number(destCoords.lat),
+          lng: Number(destCoords.lng),
+          label: destLabel || `${Number(destCoords.lat).toFixed(6)}, ${Number(destCoords.lng).toFixed(6)}`,
+          confidence: 1.0,
+        };
+      } else if (destLabel) {
+        geoPoint = await geocode(destLabel);
+      }
+
+      if (!hasMockRoutingProvider()) {
+        if (!geoPoint || !isValidCoordinate(geoPoint.lat, geoPoint.lng)) {
+          res.status(422).json({
+            success: false,
+            code: 'UNRESOLVED_LOCATION',
+            message: `Unable to resolve destination location: "${destLabel || `Stop ${i + 1}`}". Please provide a valid address or coordinates.`,
+          });
+          return;
+        }
+      } else if (!geoPoint) {
+        geoPoint = {
+          lat: 42.3498 + (i * 0.01),
+          lng: -71.0776 + (i * 0.01),
+          label: destLabel || `Destination ${i + 1}`,
+          confidence: 0.5,
+        };
+      }
+
+      resolvedDestinations.push(geoPoint);
+    }
+
+    if (resolvedDestinations.length === 0) {
+      res.status(400).json({
+        success: false,
+        code: 'VALIDATION_ERROR',
+        message: 'Please provide at least one destination.',
+      });
+      return;
+    }
+
+    const primaryDest = resolvedDestinations[0];
+    const additionalDests = resolvedDestinations.slice(1);
+    const destGeo = resolvedDestinations[resolvedDestinations.length - 1];
 
     // 2. Obtain Route Alternatives from Routing Engine
     const routingResult = await getRouteAlternatives(
       originGeo || startLocation,
-      destGeo || endLocation,
+      primaryDest,
       mode,
       {
         lighting: Number(lighting),
@@ -142,7 +193,8 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
         accident_risk: Number(accident_risk),
         crowd_level: Number(crowd_level),
         emergency_proximity: emergency_proximity !== undefined ? Number(emergency_proximity) : undefined,
-      }
+      },
+      additionalDests
     );
 
     // Check for empty route alternatives (ISSUE-11: 404 No Route Found)
@@ -278,6 +330,16 @@ export async function predict(req: AuthenticatedRequest, res: Response): Promise
         destination: endLocation,
         originCoords: routingResult.originCoords || (originGeo ? { lat: originGeo.lat, lng: originGeo.lng, label: originGeo.label } : undefined),
         destinationCoords: routingResult.destinationCoords || (destGeo ? { lat: destGeo.lat, lng: destGeo.lng, label: destGeo.label } : undefined),
+        destinations: resolvedDestinations.map((d) => ({
+          address: d.label,
+          lat: d.lat,
+          lng: d.lng,
+        })),
+        destinationPoints: resolvedDestinations.map((d) => ({
+          lat: d.lat,
+          lng: d.lng,
+          label: d.label,
+        })),
         departureTime: depTime,
         travelMode: mode,
         data_type: routingResult.isRealRoutingData ? 'live_road_network' : 'synthetic_demonstration',

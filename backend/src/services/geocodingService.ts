@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ENV } from '../config/env';
+import { CustomPlace } from '../models/CustomPlace';
 
 export interface GeoPoint {
   lat: number;
@@ -14,6 +15,12 @@ export interface GeocodeResult extends GeoPoint {
   displayName: string;
   type: string;
   importance: number;
+  source?: string;
+  verificationStatus?: string;
+  pinType?: string;
+  landmark?: string;
+  locality?: string;
+  category?: string;
   address?: {
     road?: string;
     suburb?: string;
@@ -508,6 +515,162 @@ async function queryNominatim(
     .filter((item: GeocodeResult | null): item is GeocodeResult => item !== null);
 }
 
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export function generateQueryVariations(query: string): string[] {
+  const variations = new Set<string>();
+  const q = query.trim();
+  variations.add(q);
+
+  if (/thorala/i.test(q)) {
+    variations.add(q.replace(/thorala/gi, 'Thorya'));
+    variations.add(q.replace(/thorala/gi, 'Thorlya'));
+  } else if (/thorya/i.test(q)) {
+    variations.add(q.replace(/thorya/gi, 'Thorala'));
+    variations.add(q.replace(/thorya/gi, 'Thorlya'));
+  }
+
+  if (/saiangel/i.test(q)) {
+    variations.add(q.replace(/saiangel/gi, 'Sai Angel'));
+  } else if (/sai\s+angel/i.test(q)) {
+    variations.add(q.replace(/sai\s+angel/gi, 'Saiangel'));
+  }
+
+  if (/mandir/i.test(q)) {
+    variations.add(q.replace(/mandir/gi, 'Temple'));
+  } else if (/temple/i.test(q)) {
+    variations.add(q.replace(/temple/gi, 'Mandir'));
+  }
+
+  return Array.from(variations);
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Searches community-submitted and verified local database places (societies, apartment gates, local temples)
+ */
+export async function searchDatabasePlaces(
+  query: string,
+  limit: number,
+  focus?: { lat: number; lng: number }
+): Promise<GeocodeResult[]> {
+  try {
+    const qClean = query.trim();
+    if (!qClean || qClean.length < 2) return [];
+
+    let target = qClean;
+    const nearMatch = qClean.match(/^(.+?)(?:,\s*|\s+)near(?:by)?\s+(.+)$/i);
+    if (nearMatch) {
+      target = nearMatch[1].trim();
+    } else if (qClean.includes(',')) {
+      const parts = qClean.split(',').map((s) => s.trim()).filter(Boolean);
+      if (parts.length > 1 && parts[0].length >= 3) {
+        target = parts[0];
+      }
+    }
+    if (target.length < 2) return [];
+
+    const variations = generateQueryVariations(target);
+    if (qClean !== target) {
+      const fullVariations = generateQueryVariations(qClean);
+      fullVariations.forEach((v) => {
+        if (!variations.includes(v)) variations.push(v);
+      });
+    }
+
+    const regexConditions = variations.map((v) => {
+      const esc = escapeRegex(v);
+      return {
+        $or: [
+          { name: { $regex: esc, $options: 'i' } },
+          { aliases: { $regex: esc, $options: 'i' } },
+          { address: { $regex: esc, $options: 'i' } },
+          { locality: { $regex: esc, $options: 'i' } },
+          { landmark: { $regex: esc, $options: 'i' } },
+        ],
+      };
+    });
+
+    const rawPlaces = await CustomPlace.find({
+      isPublic: true,
+      $or: regexConditions.flatMap((c) => c.$or),
+    }).limit(limit * 2);
+
+    if (rawPlaces && rawPlaces.length > 0) {
+      const tLower = target.toLowerCase();
+
+      // Rank exact name/alias matches higher than places where target only appears in landmark
+      const sorted = [...rawPlaces].sort((a: any, b: any) => {
+        const aName = (a.name || '').toLowerCase();
+        const bName = (b.name || '').toLowerCase();
+
+        const aNameMatch = aName.includes(tLower) ? 3 : 0;
+        const bNameMatch = bName.includes(tLower) ? 3 : 0;
+        if (aNameMatch !== bNameMatch) return bNameMatch - aNameMatch;
+
+        const aAliasMatch = (a.aliases || []).some((al: string) => al.toLowerCase().includes(tLower)) ? 2 : 0;
+        const bAliasMatch = (b.aliases || []).some((al: string) => al.toLowerCase().includes(tLower)) ? 2 : 0;
+        if (aAliasMatch !== bAliasMatch) return bAliasMatch - aAliasMatch;
+
+        const aVer = a.verificationStatus === 'verified' ? 1 : 0;
+        const bVer = b.verificationStatus === 'verified' ? 1 : 0;
+        return bVer - aVer;
+      });
+
+      const topPlaces = sorted.slice(0, limit);
+
+      return topPlaces.map((p: any) => ({
+        placeId: `cp_${p._id}`,
+        name: p.name,
+        displayName:
+          p.address ||
+          `${p.name}${p.landmark ? ` (near ${p.landmark})` : ''}, ${p.locality || ''}, ${p.city || ''}`.replace(
+            /,\s*,/g,
+            ','
+          ),
+        label: p.name + (p.landmark ? ` (${p.landmark})` : ''),
+        lat: p.lat,
+        lng: p.lng,
+        type: p.category || 'residential_society',
+        category: p.category,
+        pinType: p.pinType,
+        source: p.source || 'community',
+        verificationStatus: p.verificationStatus || 'community_submitted',
+        landmark: p.landmark,
+        locality: p.locality,
+        confidence: p.verificationStatus === 'verified' ? 0.98 : 0.88,
+        importance: 0.95,
+        address: {
+          road: p.address,
+          suburb: p.locality,
+          city: p.city,
+          state: p.state,
+          postcode: p.postcode,
+          country: 'India',
+        },
+      }));
+    }
+  } catch (err: any) {
+    console.warn('[GeocodingService] CustomPlace database search warning:', err?.message || err);
+  }
+  return [];
+}
+
 /**
  * Primary search function with caching, provider cascade, and fallback resilience.
  */
@@ -538,26 +701,45 @@ export async function searchLocations(
 
   let results: GeocodeResult[] = [];
 
-  // 3. Try OpenRouteService Geocoding if configured
-  if (ENV.ROUTING_PROVIDER === 'openrouteservice' && ENV.ROUTING_API_KEY) {
+  // 3. Search SafeRoute Verified Community & Custom Places (Saiangel Society, Thorala Paduka Temple, Gates, Landmarks)
+  const dbPlaces = await searchDatabasePlaces(query, limit, focus);
+  if (dbPlaces.length > 0) {
+    results.push(...dbPlaces);
+  }
+
+  // 4. Try OpenRouteService Geocoding if needed
+  if (results.length < limit && ENV.ROUTING_PROVIDER === 'openrouteservice' && ENV.ROUTING_API_KEY) {
     try {
-      results = await queryOpenRouteService(query, limit, focus);
+      const orsResults = await queryOpenRouteService(query, limit - results.length, focus);
+      results.push(...orsResults);
     } catch (orsErr: any) {
       console.warn(`[GeocodingService] OpenRouteService geocoding failed (${orsErr?.message || orsErr}). Falling back to Nominatim.`);
     }
   }
 
-  // 4. Try Nominatim fallback if ORS didn't return results
-  if (results.length === 0) {
+  // 5. Try Nominatim fallback if more results needed
+  if (results.length < limit) {
     try {
-      results = await queryNominatim(query, limit, focus);
+      const nomResults = await queryNominatim(query, limit - results.length, focus);
+      results.push(...nomResults);
+
+      // If initial Nominatim search returned 0 and query has transliteration variations (e.g. Thorala -> Thorya), try variation
+      if (nomResults.length === 0) {
+        const variations = generateQueryVariations(query).filter(v => v.toLowerCase() !== query.toLowerCase());
+        for (const v of variations) {
+          const varResults = await queryNominatim(v, limit - results.length, focus);
+          if (varResults.length > 0) {
+            results.push(...varResults);
+            break;
+          }
+        }
+      }
     } catch (nomErr: any) {
       console.warn(`[GeocodingService] Nominatim geocoding failed (${nomErr?.message || nomErr}). Falling back to curated landmarks.`);
-      results = searchCuratedLandmarks(query, limit);
     }
   }
 
-  // 5. Final fallback to curated landmarks
+  // 6. Final fallback to curated landmarks
   if (results.length === 0) {
     const fallbackResults = searchCuratedLandmarks(query, limit);
     if (fallbackResults.length > 0) {
@@ -565,13 +747,24 @@ export async function searchLocations(
     }
   }
 
-  // 6. Cache valid responses for 24 hours
+  // Deduplicate results by proximity and coordinates
+  const seen = new Set<string>();
+  const deduplicated: GeocodeResult[] = [];
+  for (const item of results) {
+    const key = `${item.lat.toFixed(4)}_${item.lng.toFixed(4)}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduplicated.push(item);
+    }
+  }
+
+  // 7. Cache valid responses for 24 hours
   geocodeCache.set(cacheKey, {
-    results,
+    results: deduplicated,
     cachedAt: Date.now(),
   });
 
-  return results;
+  return deduplicated;
 }
 
 /**
@@ -646,6 +839,27 @@ export async function suggest(
 export async function reverseGeocode(lat: number, lng: number): Promise<GeoPoint | null> {
   if (!isValidCoordinate(lat, lng)) {
     return null;
+  }
+
+  // 1. Check if a known CustomPlace / Society / Gate is within 250m
+  try {
+    const places = await CustomPlace.find({ isPublic: true }).limit(50);
+    for (const p of places) {
+      const pLat = Number(p.lat ?? p.location?.coordinates?.[1]);
+      const pLng = Number(p.lng ?? p.location?.coordinates?.[0]);
+      if (isNaN(pLat) || isNaN(pLng)) continue;
+      const dKm = haversineKm(lat, lng, pLat, pLng);
+      if (dKm <= 0.25) {
+        return {
+          lat: pLat,
+          lng: pLng,
+          label: p.address || `${p.name}, ${p.locality || ''}, ${p.city || ''}`,
+          confidence: 0.98,
+        };
+      }
+    }
+  } catch {
+    // continue
   }
 
   const cacheKey = `rev_${lat.toFixed(5)}_${lng.toFixed(5)}`;

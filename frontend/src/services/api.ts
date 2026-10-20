@@ -1,4 +1,9 @@
 import { authService, getApiUrl } from './authService';
+ 
+export interface DestinationItem {
+  address: string;
+  coords?: { lat: number; lng: number };
+}
 
 export interface SafetyInput {
   lighting: number;
@@ -10,6 +15,7 @@ export interface SafetyInput {
   origin?: string;
   source?: string;
   destination?: string;
+  destinations?: Array<DestinationItem | string>;
   departureTime?: string;
   travelMode?: 'walking' | 'driving' | 'transit';
   clientRequestId?: string;
@@ -17,6 +23,7 @@ export interface SafetyInput {
   maxDetourMinutes?: number;
   originCoords?: { lat: number; lng: number };
   destinationCoords?: { lat: number; lng: number };
+  destinationPoints?: Array<{ lat: number; lng: number; label?: string }>;
 }
 
 export interface RouteAlternativeItem {
@@ -73,6 +80,7 @@ export interface SafetyResult {
   latency_ms?: number;
   origin?: string;
   destination?: string;
+  destinationPoints?: Array<{ lat: number; lng: number; label?: string }>;
   originCoords?: { lat: number; lng: number; label: string };
   destinationCoords?: { lat: number; lng: number; label: string };
   departureTime?: string;
@@ -373,10 +381,18 @@ export interface GeocodeResult {
   placeId: string;
   name: string;
   displayName: string;
+  label?: string;
   lat: number;
   lng: number;
   type: string;
+  category?: string;
+  pinType?: 'exact_entrance' | 'complex_gate' | 'general_place';
+  source?: string;
+  verificationStatus?: 'verified' | 'community_submitted' | 'under_review' | 'flagged';
+  landmark?: string;
+  locality?: string;
   importance?: number;
+  confidence?: number;
   address?: {
     road?: string;
     suburb?: string;
@@ -387,33 +403,208 @@ export interface GeocodeResult {
   };
 }
 
+export interface CreateCustomPlaceInput {
+  name: string;
+  aliases?: string[];
+  category: string;
+  pinType?: 'exact_entrance' | 'complex_gate' | 'general_place';
+  lat: number;
+  lng: number;
+  address?: string;
+  locality?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
+  landmark?: string;
+  description?: string;
+}
+
+export interface HazardReportItem {
+  _id: string;
+  hazardType: 'broken_streetlight' | 'dark_alley' | 'road_damage' | 'isolated_stretch' | 'construction' | 'other';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description?: string;
+  lat: number;
+  lng: number;
+  landmark?: string;
+  reportedBy?: string;
+  status: 'active' | 'resolved' | 'expired';
+  verificationCount: number;
+  createdAt: string;
+}
+
+export interface CreateHazardReportInput {
+  hazardType: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  lat: number;
+  lng: number;
+  landmark?: string;
+}
+
 /**
- * Searches places / addresses using backend geocoding proxy
+ * Searches places / addresses using backend geocoding proxy with custom community place fallback
  */
 export async function geocodeLocations(query: string, limit = 5): Promise<GeocodeResult[]> {
   const q = query.trim();
-  if (q.length < 3 && !/^[-+]?\d/.test(q)) return [];
+  if (q.length < 2 && !/^[-+]?\d/.test(q)) return [];
 
-  // Try /api/safety/geocode first, fallback to /api/geocode
-  let url = getApiUrl(`/safety/geocode?q=${encodeURIComponent(q)}&limit=${limit}`);
-  let response = await fetch(url, {
+  // 1. Try unified SafeRoute place search first (/api/places/search)
+  try {
+    const url = getApiUrl(`/places/search?q=${encodeURIComponent(q)}&limit=${limit}`);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data.results)) {
+        return data.results;
+      }
+    }
+  } catch {
+    // Continue to fallbacks
+  }
+
+  // 2. Try /api/safety/geocode
+  try {
+    const url = getApiUrl(`/safety/geocode?q=${encodeURIComponent(q)}&limit=${limit}`);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data.results)) {
+        return data.results;
+      }
+    }
+  } catch {
+    // Continue
+  }
+
+  // 3. Try /api/geocode
+  try {
+    const url = getApiUrl(`/geocode?q=${encodeURIComponent(q)}&limit=${limit}`);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data.results || [];
+    }
+  } catch {
+    // Return empty on failure
+  }
+
+  return [];
+}
+
+/**
+ * Smart place search with metadata
+ */
+export async function searchPlaces(query: string, limit = 6): Promise<GeocodeResult[]> {
+  return geocodeLocations(query, limit);
+}
+
+/**
+ * Saves a missing or custom place (e.g. residential society, temple, society gate)
+ */
+export async function saveCustomPlace(input: CreateCustomPlaceInput): Promise<{ success: boolean; place: any }> {
+  const response = await fetchWithAuth(getApiUrl('/places/custom'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to save custom place');
+  }
+
+  return data;
+}
+
+/**
+ * Retrieves nearby facilities, gates, and emergency locations
+ */
+export async function getNearbyPlaces(
+  lat: number,
+  lng: number,
+  radiusMeters = 3000
+): Promise<{ emergencyFacilities: any[]; customPlaces: any[] }> {
+  const url = getApiUrl(`/places/nearby?lat=${lat}&lng=${lng}&radius=${radiusMeters}`);
+  const response = await fetch(url, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
 
-  if (!response.ok && response.status === 404) {
-    url = getApiUrl(`/geocode?q=${encodeURIComponent(q)}&limit=${limit}`);
-    response = await fetch(url, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-    });
-  }
-
   if (!response.ok) {
-    if (response.status === 400 || response.status === 422) return [];
-    throw new Error(`Location search failed: ${response.status}`);
+    return { emergencyFacilities: [], customPlaces: [] };
   }
 
   const data = await response.json();
-  return data.results || [];
+  return {
+    emergencyFacilities: data.emergencyFacilities || [],
+    customPlaces: data.customPlaces || [],
+  };
+}
+
+/**
+ * Reports an inaccurate place pin
+ */
+export async function reportCustomPlace(id: string, reason: string): Promise<void> {
+  const response = await fetchWithAuth(getApiUrl(`/places/custom/${id}/report`), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.message || 'Failed to report place');
+  }
+}
+
+/**
+ * Retrieves active hazard reports around a location
+ */
+export async function getHazardReports(
+  lat: number,
+  lng: number,
+  radiusMeters = 5000
+): Promise<HazardReportItem[]> {
+  try {
+    const url = getApiUrl(`/places/hazards?lat=${lat}&lng=${lng}&radius=${radiusMeters}`);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data.hazards || [];
+    }
+  } catch {
+    // Return empty on error
+  }
+  return [];
+}
+
+/**
+ * Submits a new community hazard report (broken streetlights, dark alleys, road damage)
+ */
+export async function createHazardReport(input: CreateHazardReportInput): Promise<HazardReportItem> {
+  const response = await fetchWithAuth(getApiUrl('/places/hazards'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to submit hazard report');
+  }
+
+  return data.hazard;
 }

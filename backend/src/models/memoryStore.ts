@@ -1163,6 +1163,16 @@ export const memorySafetyRecord = {
     return count;
   },
 
+  async deleteOne(query?: any): Promise<{ deletedCount: number }> {
+    for (const [id, r] of safetyRecordsMap.entries()) {
+      if (matchDoc(r, query)) {
+        safetyRecordsMap.delete(id);
+        return { deletedCount: 1 };
+      }
+    }
+    return { deletedCount: 0 };
+  },
+
   async deleteMany(query?: any): Promise<{ deletedCount: number }> {
     if (!query || Object.keys(query).length === 0) {
       const count = safetyRecordsMap.size;
@@ -1478,6 +1488,16 @@ export const memoryEmergencyLocation = {
       if (matchDoc(r, query)) count++;
     }
     return count;
+  },
+
+  async deleteOne(query?: any): Promise<{ deletedCount: number }> {
+    for (const [id, r] of emergencyLocationsMap.entries()) {
+      if (matchDoc(r, query)) {
+        emergencyLocationsMap.delete(id);
+        return { deletedCount: 1 };
+      }
+    }
+    return { deletedCount: 0 };
   },
 
   async deleteMany(query?: any): Promise<{ deletedCount: number }> {
@@ -1810,6 +1830,32 @@ export const memoryCustomPlace = {
     return count;
   },
 
+  async deleteOne(query?: any): Promise<{ deletedCount: number }> {
+    for (const [id, r] of customPlacesMap.entries()) {
+      if (matchDoc(r, query)) {
+        customPlacesMap.delete(id);
+        return { deletedCount: 1 };
+      }
+    }
+    return { deletedCount: 0 };
+  },
+
+  async deleteMany(query?: any): Promise<{ deletedCount: number }> {
+    if (!query || Object.keys(query).length === 0) {
+      const count = customPlacesMap.size;
+      customPlacesMap.clear();
+      return { deletedCount: count };
+    }
+    let count = 0;
+    for (const [id, r] of customPlacesMap.entries()) {
+      if (matchDoc(r, query)) {
+        customPlacesMap.delete(id);
+        count++;
+      }
+    }
+    return { deletedCount: count };
+  },
+
   async aggregate(pipeline: any[]): Promise<any[]> {
     let records: any[] = Array.from(customPlacesMap.values()).map((r) => ({
       _id: r._id,
@@ -1968,6 +2014,32 @@ export const memoryHazardReport = {
 
   async countDocuments(query?: any): Promise<number> {
     return hazardReportsMap.size;
+  },
+
+  async deleteOne(query?: any): Promise<{ deletedCount: number }> {
+    for (const [id, r] of hazardReportsMap.entries()) {
+      if (matchDoc(r, query)) {
+        hazardReportsMap.delete(id);
+        return { deletedCount: 1 };
+      }
+    }
+    return { deletedCount: 0 };
+  },
+
+  async deleteMany(query?: any): Promise<{ deletedCount: number }> {
+    if (!query || Object.keys(query).length === 0) {
+      const count = hazardReportsMap.size;
+      hazardReportsMap.clear();
+      return { deletedCount: count };
+    }
+    let count = 0;
+    for (const [id, r] of hazardReportsMap.entries()) {
+      if (matchDoc(r, query)) {
+        hazardReportsMap.delete(id);
+        count++;
+      }
+    }
+    return { deletedCount: count };
   },
 };
 

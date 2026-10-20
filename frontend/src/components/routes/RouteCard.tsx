@@ -57,7 +57,7 @@ export const RouteCard: React.FC<RouteCardProps> = ({
   onNavigateDetails,
 }) => {
   const riskMeta = getExplicitRiskLabel(route.safety_score, route.rating);
-  const routeColor = route.color || (letter === 'A' ? '#087f8c' : letter === 'B' ? '#8b5cf6' : '#f59e0b');
+  const routeColor = route.color || (letter === 'A' ? '#0d9488' : letter === 'B' ? '#8b5cf6' : '#f59e0b');
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {

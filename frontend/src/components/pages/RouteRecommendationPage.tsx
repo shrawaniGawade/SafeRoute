@@ -417,7 +417,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
       isNavigable: false,
       distanceText: travelMode === 'driving' ? '2.1 km' : '1.8 km',
       durationText: travelMode === 'driving' ? '7 mins' : '22 mins',
-      color: '#087f8c',
+      color: '#0d9488',
       factors: {
         lighting: lighting || 9,
         crime_risk: crimeRisk || 1,
@@ -931,7 +931,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                     gap: '6px',
                   }}
                 >
-                  <Sparkles size={14} color="#087f8c" />
+                  <Sparkles size={14} color="#0d9488" />
                   <span>AI Scoring Explanation & Model Inference</span>
                 </h4>
                 <p style={{ fontSize: '12px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
@@ -962,7 +962,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                     gap: '6px',
                   }}
                 >
-                  <ShieldCheck size={14} color="#087f8c" />
+                  <ShieldCheck size={14} color="#0d9488" />
                   <span>Recommendation Factor Explanations</span>
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

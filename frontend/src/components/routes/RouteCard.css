@@ -30,7 +30,7 @@
 }
 
 .routes-header-title .header-icon {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 .route-count-badge {
@@ -97,7 +97,7 @@
   gap: 12px;
   background: #ffffff;
   border: 2px solid #e2e8f0;
-  border-left: 5px solid var(--route-accent, #087f8c);
+  border-left: 5px solid var(--route-accent, var(--primary, #0d9488));
   border-radius: 14px;
   padding: 16px;
   cursor: pointer;
@@ -114,15 +114,15 @@
 }
 
 .route-card:focus-visible {
-  box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.35);
-  border-color: #087f8c;
+  box-shadow: 0 0 0 3px var(--primary-border, rgba(13, 148, 136, 0.35));
+  border-color: var(--primary, #0d9488);
 }
 
 /* Selected Card Highlight */
 .route-card.selected {
   background: #f8fafc;
-  border-color: var(--route-accent, #087f8c);
-  box-shadow: 0 0 0 1px var(--route-accent, #087f8c), 0 8px 24px rgba(8, 127, 140, 0.12);
+  border-color: var(--route-accent, var(--primary, #0d9488));
+  box-shadow: 0 0 0 1px var(--route-accent, var(--primary, #0d9488)), 0 8px 24px rgba(13, 148, 136, 0.12);
 }
 
 /* Header Row */
@@ -219,7 +219,7 @@
 }
 
 .route-type-icon.safe {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 .route-type-icon.balanced {
@@ -413,12 +413,12 @@
 }
 
 .status-indicator.active {
-  background: var(--route-accent, #087f8c);
-  box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.25);
+  background: var(--route-accent, var(--primary, #0d9488));
+  box-shadow: 0 0 0 3px var(--primary-border, rgba(13, 148, 136, 0.25));
 }
 
 .status-indicator.active + .status-text {
-  color: var(--route-accent, #087f8c);
+  color: var(--route-accent, var(--primary, #0d9488));
   font-weight: 700;
 }
 
@@ -428,7 +428,7 @@
   gap: 4px;
   background: transparent;
   border: none;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -438,8 +438,8 @@
 }
 
 .card-audit-action-btn:hover {
-  background: #e0f2fe;
-  color: #0369a1;
+  background: var(--primary-subtle, rgba(13, 148, 136, 0.08));
+  color: var(--primary-hover, #0f766e);
 }
 
 /* Responsive Layout */

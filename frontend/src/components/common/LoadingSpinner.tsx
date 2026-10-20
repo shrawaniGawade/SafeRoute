@@ -25,7 +25,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       <Loader2
         size={size}
         style={{
-          color: '#087f8c',
+          color: '#0d9488',
           animation: 'spin 0.9s linear infinite',
         }}
       />

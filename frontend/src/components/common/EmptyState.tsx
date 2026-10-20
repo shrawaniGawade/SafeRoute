@@ -50,7 +50,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           height: '56px',
           borderRadius: '50%',
           background: '#f0fdfa',
-          color: '#087f8c',
+          color: '#0d9488',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -86,7 +86,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <div
           style={{
             fontSize: '12px',
-            color: '#087f8c',
+            color: '#0d9488',
             background: '#f0fdfa',
             border: '1px solid #ccfbf1',
             borderRadius: '8px',
@@ -110,7 +110,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 alignItems: 'center',
                 gap: '8px',
                 padding: '10px 20px',
-                background: '#087f8c',
+                background: '#0d9488',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '8px',

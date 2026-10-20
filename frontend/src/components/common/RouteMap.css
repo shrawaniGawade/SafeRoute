@@ -87,7 +87,7 @@
 }
 
 .pin-core.pin-origin {
-  background: #087f8c;
+  background: var(--primary, #0d9488);
 }
 
 .pin-core.pin-destination {
@@ -170,16 +170,16 @@
 }
 
 .map-control-btn:hover {
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: #ffffff;
-  border-color: #087f8c;
+  border-color: var(--primary, #0d9488);
   transform: scale(1.05);
 }
 
 .map-control-btn.active {
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: #ffffff;
-  border-color: #38bdf8;
+  border-color: #5eead4;
 }
 
 /* Floating Layer Toggles */
@@ -215,9 +215,9 @@
 }
 
 .map-layer-chip.active {
-  background: rgba(8, 127, 140, 0.25);
-  border-color: #087f8c;
-  color: #38bdf8;
+  background: rgba(13, 148, 136, 0.25);
+  border-color: var(--primary, #0d9488);
+  color: #5eead4;
 }
 
 /* Map Status Banner */
@@ -324,8 +324,8 @@
 }
 
 .legend-color-line.safe {
-  background: #087f8c;
-  box-shadow: 0 0 8px #087f8c;
+  background: var(--primary, #0d9488);
+  box-shadow: 0 0 8px var(--primary, #0d9488);
 }
 
 .legend-color-line.balanced {
@@ -466,7 +466,7 @@
   top: 54px;
   left: 50%;
   transform: translateX(-50%);
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: #ffffff;
   padding: 7px 16px;
   border-radius: 9999px;
@@ -475,7 +475,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 8px 24px rgba(8, 127, 140, 0.45);
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.45);
   z-index: 1002;
 }
 

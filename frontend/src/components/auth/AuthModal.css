@@ -73,7 +73,7 @@
   align-items: center;
   gap: 8px;
   background: #e6f6f7;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 13px;
@@ -105,7 +105,7 @@
 
 .auth-tab-btn.active {
   background: #ffffff;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
@@ -129,7 +129,7 @@
 }
 
 .highlight-email {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   word-break: break-all;
 }
 
@@ -162,7 +162,7 @@
 .link-btn {
   background: none;
   border: none;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   font-size: 12px;
   font-weight: 600;
   padding: 0;
@@ -199,7 +199,7 @@
 }
 
 .input-wrapper input:focus {
-  border-color: #087f8c;
+  border-color: var(--primary, #0d9488);
   box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.15);
 }
 
@@ -267,20 +267,20 @@
   border: 2px solid #cbd5e1;
   border-radius: 10px;
   background: #ffffff;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   outline: none;
   transition: all 0.2s ease;
   font-family: monospace;
 }
 
 .otp-digit-box:focus {
-  border-color: #087f8c;
+  border-color: var(--primary, #0d9488);
   box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.2);
   transform: translateY(-2px);
 }
 
 .otp-digit-box.filled {
-  border-color: #087f8c;
+  border-color: var(--primary, #0d9488);
   background: #f7fdfd;
 }
 
@@ -289,7 +289,7 @@
   height: 54px;
   border-radius: 14px;
   background: #e6f6f7;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -309,7 +309,7 @@
 
 .timer-badge {
   font-weight: 700;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 .resend-action-btn {
@@ -318,7 +318,7 @@
   gap: 6px;
   background: none;
   border: none;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -339,7 +339,7 @@
   gap: 8px;
   width: 100%;
   padding: 12px 20px;
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -423,7 +423,7 @@
   padding: 0 14px;
   min-height: 42px;
   background: #e6f6f7;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   border: 1px solid #b9e4e8;
   border-radius: 8px;
   font-size: 13px;
@@ -434,9 +434,9 @@
 }
 
 .send-otp-btn:hover:not(:disabled) {
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: #ffffff;
-  border-color: #087f8c;
+  border-color: var(--primary, #0d9488);
 }
 
 .send-otp-btn:disabled {
@@ -490,13 +490,13 @@
   border: 2px solid #cbd5e1;
   border-radius: 8px;
   background: #ffffff;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   outline: none;
   transition: all 0.2s;
 }
 
 .otp-input-field:focus {
-  border-color: #087f8c;
+  border-color: var(--primary, #0d9488);
   box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.15);
 }
 
@@ -506,7 +506,7 @@
   gap: 6px;
   padding: 0 16px;
   min-height: 42px;
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -537,7 +537,7 @@
 .switch-link {
   background: none;
   border: none;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   font-weight: 600;
   cursor: pointer;
   padding: 0;
@@ -559,7 +559,7 @@
 }
 
 .back-btn:hover {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 /* Dev Mode OTP Helper */
@@ -620,7 +620,7 @@
 
 .preview-email-link {
   font-size: 12px;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   text-decoration: underline;
   font-weight: 500;
 }

@@ -36,13 +36,13 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onNavigate }) => {
             width: '80px',
             height: '80px',
             borderRadius: '24px',
-            background: 'linear-gradient(135deg, rgba(8, 127, 140, 0.1), rgba(2, 132, 199, 0.15))',
-            color: '#087f8c',
+            background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.12), rgba(15, 118, 110, 0.18))',
+            color: '#0d9488',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '24px',
-            boxShadow: '0 0 0 8px rgba(8, 127, 140, 0.05)',
+            boxShadow: '0 0 0 8px rgba(13, 148, 136, 0.06)',
           }}
         >
           <Compass size={40} />
@@ -54,8 +54,8 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onNavigate }) => {
             fontWeight: 800,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
-            color: '#087f8c',
-            background: '#e0f2fe',
+            color: '#0d9488',
+            background: '#ccfbf1',
             padding: '4px 12px',
             borderRadius: '999px',
             marginBottom: '14px',
@@ -105,14 +105,14 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onNavigate }) => {
               alignItems: 'center',
               gap: '8px',
               padding: '12px 24px',
-              background: 'linear-gradient(135deg, #087f8c, #0284c7)',
+              background: 'linear-gradient(135deg, #0d9488, #0f766e)',
               color: 'white',
               border: 'none',
               borderRadius: '10px',
               fontWeight: 700,
               fontSize: '14px',
               cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(8, 127, 140, 0.3)',
+              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.3)',
               transition: 'transform 0.15s ease',
             }}
           >
@@ -154,7 +154,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onNavigate }) => {
             color: '#94a3b8',
           }}
         >
-          <Shield size={14} color="#087f8c" />
+          <Shield size={14} color="#0d9488" />
           <span>SafeRoute AI Intelligent Corridors</span>
         </div>
       </div>

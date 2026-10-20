@@ -72,8 +72,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSignIn, onSignUp }) 
           <DotGrid
             dotSize={6}
             gap={24}
-            baseColor="#b9e4e8"
-            activeColor="#087f8c"
+            baseColor="#99f6e4"
+            activeColor="#0d9488"
             proximity={140}
             shockRadius={240}
             shockStrength={4}
@@ -175,7 +175,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSignIn, onSignUp }) 
                       <strong>90%</strong>
                     </div>
                     <div className="factor-track">
-                      <div className="factor-fill" style={{ width: '90%', background: '#087f8c' }} />
+                      <div className="factor-fill" style={{ width: '90%', background: '#0d9488' }} />
                     </div>
                   </div>
 
@@ -484,7 +484,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSignIn, onSignUp }) 
         <div className="footer-top-row">
           <div className="footer-brand">
             <div className="footer-logo">
-              <Shield size={20} color="#087f8c" />
+              <Shield size={20} color="#0d9488" />
               <h3>SafeRoute</h3>
             </div>
             <p>

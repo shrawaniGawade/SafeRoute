@@ -144,7 +144,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="admin-header">
         <div className="admin-title-group">
           <div className="admin-badge-icon">
-            <Shield size={24} color="#087f8c" />
+            <Shield size={24} color="#0d9488" />
           </div>
           <div>
             <h2>SafeRoute Admin Command Center</h2>

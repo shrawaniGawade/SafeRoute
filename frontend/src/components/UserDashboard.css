@@ -11,11 +11,11 @@
 /* Welcome Hero */
 .user-dash-welcome-card {
   position: relative;
-  background: linear-gradient(135deg, #092c3e 0%, #0f3d4c 50%, #087f8c 100%);
+  background: linear-gradient(135deg, #092c3e 0%, #0f3d4c 50%, var(--primary, #0d9488) 100%);
   border-radius: 20px;
   padding: 32px;
   color: white;
-  box-shadow: 0 16px 36px -12px rgba(8, 127, 140, 0.35);
+  box-shadow: 0 16px 36px -12px rgba(13, 148, 136, 0.35);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -85,7 +85,7 @@
   align-items: center;
   gap: 8px;
   background: white;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   padding: 12px 20px;
   border-radius: 12px;
   font-weight: 700;
@@ -265,9 +265,9 @@
 }
 
 .quick-input-wrapper:focus-within {
-  border-color: #087f8c;
+  border-color: var(--primary, #0d9488);
   background: white;
-  box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.12);
+  box-shadow: 0 0 0 3px var(--primary-border, rgba(13, 148, 136, 0.15));
 }
 
 .quick-input-wrapper input {
@@ -298,9 +298,9 @@
 }
 
 .profile-chip.active {
-  background: #087f8c;
+  background: var(--primary, #0d9488);
   color: white;
-  border-color: #087f8c;
+  border-color: var(--primary, #0d9488);
 }
 
 .form-action-row {
@@ -318,14 +318,14 @@
   justify-content: center;
   gap: 8px;
   padding: 12px 20px;
-  background: linear-gradient(135deg, #087f8c, #0284c7);
+  background: linear-gradient(135deg, var(--primary, #0d9488), var(--primary-hover, #0f766e));
   color: white;
   border: none;
   border-radius: 12px;
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(8, 127, 140, 0.25);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
 }
 
 .btn-evaluate:disabled {
@@ -338,9 +338,9 @@
   align-items: center;
   gap: 6px;
   padding: 12px 18px;
-  background: #f0fdfa;
-  color: #087f8c;
-  border: 1.5px solid #99f6e4;
+  background: var(--primary-subtle, rgba(13, 148, 136, 0.08));
+  color: var(--primary, #0d9488);
+  border: 1.5px solid var(--primary-border, rgba(13, 148, 136, 0.25));
   border-radius: 12px;
   font-weight: 700;
   font-size: 14px;
@@ -418,7 +418,7 @@
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   cursor: pointer;
 }
 

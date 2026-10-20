@@ -133,7 +133,7 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {loadingProfile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#087f8c', fontSize: '13px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0d9488', fontSize: '13px', marginBottom: '12px' }}>
             <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
             <span>Synchronizing profile from database...</span>
           </div>
@@ -216,7 +216,7 @@ export const ProfilePage: React.FC = () => {
         </p>
 
         <div className="security-badge-row">
-          <ShieldCheck size={24} color="#087f8c" />
+          <ShieldCheck size={24} color="#0d9488" />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
               Two-Factor OTP Verification Active

@@ -36,12 +36,12 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #087f8c, #0ea5e9);
+  background: linear-gradient(135deg, var(--primary, #0d9488), #14b8a6);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 4px 12px rgba(8, 127, 140, 0.25);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
 }
 
 .landing-brand-text h2 {
@@ -74,7 +74,7 @@
 }
 
 .landing-nav-links a:hover {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 .landing-nav-actions {
@@ -90,17 +90,17 @@
   padding: 8px 18px;
   font-size: 14px;
   font-weight: 600;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   background: white;
-  border: 1.5px solid #087f8c;
+  border: 1.5px solid var(--primary, #0d9488);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .landing-signin-btn:hover {
-  background: #f0fdfa;
-  box-shadow: 0 2px 8px rgba(8, 127, 140, 0.15);
+  background: var(--primary-subtle, rgba(13, 148, 136, 0.08));
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.15);
 }
 
 .landing-cta-btn-sm {
@@ -111,17 +111,17 @@
   font-size: 14px;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #087f8c, #0284c7);
+  background: linear-gradient(135deg, var(--primary, #0d9488), var(--primary-hover, #0f766e));
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(8, 127, 140, 0.3);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
   transition: all 0.2s ease;
 }
 
 .landing-cta-btn-sm:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(8, 127, 140, 0.38);
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.38);
 }
 
 /* 2. Hero Section */
@@ -170,7 +170,7 @@
 }
 
 .sparkle-icon {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 .hero-headline {
@@ -183,7 +183,7 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #087f8c 20%, #0284c7 80%);
+  background: linear-gradient(135deg, var(--primary, #0d9488) 20%, #14b8a6 80%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -213,17 +213,17 @@
   font-size: 16px;
   font-weight: 700;
   color: white;
-  background: linear-gradient(135deg, #087f8c 0%, #0284c7 100%);
+  background: linear-gradient(135deg, var(--primary, #0d9488) 0%, var(--primary-hover, #0f766e) 100%);
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(8, 127, 140, 0.35);
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.35);
   transition: all 0.25s ease;
 }
 
 .hero-primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(8, 127, 140, 0.42);
+  box-shadow: 0 12px 28px rgba(13, 148, 136, 0.42);
 }
 
 .hero-secondary-btn {
@@ -243,7 +243,7 @@
 
 .hero-secondary-btn:hover {
   background: #f1f5f9;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 /* Quick Metrics Bar */
@@ -269,7 +269,7 @@
 .stat-value {
   font-size: 22px;
   font-weight: 800;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 .stat-label {
@@ -320,8 +320,8 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #087f8c;
-  background: #e0f2fe;
+  color: var(--primary, #0d9488);
+  background: var(--primary-subtle, rgba(13, 148, 136, 0.08));
   padding: 4px 12px;
   border-radius: 20px;
 }
@@ -333,7 +333,7 @@
 }
 
 .preview-endpoints .arrow {
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   margin: 0 6px;
 }
 
@@ -352,14 +352,14 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #087f8c, #0284c7);
+  background: linear-gradient(135deg, var(--primary, #0d9488), var(--primary-hover, #0f766e));
   color: white;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(8, 127, 140, 0.3);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
 }
 
 .preview-score-num {
@@ -448,8 +448,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #087f8c;
-  background: #e0f2fe;
+  color: var(--primary, #0d9488);
+  background: var(--primary-subtle, rgba(13, 148, 136, 0.08));
   padding: 4px 14px;
   border-radius: 20px;
   margin-bottom: 14px;
@@ -509,7 +509,7 @@
   margin-bottom: 20px;
 }
 
-.feature-icon-wrapper.teal { background: #ccfbf1; color: #087f8c; }
+.feature-icon-wrapper.teal { background: #ccfbf1; color: var(--primary, #0d9488); }
 .feature-icon-wrapper.green { background: #dcfce7; color: #16a34a; }
 .feature-icon-wrapper.blue { background: #dbeafe; color: #2563eb; }
 .feature-icon-wrapper.purple { background: #f3e8ff; color: #9333ea; }
@@ -561,8 +561,8 @@
 .step-number-badge {
   font-size: 12px;
   font-weight: 800;
-  color: #087f8c;
-  background: #e0f2fe;
+  color: var(--primary, #0d9488);
+  background: var(--primary-subtle, rgba(13, 148, 136, 0.08));
   padding: 4px 10px;
   border-radius: 6px;
   display: inline-block;
@@ -574,7 +574,7 @@
   height: 44px;
   border-radius: 10px;
   background: #f0fdfa;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -618,8 +618,8 @@
 }
 
 .priority-card:hover {
-  border-color: #087f8c;
-  box-shadow: 0 8px 20px rgba(8, 127, 140, 0.08);
+  border-color: var(--primary, #0d9488);
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.12);
 }
 
 .priority-card-header {
@@ -697,7 +697,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   background: #ccfbf1;
   padding: 4px 12px;
   border-radius: 20px;
@@ -734,7 +734,7 @@
 
 .spec-item strong {
   font-size: 14px;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
 }
 
 .spec-item span {
@@ -745,7 +745,7 @@
 /* 7. CTA Banner */
 .landing-cta-banner {
   padding: 80px 6%;
-  background: linear-gradient(135deg, #087f8c 0%, #0369a1 100%);
+  background: linear-gradient(135deg, var(--primary, #0d9488) 0%, var(--primary-hover, #0f766e) 100%);
   color: white;
   text-align: center;
 }
@@ -783,7 +783,7 @@
   padding: 14px 30px;
   font-size: 15px;
   font-weight: 700;
-  color: #087f8c;
+  color: var(--primary, #0d9488);
   background: white;
   border: none;
   border-radius: 10px;

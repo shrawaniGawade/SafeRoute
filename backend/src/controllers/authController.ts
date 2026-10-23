@@ -303,7 +303,13 @@ export async function verifyOtp(req: Request, res: Response): Promise<void> {
   }
 
   if (purpose === 'PASSWORD_RESET') {
-    await Otp.deleteOne({ _id: otpRecord._id });
+    // Keep the code record so the follow-up reset request can re-validate it,
+    // but grant a short grace window after successful verification.
+    otpRecord.verified = true;
+    otpRecord.verifiedAt = new Date();
+    otpRecord.expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    await otpRecord.save();
+
     res.status(200).json({
       success: true,
       message: 'Verification code confirmed. You may now reset your password.',

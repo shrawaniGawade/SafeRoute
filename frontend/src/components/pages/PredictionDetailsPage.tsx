@@ -42,7 +42,7 @@ export const PredictionDetailsPage: React.FC<PredictionDetailsPageProps> = ({ on
             gap: '8px',
             background: 'none',
             border: 'none',
-            color: '#0d9488',
+            color: 'var(--ti-ink-soft)',
             fontSize: '14px',
             fontWeight: 700,
             cursor: 'pointer',
@@ -58,8 +58,8 @@ export const PredictionDetailsPage: React.FC<PredictionDetailsPageProps> = ({ on
       <div className="audit-header-banner">
         <div className="audit-meta-title">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <Sparkles size={16} color="#38bdf8" />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', textTransform: 'uppercase' }}>
+            <Sparkles size={16} color="#d4d4d8" />
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ti-muted)', textTransform: 'uppercase' }}>
               AI Safety Inference Audit
             </span>
           </div>
@@ -153,12 +153,12 @@ export const PredictionDetailsPage: React.FC<PredictionDetailsPageProps> = ({ on
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#334155' }}>
-              <CheckCircle2 size={16} color="#10b981" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ti-ink-soft)' }}>
+              <CheckCircle2 size={16} color="#34d399" />
               <span>Direct access to 2 verified police sub-stations within 500m</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#334155' }}>
-              <CheckCircle2 size={16} color="#10b981" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ti-ink-soft)' }}>
+              <CheckCircle2 size={16} color="#34d399" />
               <span>Avoids isolated transit underpasses after 8:00 PM</span>
             </div>
           </div>

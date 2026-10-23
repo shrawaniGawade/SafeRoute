@@ -171,3 +171,9 @@
     opacity: 0.75 !important;
   }
 }
+
+.app-shell-root .route-card-skeleton {
+  background: var(--ti-surface);
+  border-color: var(--ti-line);
+  border-left-color: var(--ti-faint);
+}

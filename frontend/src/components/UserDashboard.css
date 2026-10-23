@@ -532,3 +532,246 @@
   .stat-subtext { font-size: 10px; }
   .dash-panel { padding: 18px 14px; }
 }
+
+/* ──────────────────────────────────────────────
+   TITANIUM TRAVELER WORKSPACE
+   ────────────────────────────────────────────── */
+.user-dash-container {
+  color: var(--ti-ink);
+}
+
+.user-dash-welcome-card {
+  background:
+    radial-gradient(120% 160% at 0% 0%, rgba(255, 255, 255, 0.11), transparent 58%),
+    linear-gradient(135deg, #1c1c1f 0%, #101012 58%, #08080a 100%);
+  border: 1px solid var(--ti-line-strong);
+  box-shadow:
+    0 30px 70px -40px rgba(0, 0, 0, 0.95),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+.user-dash-welcome-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.05) 48%, transparent 62%);
+  mix-blend-mode: screen;
+}
+
+.welcome-text-meta h2 {
+  color: var(--ti-ink);
+}
+
+.welcome-text-meta p {
+  color: var(--ti-muted);
+}
+
+.welcome-pill,
+.welcome-pill-admin {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ti-line);
+  color: var(--ti-ink-soft);
+}
+
+.welcome-pill svg {
+  color: var(--ti-ink-soft);
+}
+
+.welcome-pill-offline {
+  background: var(--ti-danger-bg);
+  border-color: var(--ti-danger-line);
+  color: var(--ti-danger);
+}
+
+.welcome-pill-offline svg {
+  color: var(--ti-danger);
+}
+
+.welcome-btn-primary {
+  background: var(--ti-metal);
+  color: var(--ti-accent-ink);
+  border: 1px solid transparent;
+  box-shadow:
+    0 10px 24px -14px rgba(255, 255, 255, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.welcome-btn-primary:hover {
+  background: var(--ti-metal-hover);
+  box-shadow:
+    0 14px 30px -14px rgba(255, 255, 255, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.welcome-btn-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ti-ink);
+  border: 1px solid var(--ti-line-strong);
+  box-shadow: none;
+}
+
+.welcome-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+.welcome-btn-admin {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ti-ink);
+  border: 1px solid var(--ti-line-strong);
+  box-shadow: none;
+}
+
+.welcome-btn-admin:hover {
+  background: rgba(255, 255, 255, 0.13);
+  box-shadow: none;
+}
+
+.stat-card {
+  background: var(--ti-surface);
+  border: 1px solid var(--ti-line);
+  box-shadow: var(--ti-card-shadow);
+}
+
+.stat-card:hover {
+  border-color: var(--ti-line-strong);
+  box-shadow: 0 22px 48px -34px rgba(0, 0, 0, 0.95);
+}
+
+.stat-icon-wrapper,
+.stat-icon-wrapper.blue,
+.stat-icon-wrapper.green,
+.stat-icon-wrapper.amber,
+.stat-icon-wrapper.rose {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ti-line);
+  color: var(--ti-ink-soft);
+}
+
+.stat-label {
+  color: var(--ti-faint);
+}
+
+.stat-number {
+  color: var(--ti-ink);
+}
+
+.stat-subtext {
+  color: var(--ti-faint);
+}
+
+.dash-panel {
+  background: var(--ti-surface);
+  border: 1px solid var(--ti-line);
+  box-shadow: var(--ti-card-shadow);
+}
+
+.dash-panel-header {
+  border-bottom: 1px solid var(--ti-line);
+}
+
+.dash-panel-title svg {
+  color: var(--ti-muted);
+}
+
+.dash-panel-title h3 {
+  color: var(--ti-ink);
+}
+
+.dash-panel-title span {
+  color: var(--ti-muted);
+}
+
+.quick-input-group label {
+  color: var(--ti-ink-soft);
+}
+
+.quick-input-wrapper {
+  background: var(--ti-surface-2);
+  border: 1px solid var(--ti-line);
+}
+
+.quick-input-wrapper:focus-within {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line-strong);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+.quick-input-wrapper input {
+  color: var(--ti-ink);
+}
+
+.quick-input-wrapper input::placeholder {
+  color: var(--ti-faint);
+}
+
+.profile-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ti-line);
+  color: var(--ti-muted);
+}
+
+.profile-chip:hover {
+  border-color: var(--ti-line-strong);
+  color: var(--ti-ink);
+}
+
+.profile-chip.active {
+  background: var(--ti-accent);
+  border-color: var(--ti-accent);
+  color: var(--ti-accent-ink);
+}
+
+.btn-evaluate {
+  background: var(--ti-metal);
+  color: var(--ti-accent-ink);
+  box-shadow: 0 14px 34px -20px rgba(255, 255, 255, 0.5);
+}
+
+.btn-evaluate:hover:not(:disabled) {
+  background: var(--ti-metal-hover);
+}
+
+.btn-open-map {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ti-ink-soft);
+  border: 1px solid var(--ti-line);
+}
+
+.btn-open-map:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--ti-ink);
+  border-color: var(--ti-line-strong);
+}
+
+.history-card-item {
+  background: var(--ti-surface-2);
+  border: 1px solid var(--ti-line);
+}
+
+.history-card-item:hover {
+  background: var(--ti-surface-3);
+  border-color: var(--ti-line-strong);
+  box-shadow: 0 10px 26px -22px rgba(0, 0, 0, 0.9);
+}
+
+.history-route-endpoints {
+  color: var(--ti-ink);
+}
+
+.history-meta-sub {
+  color: var(--ti-faint);
+}
+
+.btn-inspect-history {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ti-line);
+  color: var(--ti-ink-soft);
+}
+
+.btn-inspect-history:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--ti-line-strong);
+  color: var(--ti-ink);
+}

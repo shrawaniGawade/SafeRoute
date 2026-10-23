@@ -689,13 +689,18 @@ footer {
 /* Toast Notifications */
 .toast-notification {
   position: fixed;
-  top: 24px;
-  right: 24px;
+  bottom: 24px;
+  left: 0;
+  right: 0;
   z-index: 2000;
+  width: fit-content;
+  margin-inline: auto;
+  max-width: min(420px, calc(100vw - 48px));
   padding: 12px 20px;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
+  pointer-events: none;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
   animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -703,7 +708,7 @@ footer {
 @keyframes toastSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-16px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -803,7 +808,10 @@ footer {
   .toast-notification {
     left: 16px;
     right: 16px;
-    top: 16px;
+    bottom: 16px;
+    width: auto;
+    margin-inline: 0;
+    max-width: none;
     text-align: center;
   }
 }

@@ -208,35 +208,35 @@ export const ProfilePage: React.FC = () => {
 
       {/* Password & Security Card */}
       <div className="profile-card">
-        <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--ti-ink)', margin: '0 0 6px' }}>
           Account Security & Credentials
         </h3>
-        <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px' }}>
+        <p style={{ fontSize: '13px', color: 'var(--ti-muted)', margin: '0 0 16px' }}>
           Manage your password and authentication tokens.
         </p>
 
         <div className="security-badge-row">
-          <ShieldCheck size={24} color="#0d9488" />
+          <ShieldCheck size={24} color="#d4d4d8" />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
-              Two-Factor OTP Verification Active
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ti-ink)' }}>
+              Secure Password Authentication Active
             </div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>
-              Your account utilizes 6-digit numeric email verification and Refresh Token Rotation (RTR).
+            <div style={{ fontSize: '12px', color: 'var(--ti-muted)' }}>
+              Your account is protected by bcrypt password hashing and Refresh Token Rotation (RTR).
             </div>
           </div>
         </div>
 
         <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '10px' }}>
           {passwordError && (
-            <div style={{ padding: '10px 14px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'var(--ti-danger-bg)', border: '1px solid var(--ti-danger-line)', color: 'var(--ti-danger)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertCircle size={16} />
               <span>{passwordError}</span>
             </div>
           )}
 
           {passwordSuccess && (
-            <div style={{ padding: '10px 14px', borderRadius: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'var(--ti-success-bg)', border: '1px solid var(--ti-success-line)', color: 'var(--ti-success)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CheckCircle2 size={16} />
               <span>{passwordSuccess}</span>
             </div>
@@ -280,7 +280,7 @@ export const ProfilePage: React.FC = () => {
             />
           </div>
 
-          <button type="submit" className="profile-save-btn" style={{ background: '#0f172a' }} disabled={savingPassword}>
+          <button type="submit" className="profile-save-btn" disabled={savingPassword}>
             {savingPassword ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Lock size={16} />}
             <span>{savingPassword ? 'Updating...' : 'Update Password'}</span>
           </button>

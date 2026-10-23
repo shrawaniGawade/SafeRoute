@@ -505,3 +505,186 @@
     padding: 16px;
   }
 }
+
+/* ============================================================
+   TITANIUM ROUTE FINDER OVERRIDES
+   ============================================================ */
+.app-shell-root .route-panel-card,
+.app-shell-root .factor-breakdown-card {
+  background: var(--ti-surface);
+  border-color: var(--ti-line);
+  box-shadow: var(--ti-card-shadow);
+}
+
+.app-shell-root .panel-header h2 {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .panel-header p {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .route-input-field label,
+.app-shell-root .preset-chips-container > label {
+  color: var(--ti-muted) !important;
+}
+
+.app-shell-root .route-input-wrapper input,
+.app-shell-root .route-input-wrapper select {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line);
+  color: var(--ti-ink);
+  color-scheme: dark;
+}
+
+.app-shell-root .route-input-wrapper input:focus,
+.app-shell-root .route-input-wrapper select:focus {
+  border-color: var(--ti-line-strong);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.07);
+}
+
+.app-shell-root .route-field-icon {
+  color: var(--ti-faint);
+}
+
+.app-shell-root .swap-locations-btn {
+  background: var(--ti-elev);
+  border-color: var(--ti-line);
+  color: var(--ti-muted);
+}
+
+.app-shell-root .swap-locations-btn:hover {
+  background: var(--ti-ink);
+  color: var(--ti-accent-ink);
+}
+
+.app-shell-root .dest-action-btn {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line);
+  color: var(--ti-muted);
+}
+
+.app-shell-root .dest-action-btn:hover:not(:disabled) {
+  background: var(--ti-surface-3);
+  border-color: var(--ti-line-strong);
+  color: var(--ti-ink);
+}
+
+.app-shell-root .dest-action-btn.delete-btn:hover:not(:disabled) {
+  background: var(--ti-danger-bg);
+  border-color: var(--ti-danger-line);
+  color: var(--ti-danger);
+}
+
+.app-shell-root .add-destination-btn {
+  background: transparent;
+  border-color: var(--ti-line-strong);
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .add-destination-btn:hover {
+  background: var(--ti-elev);
+  border-color: var(--ti-ink-soft);
+  color: var(--ti-ink);
+  box-shadow: none;
+}
+
+.app-shell-root .preset-chip-btn {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line);
+  color: var(--ti-muted);
+}
+
+.app-shell-root .preset-chip-btn:hover {
+  border-color: var(--ti-line-strong);
+  color: var(--ti-ink);
+}
+
+.app-shell-root .preset-chip-btn.active {
+  background: var(--ti-metal);
+  border-color: transparent;
+  color: var(--ti-accent-ink);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.app-shell-root .sliders-drawer {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--ti-line);
+}
+
+.app-shell-root .slider-meta-row {
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .slider-input {
+  accent-color: var(--ti-ink);
+}
+
+.app-shell-root .evaluate-action-btn {
+  background: var(--ti-metal);
+  color: var(--ti-accent-ink);
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.app-shell-root .evaluate-action-btn:hover:not(:disabled) {
+  background: var(--ti-metal-hover);
+}
+
+.app-shell-root .alternative-card {
+  background: var(--ti-surface);
+  border-color: var(--ti-line);
+}
+
+.app-shell-root .alternative-card:hover {
+  border-color: var(--ti-line-strong);
+}
+
+.app-shell-root .alternative-card.selected {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--ti-line-strong);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.app-shell-root .alt-route-icon {
+  background: rgba(88, 148, 255, 0.12);
+  color: #93c5fd;
+}
+
+.app-shell-root .alt-route-icon.safe {
+  background: var(--ti-success-bg);
+  color: var(--ti-success);
+}
+
+.app-shell-root .alt-details h4 {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .alt-details p {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .view-details-link-btn {
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .view-details-link-btn:hover {
+  background: var(--ti-elev);
+  color: var(--ti-ink);
+}
+
+.app-shell-root .factor-meter-cell {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line);
+}
+
+.app-shell-root .cell-label {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .cell-value {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .cell-progress-track {
+  background: rgba(255, 255, 255, 0.09);
+}

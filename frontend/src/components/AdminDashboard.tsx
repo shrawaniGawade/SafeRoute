@@ -284,6 +284,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <Cpu size={16} />
             AI Model Simulator
           </button>
+          <button
+            className={`admin-tab ${activeTab === 'surface-tuner' ? 'active' : ''}`}
+            onClick={() => setActiveTab('surface-tuner')}
+          >
+            <Sliders size={16} />
+            Surface &amp; Radar Tuner
+          </button>
         </div>
 
         {/* Modal Body */}
@@ -339,7 +346,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="stat-details">
                     <span className="stat-label">System Security</span>
                     <span className="stat-value">Hardened</span>
-                    <span className="stat-sub">Argon2 / JWT / CORS Strict</span>
+                    <span className="stat-sub">bcrypt / JWT / CORS Strict</span>
                   </div>
                 </div>
               </div>
@@ -649,30 +656,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* TAB 5: SURFACE & RADAR TUNER */}
           {activeTab === 'surface-tuner' && (
             <div className="tab-pane">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900 text-white mb-6 border border-slate-800 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white/[0.03] text-white mb-6 border border-white/10 shadow-[0_24px_60px_-40px_rgba(0,0,0,0.95)]">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <Sliders className="w-5 h-5 text-emerald-400" />
-                    <h3 className="text-base font-bold text-white m-0">Surface & Radar Architecture Tuner</h3>
-                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <Sliders className="w-5 h-5 text-zinc-300" />
+                    <h3 className="text-base font-bold text-white m-0">Surface &amp; Radar Architecture Tuner</h3>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-white/10 text-zinc-200 border border-white/15">
                       Admin Exclusive
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 m-0">
+                  <p className="text-xs text-zinc-400 m-0">
                     Tune GPU WebGL2 distance fields, reflection gloss, and designate the system-wide default preset for all visitors.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={handleResetPresetDefaults}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 border border-white/10 cursor-pointer transition-colors"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Reset Values</span>
                   </button>
                   <button
                     onClick={handleSaveAsSystemDefault}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-black shadow-md cursor-pointer transition-all"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-b from-white to-zinc-300 hover:from-white hover:to-white text-zinc-950 shadow-md cursor-pointer transition-all"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Set as System Default</span>
@@ -688,23 +695,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               )}
 
               {/* Landing View Mode */}
-              <div className="mb-6 p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div className="mb-6 p-5 rounded-2xl bg-white/[0.03] border border-white/10">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <label className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold block mb-1">
+                    <label className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold block mb-1">
                       Landing View Mode
                     </label>
-                    <p className="text-xs text-slate-500 m-0">
+                    <p className="text-xs text-zinc-500 m-0">
                       Sets the public landing experience. Hero View keeps the WebGL surface behind the hero; Full View extends it across the entire page.
                     </p>
                   </div>
-                  <div className="inline-flex rounded-xl bg-slate-100 border border-slate-200 p-1 shrink-0">
+                  <div className="inline-flex rounded-xl bg-black/40 border border-white/10 p-1 shrink-0">
                     <button
                       onClick={() => handleLandingViewChange(false)}
                       className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                         !landingFullView
-                          ? 'bg-slate-900 text-white shadow-sm'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-white text-zinc-950 shadow-sm'
+                          : 'text-zinc-400 hover:text-white'
                       }`}
                     >
                       Hero View
@@ -713,8 +720,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       onClick={() => handleLandingViewChange(true)}
                       className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                         landingFullView
-                          ? 'bg-slate-900 text-white shadow-sm'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-white text-zinc-950 shadow-sm'
+                          : 'text-zinc-400 hover:text-white'
                       }`}
                     >
                       Full View
@@ -725,8 +732,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               {/* Preset Selector */}
               <div className="mb-6">
-                <label className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold block mb-2">
-                  System Presets & Corridors (Designate Default)
+                <label className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold block mb-2">
+                  System Presets &amp; Corridors (Designate Default)
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {Object.values(PRESETS).map((p) => {
@@ -738,21 +745,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         onClick={() => setTunerPreset(p)}
                         className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                           isSelected
-                            ? 'bg-slate-900 border-emerald-500 text-white shadow-md ring-1 ring-emerald-500/50'
-                            : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                            ? 'bg-white/[0.07] border-white/30 text-white shadow-md ring-1 ring-white/20'
+                            : 'bg-white/[0.02] border-white/10 text-zinc-300 hover:border-white/25 hover:bg-white/[0.05]'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="w-3 h-3 rounded-full" style={{ backgroundColor: p.accentColor }} />
                           {isSystemDefault && (
-                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-white/10 text-zinc-200 font-bold border border-white/20">
                               DEFAULT
                             </span>
                           )}
                         </div>
                         <div>
                           <div className="text-xs font-bold leading-tight">{p.name}</div>
-                          <div className="text-[10px] text-slate-400 truncate mt-0.5">{p.lighting} illumination</div>
+                          <div className="text-[10px] text-zinc-500 truncate mt-0.5">{p.lighting} illumination</div>
                         </div>
                       </button>
                     );
@@ -763,12 +770,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {/* Main Tuner Grid: Left Sliders, Right Live Preview */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* Left: Sliders */}
-                <div className="lg:col-span-7 space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                    <h4 className="text-xs font-mono uppercase tracking-wider text-slate-700 font-bold m-0">
+                <div className="lg:col-span-7 space-y-4 bg-white/[0.03] p-5 rounded-2xl border border-white/10">
+                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                    <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-300 font-bold m-0">
                       Live Parameters ({tunerPreset.name})
                     </h4>
-                    <span className="text-[11px] font-mono text-emerald-600 font-semibold">
+                    <span className="text-[11px] font-mono text-zinc-200 font-semibold">
                       {savedDefaultId === tunerPreset.id ? '★ System Default' : 'Custom Config'}
                     </span>
                   </div>
@@ -787,8 +794,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     return (
                       <div key={ctrl.key}>
                         <div className="flex justify-between text-xs font-mono mb-1">
-                          <span className="font-semibold text-slate-700">{ctrl.label}</span>
-                          <span className="font-bold text-slate-900">{val.toFixed(2)}</span>
+                          <span className="font-semibold text-zinc-400">{ctrl.label}</span>
+                          <span className="font-bold text-white">{val.toFixed(2)}</span>
                         </div>
                         <input
                           type="range"
@@ -799,7 +806,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           onChange={(e) =>
                             setTunerPreset({ ...tunerPreset, [ctrl.key]: parseFloat(e.target.value) })
                           }
-                          className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-emerald-600 bg-slate-200"
+                          className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-zinc-200 bg-white/10"
                         />
                       </div>
                     );
@@ -809,10 +816,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* Right: Live Interactive WebGL Preview */}
                 <div className="lg:col-span-5 flex flex-col space-y-3">
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="font-bold text-slate-700 uppercase tracking-wide">Interactive Radar Surface</span>
-                    <span className="text-emerald-600 font-semibold">Direct WebGL2 Engine</span>
+                    <span className="font-bold text-zinc-300 uppercase tracking-wide">Interactive Radar Surface</span>
+                    <span className="text-zinc-400 font-semibold">Direct WebGL2 Engine</span>
                   </div>
-                  <div className="relative h-[360px] w-full rounded-2xl overflow-hidden border border-slate-300 shadow-xl bg-black">
+                  <div className="relative h-[360px] w-full rounded-2xl overflow-hidden border border-white/15 shadow-xl bg-black">
                     <AcidSquares
                       color={tunerPreset.color}
                       accentColor={tunerPreset.accentColor}
@@ -841,16 +848,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       Click to pulse shockwaves &bull; Hover to test pointer spring
                     </div>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-600 space-y-1.5">
-                    <div className="font-bold text-slate-800 flex items-center justify-between">
+                  <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-zinc-400 space-y-1.5">
+                    <div className="font-bold text-zinc-200 flex items-center justify-between">
                       <span>Active Default: {savedDefaultId === 'graphite' ? 'Titanium Monolith' : (PRESETS[savedDefaultId]?.name || savedDefaultId)}</span>
                       {savedDefaultId === tunerPreset.id && (
-                        <span className="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded text-[10px] font-mono font-bold">
+                        <span className="text-zinc-950 bg-white/90 px-2 py-0.5 rounded text-[10px] font-mono font-bold">
                           SYNCHRONIZED
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] leading-relaxed text-slate-500 m-0">
+                    <p className="text-[11px] leading-relaxed text-zinc-500 m-0">
                       Selecting <strong>"Set as System Default"</strong> stores this preset and custom parameters as the public landing page default for all visitors.
                     </p>
                   </div>
@@ -866,7 +873,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <Shield size={14} /> SafeRoute Administration Console &bull; Security Level: High
           </div>
           {isStandalone && onLogout ? (
-            <button className="admin-dismiss-btn" onClick={onLogout} style={{ background: '#ef4444', color: '#ffffff' }}>
+            <button className="admin-dismiss-btn danger" onClick={onLogout}>
               Sign Out
             </button>
           ) : onClose ? (

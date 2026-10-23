@@ -19,13 +19,13 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         justifyContent: 'center',
         gap: '12px',
         padding: '36px 20px',
-        color: '#64748b',
+        color: 'var(--ti-muted, #a1a1aa)',
       }}
     >
       <Loader2
         size={size}
         style={{
-          color: '#0d9488',
+          color: 'var(--ti-ink-soft, #d4d4d8)',
           animation: 'spin 0.9s linear infinite',
         }}
       />

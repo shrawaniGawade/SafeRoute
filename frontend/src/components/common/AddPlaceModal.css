@@ -316,3 +316,137 @@
     transform: rotate(360deg);
   }
 }
+
+/* ============================================================
+   TITANIUM ADD PLACE MODAL OVERRIDES
+   ============================================================ */
+.app-shell-root .add-place-modal-overlay {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.app-shell-root .add-place-modal-card {
+  background: var(--ti-surface);
+  border: 1px solid var(--ti-line);
+  box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.app-shell-root .add-place-header {
+  background: var(--ti-surface-2);
+  border-bottom-color: var(--ti-line);
+}
+
+.app-shell-root .header-icon-badge {
+  background: var(--ti-elev);
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .add-place-title {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .add-place-subtitle {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .close-modal-btn {
+  color: var(--ti-faint);
+}
+
+.app-shell-root .close-modal-btn:hover {
+  background: var(--ti-elev);
+  color: var(--ti-ink);
+}
+
+.app-shell-root .modal-alert-error {
+  background: var(--ti-danger-bg);
+  border-bottom-color: var(--ti-danger-line);
+  color: var(--ti-danger);
+}
+
+.app-shell-root .modal-alert-success {
+  background: var(--ti-success-bg);
+  border-bottom-color: var(--ti-success-line);
+  color: var(--ti-success);
+}
+
+.app-shell-root .form-label {
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .form-input,
+.app-shell-root .form-select,
+.app-shell-root .form-textarea {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line);
+  color: var(--ti-ink);
+  color-scheme: dark;
+}
+
+.app-shell-root .form-input:focus,
+.app-shell-root .form-select:focus,
+.app-shell-root .form-textarea:focus {
+  border-color: var(--ti-line-strong);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.07);
+}
+
+.app-shell-root .form-input::placeholder,
+.app-shell-root .form-textarea::placeholder {
+  color: var(--ti-faint);
+}
+
+.app-shell-root .coordinates-picker-box {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--ti-line);
+}
+
+.app-shell-root .coordinates-title {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .coord-action-chip {
+  background: var(--ti-elev);
+  border-color: var(--ti-line);
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .coord-action-chip:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--ti-ink);
+}
+
+.app-shell-root .coord-preview {
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .verification-notice {
+  background: var(--ti-elev);
+  border-color: var(--ti-line);
+  color: var(--ti-muted);
+}
+
+.app-shell-root .modal-actions-row {
+  border-top-color: var(--ti-line);
+}
+
+.app-shell-root .btn-cancel {
+  background: transparent;
+  border-color: var(--ti-line-strong);
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .btn-cancel:hover {
+  background: var(--ti-elev);
+  color: var(--ti-ink);
+}
+
+.app-shell-root .btn-save-place {
+  background: var(--ti-metal);
+  color: var(--ti-accent-ink);
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.9);
+}
+
+.app-shell-root .btn-save-place:hover:not(:disabled) {
+  background: var(--ti-metal-hover);
+  box-shadow: 0 12px 26px -14px rgba(0, 0, 0, 0.9);
+}

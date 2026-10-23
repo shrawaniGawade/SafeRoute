@@ -224,3 +224,88 @@
     display: block;
   }
 }
+
+/* ──────────────────────────────────────────────
+   TITANIUM SIDEBAR
+   ────────────────────────────────────────────── */
+.sidebar-container {
+  background: #0a0a0c;
+  border-right: 1px solid var(--ti-line, rgba(255, 255, 255, 0.09));
+}
+
+.sidebar-header {
+  border-bottom: 1px solid var(--ti-line, rgba(255, 255, 255, 0.09));
+}
+
+.sidebar-logo-icon {
+  background: linear-gradient(160deg, #fafafa 0%, #a1a1aa 100%);
+  color: #09090b;
+  box-shadow:
+    0 8px 22px -10px rgba(255, 255, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-brand-title {
+  color: var(--ti-ink, #f4f4f5);
+}
+
+.sidebar-brand-sub,
+.sidebar-section-title {
+  color: var(--ti-faint, #71717a);
+}
+
+.sidebar-nav-link {
+  color: var(--ti-muted, #a1a1aa);
+}
+
+.sidebar-nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ti-ink, #f4f4f5);
+}
+
+.sidebar-nav-link.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ti-ink, #f4f4f5);
+  box-shadow: inset 2px 0 0 var(--ti-accent, #fafafa);
+}
+
+.sidebar-badge,
+.sidebar-badge.admin {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ti-ink-soft, #d4d4d8);
+  border: 1px solid var(--ti-line, rgba(255, 255, 255, 0.09));
+}
+
+.sidebar-footer {
+  border-top: 1px solid var(--ti-line, rgba(255, 255, 255, 0.09));
+}
+
+.sidebar-user-card {
+  background: var(--ti-elev, rgba(255, 255, 255, 0.045));
+}
+
+.sidebar-user-avatar {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--ti-line-strong, rgba(255, 255, 255, 0.18));
+  color: var(--ti-ink, #f4f4f5);
+}
+
+.sidebar-user-name {
+  color: var(--ti-ink, #f4f4f5);
+}
+
+.sidebar-user-role {
+  color: var(--ti-faint, #71717a);
+}
+
+.sidebar-logout-btn {
+  background: var(--ti-danger-bg, rgba(248, 113, 113, 0.1));
+  border: 1px solid var(--ti-danger-line, rgba(248, 113, 113, 0.24));
+  color: var(--ti-danger, #f87171);
+}
+
+.sidebar-logout-btn:hover {
+  background: rgba(248, 113, 113, 0.18);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fca5a5;
+}

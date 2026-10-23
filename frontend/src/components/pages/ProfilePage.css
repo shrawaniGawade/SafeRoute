@@ -134,3 +134,71 @@
     padding: 20px 16px;
   }
 }
+
+/* ============================================================
+   TITANIUM PROFILE PAGE OVERRIDES
+   ============================================================ */
+.app-shell-root .profile-card {
+  background: var(--ti-surface);
+  border-color: var(--ti-line);
+  box-shadow: var(--ti-card-shadow);
+}
+
+.app-shell-root .profile-title-meta h2 {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .profile-title-meta p,
+.app-shell-root .profile-card > p {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .profile-card h3,
+.app-shell-root .profile-card h3[style] {
+  color: var(--ti-ink) !important;
+}
+
+.app-shell-root .profile-field-group label {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .profile-field-input {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line);
+  color: var(--ti-ink);
+  color-scheme: dark;
+}
+
+.app-shell-root .profile-field-input:focus {
+  border-color: var(--ti-line-strong);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.07);
+}
+
+.app-shell-root .profile-field-input:disabled {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ti-faint);
+}
+
+.app-shell-root .profile-field-input::placeholder {
+  color: var(--ti-faint);
+}
+
+.app-shell-root .profile-save-btn {
+  background: var(--ti-metal);
+  color: var(--ti-accent-ink);
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.9);
+}
+
+.app-shell-root .profile-save-btn:hover {
+  background: var(--ti-metal-hover);
+}
+
+.app-shell-root .profile-save-btn[style] {
+  background: var(--ti-metal) !important;
+  color: var(--ti-accent-ink) !important;
+}
+
+.app-shell-root .security-badge-row {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line);
+}

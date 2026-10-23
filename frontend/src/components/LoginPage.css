@@ -51,6 +51,8 @@
   --auth-panel-border: rgba(255, 255, 255, 0.11);
   --auth-panel-grid: rgba(255, 255, 255, 0.05);
   --auth-panel-text: #a1a1aa;
+  --auth-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --auth-sheen: rgba(255, 255, 255, 0.3);
 
   position: relative;
   display: flex;
@@ -118,6 +120,7 @@ html[data-theme='dark'] .login-page-root {
   --auth-panel-border: rgba(255, 255, 255, 0.1);
   --auth-panel-grid: rgba(255, 255, 255, 0.045);
   --auth-panel-text: #8b8b93;
+  --auth-sheen: rgba(9, 9, 11, 0.16);
   color-scheme: dark;
 }
 
@@ -331,13 +334,13 @@ html[data-theme='dark'] .login-page-root {
   z-index: 1;
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 424px);
-  align-items: center;
-  gap: clamp(44px, 7vw, 96px);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+  align-items: start;
+  gap: clamp(40px, 6vw, 88px);
   width: 100%;
-  max-width: 1200px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: clamp(40px, 6vh, 72px) clamp(20px, 4vw, 56px);
+  padding: clamp(32px, 5.5vh, 64px) clamp(20px, 4vw, 56px) clamp(40px, 7vh, 72px);
 }
 
 /* Showcase */
@@ -347,6 +350,7 @@ html[data-theme='dark'] .login-page-root {
   gap: 22px;
   max-width: 580px;
   min-width: 0;
+  padding-top: 3px;
 }
 
 .login-tagline-badge {
@@ -559,19 +563,22 @@ html[data-theme='dark'] .login-page-root {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  min-width: 0;
+  padding-top: 3px;
 }
 
 .login-auth-card {
   position: relative;
   width: 100%;
   max-width: 424px;
-  padding: 30px 28px;
+  padding: 28px 28px 26px;
   border-radius: 20px;
   border: 1px solid var(--auth-card-border);
   background: var(--auth-card);
   color: var(--auth-ink);
   box-shadow: var(--auth-shadow);
-  animation: authCardIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: authCardIn 0.55s var(--auth-ease) both;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .login-auth-card::before {
@@ -588,7 +595,27 @@ html[data-theme='dark'] .login-page-root {
 @keyframes authCardIn {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes authViewIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes authItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -596,17 +623,92 @@ html[data-theme='dark'] .login-page-root {
   }
 }
 
+@keyframes authAlertIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes authShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes authReveal {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-6px);
+    padding-top: 0;
+    padding-bottom: 0;
+    border-width: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 480px;
+    transform: translateY(0);
+    padding-top: 14px;
+    padding-bottom: 14px;
+    border-width: 1px;
+  }
+}
+
+@keyframes authDigitPop {
+  0% {
+    transform: scale(0.92);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes authSheen {
+  from {
+    transform: translateX(-160%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+
 .login-tabs-nav {
+  position: relative;
   display: flex;
   gap: 2px;
   padding: 4px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   border-radius: 11px;
   border: 1px solid var(--auth-line);
   background: var(--auth-surface-2);
+  isolation: isolate;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .login-tab-button {
+  position: relative;
+  z-index: 1;
   flex: 1;
   height: 34px;
   padding: 0 12px;
@@ -618,7 +720,7 @@ html[data-theme='dark'] .login-page-root {
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+  transition: color 0.22s ease;
 }
 
 .login-tab-button:hover {
@@ -631,8 +733,34 @@ html[data-theme='dark'] .login-page-root {
   box-shadow: 0 1px 2px rgba(9, 9, 11, 0.08), inset 0 0 0 1px var(--auth-line);
 }
 
+@supports selector(:has(*)) {
+  .login-tabs-nav::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    z-index: 0;
+    width: calc(50% - 4px);
+    height: calc(100% - 8px);
+    border-radius: 7px;
+    background: var(--auth-tab-active);
+    box-shadow: 0 1px 2px rgba(9, 9, 11, 0.08), inset 0 0 0 1px var(--auth-line);
+    transition: transform 0.32s var(--auth-ease), background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .login-tabs-nav:has(.login-tab-button:nth-child(2).active)::before {
+    transform: translateX(100%);
+  }
+
+  .login-tab-button.active {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
 .login-card-content {
   width: 100%;
+  animation: authViewIn 0.22s ease both;
 }
 
 .login-security-guarantee {
@@ -716,11 +844,11 @@ html[data-theme='dark'] .login-page-root {
 /* ------------------------------------------------------------------ */
 
 .login-page-root .auth-form {
-  gap: 15px;
+  gap: 14px;
 }
 
 .login-page-root .auth-header {
-  margin-bottom: 21px;
+  margin-bottom: 18px;
   text-align: left;
 }
 
@@ -800,6 +928,10 @@ html[data-theme='dark'] .login-page-root {
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
+.login-page-root .input-wrapper input:not([type='password']) {
+  padding-right: 14px;
+}
+
 .login-page-root .input-wrapper input:hover:not(:disabled) {
   border-color: var(--auth-line-strong);
 }
@@ -859,14 +991,16 @@ html[data-theme='dark'] .login-page-root {
 
 /* Submit / primary actions */
 .login-page-root .auth-submit-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   width: 100%;
   min-height: 46px;
-  margin-top: 7px;
+  margin-top: 6px;
   padding: 12px 20px;
+  overflow: hidden;
   border: 0;
   border-radius: 10px;
   background: var(--auth-btn-bg);
@@ -877,6 +1011,20 @@ html[data-theme='dark'] .login-page-root {
   cursor: pointer;
   box-shadow: var(--auth-btn-shadow);
   transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+}
+
+.login-page-root .auth-submit-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, var(--auth-sheen) 50%, transparent 70%);
+  transform: translateX(-160%) skewX(-18deg);
+  transition: transform 0.65s var(--auth-ease);
+}
+
+.login-page-root .auth-submit-btn:hover:not(:disabled)::after {
+  transform: translateX(160%) skewX(-18deg);
 }
 
 .login-page-root .auth-submit-btn:hover:not(:disabled) {
@@ -977,6 +1125,7 @@ html[data-theme='dark'] .login-page-root {
   font-size: 12px;
   line-height: 1.5;
   text-align: left;
+  animation: authAlertIn 0.26s ease both;
 }
 
 .login-page-root .auth-alert svg {
@@ -988,6 +1137,8 @@ html[data-theme='dark'] .login-page-root {
   background: var(--auth-error-bg);
   border: 1px solid var(--auth-error-border);
   color: var(--auth-error-text);
+  animation: authAlertIn 0.26s ease both, authShake 0.4s 0.12s ease both;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .login-page-root .auth-alert.success {
@@ -1046,10 +1197,12 @@ html[data-theme='dark'] .login-page-root {
   flex-direction: column;
   gap: 10px;
   padding: 14px;
+  overflow: hidden;
   border-radius: 11px;
   border: 1px solid var(--auth-line);
   background: var(--auth-surface);
-  animation: authCardIn 0.2s ease;
+  animation: authReveal 0.38s var(--auth-ease) both;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .login-page-root .otp-verify-label {
@@ -1059,16 +1212,6 @@ html[data-theme='dark'] .login-page-root {
   color: var(--auth-ink-soft);
 }
 
-.login-page-root .otp-cooldown-note {
-  font-size: 10px;
-  color: var(--auth-muted);
-  white-space: nowrap;
-}
-
-.login-page-root .otp-cooldown-timer {
-  color: var(--auth-ink);
-  font-weight: 700;
-}
 
 .login-page-root .otp-entry-hint {
   margin: 4px 0 0;
@@ -1084,6 +1227,7 @@ html[data-theme='dark'] .login-page-root {
 
 .login-page-root .otp-input-field {
   flex: 1;
+  width: 0;
   min-width: 0;
   padding: 10px 12px;
   border: 1px solid var(--auth-line);
@@ -1158,6 +1302,7 @@ html[data-theme='dark'] .login-page-root {
 .login-page-root .otp-digit-box.filled {
   border-color: var(--auth-ink-soft);
   background: var(--auth-surface-2);
+  animation: authDigitPop 0.2s var(--auth-ease);
 }
 
 .login-page-root .otp-icon-badge {
@@ -1239,6 +1384,59 @@ html[data-theme='dark'] .login-page-root {
   margin-left: 6px;
   font-weight: 500;
   color: var(--auth-muted);
+}
+
+.login-page-root .password-requirements {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 12px;
+}
+
+.login-page-root .password-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--auth-faint);
+  transition: color 0.2s ease;
+}
+
+.login-page-root .password-requirements li svg {
+  flex-shrink: 0;
+}
+
+.login-page-root .password-requirements li.met {
+  color: var(--auth-ink-soft);
+}
+
+.login-page-root .auth-alert-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.login-page-root .auth-alert-link {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+@media (max-width: 420px) {
+  .login-page-root .password-requirements {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Switch links */
@@ -1336,6 +1534,56 @@ html[data-theme='dark'] .login-page-root {
 .login-page-root a:focus-visible {
   outline: 2px solid var(--auth-focus-border);
   outline-offset: 2px;
+}
+
+/* Entrance choreography */
+.login-page-root .auth-form > .auth-header,
+.login-page-root .auth-form > .form-group,
+.login-page-root .auth-form > .otp-boxes-container,
+.login-page-root .auth-form > .auth-submit-btn,
+.login-page-root .auth-form > .resend-container,
+.login-page-root .auth-form > .auth-switch-footer {
+  animation: authItemIn 0.42s var(--auth-ease) both;
+}
+
+.login-page-root .auth-form > .auth-submit-btn {
+  animation-delay: 0.04s;
+}
+
+.login-showcase-column > * {
+  animation: authItemIn 0.6s var(--auth-ease) both;
+}
+
+.login-showcase-column > *:nth-child(1) {
+  animation-delay: 0.04s;
+}
+
+.login-showcase-column > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.login-showcase-column > *:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.login-showcase-column > *:nth-child(4) {
+  animation-delay: 0.22s;
+}
+
+.login-showcase-column > *:nth-child(5) {
+  animation-delay: 0.28s;
+}
+
+.login-page-root .login-theme-toggle svg {
+  transition: transform 0.4s var(--auth-ease);
+}
+
+.login-page-root .login-theme-toggle:hover svg {
+  transform: rotate(20deg);
+}
+
+.login-page-root .login-theme-toggle:active svg {
+  transform: rotate(-12deg) scale(0.92);
 }
 
 /* Admin sign-in shares the titanium system; only the intro copy differs. */
@@ -1458,19 +1706,27 @@ html[data-theme='dark'] .login-page-root {
     font-size: 18px;
   }
 
-  .login-page-root .email-action-row {
+  .login-tab-button {
+    padding: 0 8px;
+    font-size: 11.5px;
+  }
+
+  .login-page-root .email-action-row,
+  .login-page-root .otp-inline-row {
     flex-direction: column;
   }
 
-  .login-page-root .send-otp-btn {
+  .login-page-root .send-otp-btn,
+  .login-page-root .verify-otp-btn,
+  .login-page-root .otp-input-field {
     width: 100%;
   }
 }
 
 @media (max-height: 820px) and (min-width: 1121px) {
   .login-main-container {
-    padding-top: 30px;
-    padding-bottom: 30px;
+    padding-top: 26px;
+    padding-bottom: 32px;
   }
 
   .login-showcase-column {
@@ -1483,6 +1739,30 @@ html[data-theme='dark'] .login-page-root {
 
   .login-features-list {
     display: none;
+  }
+
+  .login-auth-card {
+    padding: 22px 26px 22px;
+  }
+
+  .login-tabs-nav {
+    margin-bottom: 16px;
+  }
+
+  .login-page-root .auth-header {
+    margin-bottom: 14px;
+  }
+
+  .login-page-root .auth-form {
+    gap: 12px;
+  }
+
+  .login-page-root .input-wrapper input {
+    min-height: 44px;
+  }
+
+  .login-page-root .auth-submit-btn {
+    min-height: 44px;
   }
 }
 

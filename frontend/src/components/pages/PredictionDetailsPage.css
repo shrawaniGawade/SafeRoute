@@ -198,3 +198,75 @@
     padding: 24px 20px;
   }
 }
+
+/* ============================================================
+   TITANIUM AUDIT PAGE OVERRIDES
+   ============================================================ */
+.app-shell-root .audit-header-banner {
+  background:
+    radial-gradient(120% 180% at 0% 0%, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 62%),
+    linear-gradient(160deg, #17171a 0%, #0c0c0e 100%);
+  border: 1px solid var(--ti-line);
+  box-shadow: var(--ti-card-shadow);
+}
+
+.app-shell-root .audit-meta-title p {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .score-hero-circle {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--ti-ink);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.08);
+}
+
+.app-shell-root .hero-score-label {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .audit-card {
+  background: var(--ti-surface);
+  border-color: var(--ti-line);
+  box-shadow: var(--ti-card-shadow);
+}
+
+.app-shell-root .audit-card-title {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .audit-factor-row {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line);
+}
+
+.app-shell-root .factor-desc-col strong {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .factor-desc-col span {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .ai-reasoning-box {
+  background: var(--ti-elev);
+  border-color: var(--ti-line);
+}
+
+.app-shell-root .ai-reasoning-box h4 {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .ai-reasoning-box p {
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .limitations-callout-card {
+  background: var(--ti-warn-bg);
+  border-color: var(--ti-warn-line);
+}
+
+.app-shell-root .limitations-header,
+.app-shell-root .limitations-text,
+.app-shell-root .limitations-bullets {
+  color: #fcd34d;
+}

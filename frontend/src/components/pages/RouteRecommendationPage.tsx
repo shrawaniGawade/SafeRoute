@@ -499,9 +499,9 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                 gap: '8px',
                 padding: '10px 14px',
                 borderRadius: '8px',
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
-                color: '#b91c1c',
+                background: 'var(--ti-danger-bg)',
+                border: '1px solid var(--ti-danger-line)',
+                color: 'var(--ti-danger)',
                 fontSize: '13px',
               }}
             >
@@ -519,9 +519,9 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                 gap: '8px',
                 padding: '10px 14px',
                 borderRadius: '8px',
-                background: '#fffbeb',
-                border: '1px solid #fde047',
-                color: '#854d0e',
+                background: 'var(--ti-warn-bg)',
+                border: '1px solid var(--ti-warn-line)',
+                color: 'var(--ti-warn)',
                 fontSize: '13px',
                 fontWeight: 500,
               }}
@@ -541,9 +541,9 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                 gap: '8px',
                 padding: '10px 14px',
                 borderRadius: '8px',
-                background: '#fffbeb',
-                border: '1px solid #fde047',
-                color: '#854d0e',
+                background: 'var(--ti-warn-bg)',
+                border: '1px solid var(--ti-warn-line)',
+                color: 'var(--ti-warn)',
                 fontSize: '13px',
                 fontWeight: 500,
               }}
@@ -714,7 +714,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
 
           {/* Preset Profile Chips */}
           <div className="preset-chips-container">
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ti-muted)', textTransform: 'uppercase' }}>
               Safety Preference
             </label>
             <div className="preset-chips-list">
@@ -882,12 +882,12 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             {/* Navigability & Safety Policy Disclaimer */}
             <div
               style={{
-                background: activeResult?.is_navigable ? '#f0fdf4' : '#fffbeb',
-                border: `1px solid ${activeResult?.is_navigable ? '#bbf7d0' : '#fde047'}`,
+                background: activeResult?.is_navigable ? 'var(--ti-success-bg)' : 'var(--ti-warn-bg)',
+                border: `1px solid ${activeResult?.is_navigable ? 'var(--ti-success-line)' : 'var(--ti-warn-line)'}`,
                 borderRadius: '10px',
                 padding: '12px 16px',
                 fontSize: '12px',
-                color: activeResult?.is_navigable ? '#166534' : '#854d0e',
+                color: activeResult?.is_navigable ? '#a7f3d0' : '#fcd34d',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '4px',
@@ -913,8 +913,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             {activeResult?.scoring_explanation && (
               <div
                 style={{
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--ti-surface-2)',
+                  border: '1px solid var(--ti-line)',
                   borderRadius: '12px',
                   padding: '14px 18px',
                   margin: '12px 0',
@@ -924,17 +924,17 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                   style={{
                     fontSize: '13px',
                     fontWeight: 700,
-                    color: '#0f172a',
+                    color: 'var(--ti-ink)',
                     margin: '0 0 6px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
                   }}
                 >
-                  <Sparkles size={14} color="#0d9488" />
+                  <Sparkles size={14} color="#d4d4d8" />
                   <span>AI Scoring Explanation & Model Inference</span>
                 </h4>
-                <p style={{ fontSize: '12px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                <p style={{ fontSize: '12px', color: 'var(--ti-ink-soft)', lineHeight: 1.6, margin: 0 }}>
                   {activeResult.scoring_explanation}
                 </p>
               </div>
@@ -944,8 +944,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             {activeResult?.explanation?.factorReasons && activeResult.explanation.factorReasons.length > 0 && (
               <div
                 style={{
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--ti-surface)',
+                  border: '1px solid var(--ti-line)',
                   borderRadius: '12px',
                   padding: '14px 18px',
                   margin: '12px 0',
@@ -955,14 +955,14 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                   style={{
                     fontSize: '13px',
                     fontWeight: 700,
-                    color: '#0f172a',
+                    color: 'var(--ti-ink)',
                     margin: '0 0 10px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
                   }}
                 >
-                  <ShieldCheck size={14} color="#0d9488" />
+                  <ShieldCheck size={14} color="#d4d4d8" />
                   <span>Recommendation Factor Explanations</span>
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -974,17 +974,17 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '8px 12px',
-                        background: '#f8fafc',
+                        background: 'var(--ti-surface-2)',
                         borderRadius: '8px',
                         fontSize: '12px',
                       }}
                     >
-                      <span style={{ color: '#334155', fontWeight: 500 }}>{fr.reason}</span>
+                      <span style={{ color: 'var(--ti-ink-soft)', fontWeight: 500 }}>{fr.reason}</span>
                       <span
                         style={{
                           fontWeight: 700,
-                          color: fr.score >= 80 ? '#166534' : fr.score >= 50 ? '#854d0e' : '#991b1b',
-                          background: fr.score >= 80 ? '#dcfce7' : fr.score >= 50 ? '#fef9c3' : '#fee2e2',
+                          color: fr.score >= 80 ? 'var(--ti-success)' : fr.score >= 50 ? 'var(--ti-warn)' : 'var(--ti-danger)',
+                          background: fr.score >= 80 ? 'var(--ti-success-bg)' : fr.score >= 50 ? 'var(--ti-warn-bg)' : 'var(--ti-danger-bg)',
                           padding: '2px 8px',
                           borderRadius: '9999px',
                           fontSize: '11px',
@@ -996,7 +996,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                   ))}
                 </div>
                 {activeResult.explanation.disclaimer && (
-                  <p style={{ fontSize: '11px', color: '#94a3b8', margin: '10px 0 0', fontStyle: 'italic' }}>
+                  <p style={{ fontSize: '11px', color: 'var(--ti-faint)', margin: '10px 0 0', fontStyle: 'italic' }}>
                     {activeResult.explanation.disclaimer}
                   </p>
                 )}
@@ -1006,10 +1006,10 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             {/* Factor Breakdown Grid */}
             <div className="factor-breakdown-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ti-ink)', margin: 0 }}>
                   Safety Factor Matrix
                 </h3>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>
+                <span style={{ fontSize: '12px', color: 'var(--ti-muted)' }}>
                   Model: {activeResult?.model || 'Random Forest Regressor'}
                 </span>
               </div>

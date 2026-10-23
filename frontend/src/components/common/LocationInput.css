@@ -333,3 +333,138 @@
 .add-missing-place-footer-item:hover {
   background: var(--primary-subtle, rgba(13, 148, 136, 0.08));
 }
+
+/* ──────────────────────────────────────────────
+   TITANIUM WORKSPACE OVERRIDES
+   ────────────────────────────────────────────── */
+.app-shell-root .location-field-label {
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .use-my-location-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ti-line);
+  color: var(--ti-muted);
+}
+
+.app-shell-root .use-my-location-chip:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--ti-line-strong);
+  color: var(--ti-ink);
+}
+
+.app-shell-root .location-input-box {
+  background: var(--ti-surface-2);
+  border: 1px solid var(--ti-line);
+  box-shadow: none;
+}
+
+.app-shell-root .location-input-box:focus-within,
+.app-shell-root .location-input-box.active-dropdown {
+  border-color: var(--ti-line-strong);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+.app-shell-root .icon-origin,
+.app-shell-root .icon-destination {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .location-text-input {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .location-text-input::placeholder {
+  color: var(--ti-faint);
+}
+
+.app-shell-root .input-loading-indicator {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .clear-input-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ti-muted);
+}
+
+.app-shell-root .clear-input-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--ti-ink);
+}
+
+.app-shell-root .location-status-error {
+  color: var(--ti-danger);
+}
+
+.app-shell-root .location-suggestions-dropdown {
+  background: var(--ti-surface);
+  border: 1px solid var(--ti-line);
+  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.95);
+}
+
+.app-shell-root .suggestion-item:hover,
+.app-shell-root .suggestion-item.highlighted {
+  background: var(--ti-surface-3);
+}
+
+.app-shell-root .suggestion-icon-wrap {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ti-muted);
+}
+
+.app-shell-root .suggestion-title {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .suggestion-address {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .suggestion-type-badge {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ti-muted);
+}
+
+.app-shell-root .suggestion-badge-verified {
+  background: var(--ti-success-bg);
+  border: 1px solid var(--ti-success-line);
+  color: var(--ti-success);
+}
+
+.app-shell-root .suggestion-badge-community {
+  background: var(--ti-warn-bg);
+  border: 1px solid var(--ti-warn-line);
+  color: var(--ti-warn);
+}
+
+.app-shell-root .suggestion-landmark-tag {
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .no-suggestions-state {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .no-places-icon {
+  color: var(--ti-faint);
+}
+
+.app-shell-root .add-missing-place-trigger-btn {
+  background: var(--ti-metal);
+  color: var(--ti-accent-ink);
+  box-shadow: none;
+}
+
+.app-shell-root .add-missing-place-trigger-btn:hover {
+  background: var(--ti-metal-hover);
+}
+
+.app-shell-root .add-missing-place-footer-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid var(--ti-line);
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .add-missing-place-footer-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}

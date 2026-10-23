@@ -142,3 +142,95 @@
     display: none;
   }
 }
+
+/* ──────────────────────────────────────────────
+   TITANIUM WORKSPACE SHELL
+   ────────────────────────────────────────────── */
+.app-shell-root {
+  background-color: var(--ti-bg);
+  background-image:
+    radial-gradient(ellipse 55% 50% at 12% 0%, rgba(255, 255, 255, 0.055), transparent 70%),
+    radial-gradient(ellipse 45% 45% at 94% 100%, rgba(255, 255, 255, 0.03), transparent 70%),
+    linear-gradient(var(--ti-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ti-grid) 1px, transparent 1px);
+  background-size: auto, auto, 46px 46px, 46px 46px;
+  color: var(--ti-ink);
+}
+
+.app-topbar {
+  height: 64px;
+  background: rgba(8, 8, 10, 0.72);
+  border-bottom: 1px solid var(--ti-line);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.app-page-heading {
+  color: var(--ti-ink);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.mobile-hamburger-btn {
+  color: var(--ti-muted);
+}
+
+.mobile-hamburger-btn:hover {
+  background: var(--ti-elev);
+  color: var(--ti-ink);
+}
+
+.system-live-pill {
+  background: var(--ti-success-bg);
+  border: 1px solid var(--ti-success-line);
+  color: var(--ti-success);
+  letter-spacing: 0.01em;
+}
+
+.live-dot {
+  background: var(--ti-success);
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.55);
+}
+
+.system-live-pill.offline {
+  background: var(--ti-danger-bg);
+  border-color: var(--ti-danger-line);
+  color: var(--ti-danger);
+}
+
+.system-live-pill.offline .live-dot {
+  background: var(--ti-danger);
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.55);
+}
+
+.system-live-pill.checking {
+  background: var(--ti-elev);
+  border-color: var(--ti-line);
+  color: var(--ti-muted);
+}
+
+.system-live-pill.checking .live-dot {
+  background: var(--ti-muted);
+  box-shadow: none;
+}
+
+.user-quick-chip {
+  background: var(--ti-elev);
+  border: 1px solid var(--ti-line);
+  color: var(--ti-ink-soft);
+}
+
+.user-quick-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ti-ink);
+}
+
+.user-quick-chip svg {
+  color: var(--ti-muted);
+}
+
+.app-content-body {
+  color: var(--ti-ink);
+}

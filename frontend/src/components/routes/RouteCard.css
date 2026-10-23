@@ -465,3 +465,181 @@
     padding: 14px;
   }
 }
+
+/* ============================================================
+   TITANIUM ROUTE CARD OVERRIDES
+   ============================================================ */
+.app-shell-root .routes-header-title,
+.app-shell-root .routes-header-title h3 {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .routes-header-title .header-icon {
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .route-count-badge {
+  background: var(--ti-elev);
+  color: var(--ti-muted);
+  border-color: var(--ti-line);
+}
+
+.app-shell-root .single-route-notice {
+  background: rgba(88, 148, 255, 0.08);
+  border-color: rgba(88, 148, 255, 0.22);
+  color: #bfdbfe;
+}
+
+.app-shell-root .notice-icon-box {
+  color: #93c5fd;
+}
+
+.app-shell-root .notice-text-content strong {
+  color: #dbeafe;
+}
+
+.app-shell-root .notice-text-content span {
+  color: #93c5fd;
+}
+
+.app-shell-root .route-card {
+  background: var(--ti-surface);
+  border-color: var(--ti-line);
+  box-shadow: var(--ti-card-shadow);
+}
+
+.app-shell-root .route-card:hover {
+  border-color: var(--ti-line-strong);
+  box-shadow: 0 14px 34px -20px rgba(0, 0, 0, 0.95);
+}
+
+.app-shell-root .route-card.selected {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 1px var(--route-accent, var(--ti-line-strong)), 0 14px 34px -20px rgba(0, 0, 0, 0.95);
+}
+
+.app-shell-root .route-recommended-tag {
+  background: var(--ti-success-bg);
+  color: var(--ti-success);
+  border-color: var(--ti-success-line);
+}
+
+.app-shell-root .risk-text-pill.risk-optimal {
+  background: var(--ti-success-bg);
+  color: var(--ti-success);
+  border-color: var(--ti-success-line);
+}
+
+.app-shell-root .risk-text-pill.risk-moderate {
+  background: var(--ti-warn-bg);
+  color: var(--ti-warn);
+  border-color: var(--ti-warn-line);
+}
+
+.app-shell-root .risk-text-pill.risk-elevated {
+  background: var(--ti-danger-bg);
+  color: var(--ti-danger);
+  border-color: var(--ti-danger-line);
+}
+
+.app-shell-root .route-icon-box {
+  background: var(--ti-surface-2);
+}
+
+.app-shell-root .route-title {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .route-summary {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .route-metrics-bar {
+  background: var(--ti-surface-2);
+  border-color: var(--ti-line);
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .metric-label {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .metric-value {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .metric-separator {
+  color: var(--ti-faint);
+}
+
+.app-shell-root .route-recommendation-reason-strip {
+  background: var(--ti-success-bg);
+  border-color: var(--ti-success-line);
+  color: #a7f3d0;
+}
+
+.app-shell-root .route-recommendation-reason-strip .recommendation-sparkle-icon {
+  color: var(--ti-success);
+}
+
+.app-shell-root .recommendation-summary-banner.recommended {
+  background: var(--ti-success-bg);
+  border-color: var(--ti-success-line);
+  color: #a7f3d0;
+}
+
+.app-shell-root .recommendation-summary-banner.warning {
+  background: var(--ti-warn-bg);
+  border-color: var(--ti-warn-line);
+  color: #fde68a;
+}
+
+.app-shell-root .recommendation-summary-banner.recommended .banner-icon-box {
+  color: var(--ti-success);
+}
+
+.app-shell-root .recommendation-summary-banner.warning .banner-icon-box {
+  color: var(--ti-warn);
+}
+
+.app-shell-root .recommendation-summary-banner.recommended .banner-text-content strong {
+  color: #d1fae5;
+}
+
+.app-shell-root .recommendation-summary-banner.warning .banner-text-content strong {
+  color: #fef3c7;
+}
+
+.app-shell-root .route-caution-strip {
+  background: var(--ti-warn-bg);
+  color: #fde68a;
+}
+
+.app-shell-root .route-card-footer {
+  border-top-color: var(--ti-line);
+}
+
+.app-shell-root .selection-status {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .status-indicator {
+  background: var(--ti-faint);
+}
+
+.app-shell-root .card-audit-action-btn {
+  color: var(--ti-ink-soft);
+}
+
+.app-shell-root .card-audit-action-btn:hover {
+  background: var(--ti-elev);
+  color: var(--ti-ink);
+}
+
+@media (max-width: 899px) {
+  .app-shell-root .routes-container-panel.routes-bottom-sheet {
+    background: var(--ti-bg-soft);
+    border-top-color: var(--ti-line);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  }
+}

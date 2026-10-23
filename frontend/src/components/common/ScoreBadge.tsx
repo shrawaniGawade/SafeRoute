@@ -9,22 +9,22 @@ interface ScoreBadgeProps {
 
 export const ScoreBadge: React.FC<ScoreBadgeProps> = ({ score, size = 'md', showLabel = true }) => {
   let category = 'High Risk';
-  let color = '#ef4444';
-  let bgColor = '#fef2f2';
-  let borderColor = '#fecaca';
+  let color = 'var(--ti-danger, #f87171)';
+  let bgColor = 'var(--ti-danger-bg, rgba(248, 113, 113, 0.1))';
+  let borderColor = 'var(--ti-danger-line, rgba(248, 113, 113, 0.24))';
   let Icon = ShieldAlert;
 
   if (score >= 80) {
     category = 'Safe Corridor';
-    color = '#10b981';
-    bgColor = '#ecfdf5';
-    borderColor = '#a7f3d0';
+    color = 'var(--ti-success, #34d399)';
+    bgColor = 'var(--ti-success-bg, rgba(52, 211, 153, 0.1))';
+    borderColor = 'var(--ti-success-line, rgba(52, 211, 153, 0.24))';
     Icon = ShieldCheck;
   } else if (score >= 50) {
     category = 'Moderate Caution';
-    color = '#f59e0b';
-    bgColor = '#fffbeb';
-    borderColor = '#fde68a';
+    color = 'var(--ti-warn, #fbbf24)';
+    bgColor = 'var(--ti-warn-bg, rgba(251, 191, 36, 0.1))';
+    borderColor = 'var(--ti-warn-line, rgba(251, 191, 36, 0.24))';
     Icon = AlertTriangle;
   }
 

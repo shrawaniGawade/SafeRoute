@@ -139,3 +139,68 @@
     transform: none !important;
   }
 }
+
+/* ============================================================
+   TITANIUM ERROR STATE OVERRIDES
+   ============================================================ */
+.app-shell-root .sr-error-state-card {
+  background: var(--ti-surface);
+  border-color: var(--ti-danger-line);
+  box-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.9);
+}
+
+.app-shell-root .sr-error-state-card.rate-limited {
+  border-color: var(--ti-warn-line);
+}
+
+.app-shell-root .error-icon-box {
+  background: var(--ti-danger-bg);
+  color: var(--ti-danger);
+  box-shadow: none;
+}
+
+.app-shell-root .sr-error-state-card.rate-limited .error-icon-box {
+  background: var(--ti-warn-bg);
+  color: var(--ti-warn);
+}
+
+.app-shell-root .error-code-badge {
+  color: var(--ti-danger);
+  background: var(--ti-danger-bg);
+  border-color: var(--ti-danger-line);
+}
+
+.app-shell-root .sr-error-state-card.rate-limited .error-code-badge {
+  color: var(--ti-warn);
+  background: var(--ti-warn-bg);
+  border-color: var(--ti-warn-line);
+}
+
+.app-shell-root .error-title {
+  color: var(--ti-ink);
+}
+
+.app-shell-root .error-description {
+  color: var(--ti-muted);
+}
+
+.app-shell-root .error-retry-btn {
+  background: var(--ti-metal);
+  color: var(--ti-accent-ink);
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.9);
+}
+
+.app-shell-root .error-retry-btn:hover {
+  background: var(--ti-metal-hover);
+}
+
+.app-shell-root .error-secondary-btn {
+  background: transparent;
+  color: var(--ti-ink-soft);
+  border-color: var(--ti-line-strong);
+}
+
+.app-shell-root .error-secondary-btn:hover {
+  background: var(--ti-elev);
+  color: var(--ti-ink);
+}

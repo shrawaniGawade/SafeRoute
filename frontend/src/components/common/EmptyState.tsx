@@ -38,8 +38,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         justifyContent: 'center',
         padding: '48px 24px',
         textAlign: 'center',
-        background: '#ffffff',
-        border: '1px dashed #cbd5e1',
+        background: 'var(--ti-surface-2, #141416)',
+        border: '1px dashed var(--ti-line-strong, rgba(255, 255, 255, 0.18))',
         borderRadius: '16px',
         margin: '16px 0',
       }}
@@ -49,13 +49,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           width: '56px',
           height: '56px',
           borderRadius: '50%',
-          background: '#f0fdfa',
-          color: '#0d9488',
+          background: 'rgba(255, 255, 255, 0.06)',
+          border: '1px solid var(--ti-line, rgba(255, 255, 255, 0.09))',
+          color: 'var(--ti-ink-soft, #d4d4d8)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: '16px',
-          boxShadow: '0 2px 8px rgba(8, 127, 140, 0.12)',
         }}
       >
         {icon || <Compass size={28} />}
@@ -64,7 +64,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         style={{
           fontSize: '18px',
           fontWeight: 700,
-          color: '#0f172a',
+          color: 'var(--ti-ink, #f4f4f5)',
           margin: '0 0 6px',
         }}
       >
@@ -73,7 +73,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       <p
         style={{
           fontSize: '14px',
-          color: '#64748b',
+          color: 'var(--ti-muted, #a1a1aa)',
           maxWidth: '440px',
           lineHeight: 1.5,
           margin: hint ? '0 0 8px' : '0 0 20px',
@@ -86,9 +86,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <div
           style={{
             fontSize: '12px',
-            color: '#0d9488',
-            background: '#f0fdfa',
-            border: '1px solid #ccfbf1',
+            color: 'var(--ti-ink-soft, #d4d4d8)',
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid var(--ti-line, rgba(255, 255, 255, 0.09))',
             borderRadius: '8px',
             padding: '6px 14px',
             marginBottom: '20px',
@@ -110,15 +110,14 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 alignItems: 'center',
                 gap: '8px',
                 padding: '10px 20px',
-                background: '#0d9488',
-                color: '#ffffff',
+                background: 'var(--ti-metal, linear-gradient(180deg, #fafafa 0%, #d4d4d8 100%))',
+                color: 'var(--ti-accent-ink, #09090b)',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '14px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'background 0.2s',
-                boxShadow: '0 2px 6px rgba(8, 127, 140, 0.25)',
               }}
             >
               {actionLabel}
@@ -133,9 +132,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 display: 'inline-flex',
                 alignItems: 'center',
                 padding: '9px 18px',
-                background: '#f8fafc',
-                color: '#475569',
-                border: '1px solid #cbd5e1',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: 'var(--ti-ink-soft, #d4d4d8)',
+                border: '1px solid var(--ti-line, rgba(255, 255, 255, 0.09))',
                 borderRadius: '8px',
                 fontSize: '13px',
                 fontWeight: 600,

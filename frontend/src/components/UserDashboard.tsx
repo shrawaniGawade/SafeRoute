@@ -19,6 +19,7 @@ import {
 import DotGrid from './DotGrid';
 import { useAuth } from '../context/AuthContext';
 import { usePredictions, type RoutePredictionRecord } from '../context/PredictionContext';
+import { useAiStatus } from '../hooks/useAiStatus';
 import { predictRouteSafety, type SafetyInput, type SafetyResult } from '../services/api';
 import { ScoreBadge } from './common/ScoreBadge';
 import { EmptyState } from './common/EmptyState';
@@ -38,6 +39,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   onLogout,
 }) => {
   const { user } = useAuth();
+  const aiStatus = useAiStatus();
   const { history, stats, recordPrediction, setCurrentPrediction } = usePredictions();
 
   // Search Form State
@@ -125,8 +127,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           <DotGrid
             dotSize={4}
             gap={20}
-            baseColor="#0284c7"
-            activeColor="#38bdf8"
+            baseColor="#3f3f46"
+            activeColor="#fafafa"
             proximity={120}
             shockRadius={200}
             shockStrength={3}
@@ -144,16 +146,20 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             </p>
             <div className="welcome-badges-row">
               <span className="welcome-pill">
-                <ShieldCheck size={14} color="#38bdf8" />
+                <ShieldCheck size={14} />
                 Verified Traveler
               </span>
-              <span className="welcome-pill">
-                <Sparkles size={14} color="#facc15" />
-                AI Inference Online
+              <span className={`welcome-pill ${aiStatus === 'OFFLINE' ? 'welcome-pill-offline' : ''}`}>
+                <Sparkles size={14} />
+                {aiStatus === 'ONLINE'
+                  ? 'AI Inference Online'
+                  : aiStatus === 'OFFLINE'
+                  ? 'AI Inference Offline'
+                  : 'Checking AI Inference'}
               </span>
               {user?.role === 'admin' && (
-                <span className="welcome-pill" style={{ background: 'rgba(234, 179, 8, 0.25)', borderColor: '#facc15' }}>
-                  <ShieldAlert size={14} color="#facc15" />
+                <span className="welcome-pill welcome-pill-admin">
+                  <ShieldAlert size={14} />
                   Administrator
                 </span>
               )}
@@ -173,8 +179,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             {user?.role === 'admin' && (
               <button
                 type="button"
-                className="welcome-btn-primary"
-                style={{ background: '#fef3c7', color: '#b45309' }}
+                className="welcome-btn-primary welcome-btn-admin"
                 onClick={onOpenAdmin || (() => onNavigate('admin'))}
               >
                 <ShieldAlert size={16} />
@@ -185,8 +190,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             {onLogout && (
               <button
                 type="button"
-                className="welcome-btn-primary"
-                style={{ background: 'rgba(255, 255, 255, 0.18)', color: 'white', border: '1px solid rgba(255, 255, 255, 0.25)' }}
+                className="welcome-btn-primary welcome-btn-ghost"
                 onClick={onLogout}
               >
                 <LogOut size={16} />
@@ -254,7 +258,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         <section className="dash-panel" aria-label="Quick Route Evaluation">
           <div className="dash-panel-header">
             <div className="dash-panel-title">
-              <MapPin size={20} color="#0d9488" />
+              <MapPin size={20} />
               <div>
                 <h3>Quick Route Safety Evaluation</h3>
                 <span>Run instant machine learning scoring</span>
@@ -335,9 +339,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   gap: '8px',
                   padding: '10px 14px',
                   borderRadius: '8px',
-                  background: '#fffbeb',
-                  border: '1px solid #fde047',
-                  color: '#854d0e',
+                  background: 'var(--ti-warn-bg, rgba(251, 191, 36, 0.1))',
+                  border: '1px solid var(--ti-warn-line, rgba(251, 191, 36, 0.24))',
+                  color: 'var(--ti-warn, #fbbf24)',
                   fontSize: '13px',
                   fontWeight: 500,
                 }}
@@ -352,10 +356,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               <div
                 style={{
                   padding: '10px 14px',
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
+                  background: 'var(--ti-danger-bg, rgba(248, 113, 113, 0.1))',
+                  border: '1px solid var(--ti-danger-line, rgba(248, 113, 113, 0.24))',
                   borderRadius: '10px',
-                  color: '#dc2626',
+                  color: 'var(--ti-danger, #f87171)',
                   fontSize: '13px',
                 }}
                 role="alert"
@@ -397,8 +401,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               style={{
                 marginTop: '20px',
                 padding: '16px',
-                background: '#f0fdfa',
-                border: '1.5px solid #99f6e4',
+                background: 'var(--ti-surface-2, #141416)',
+                border: '1px solid var(--ti-line, rgba(255, 255, 255, 0.09))',
                 borderRadius: '14px',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -408,13 +412,13 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               }}
             >
               <div>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f766e', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ti-muted, #a1a1aa)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Latest Evaluation
                 </span>
-                <h4 style={{ margin: '4px 0', fontSize: '15px', color: '#0f172a' }}>
+                <h4 style={{ margin: '4px 0', fontSize: '15px', color: 'var(--ti-ink, #f4f4f5)' }}>
                   {latestResult.source} &rarr; {latestResult.destination}
                 </h4>
-                <span style={{ fontSize: '12px', color: '#475569' }}>
+                <span style={{ fontSize: '12px', color: 'var(--ti-muted, #a1a1aa)' }}>
                   Engine: {latestResult.result.model} &bull; Classification: {latestResult.result.data_type}
                 </span>
               </div>
@@ -438,7 +442,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         <section className="dash-panel" aria-label="Recent Prediction History">
           <div className="dash-panel-header">
             <div className="dash-panel-title">
-              <History size={20} color="#0d9488" />
+              <History size={20} />
               <div>
                 <h3>Recent Route Evaluations</h3>
                 <span>Saved predictions ({history.length})</span>

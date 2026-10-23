@@ -2,6 +2,7 @@ import React, { useState, type ReactNode } from 'react';
 import { Menu, ShieldCheck } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
+import { useAiStatus } from '../../hooks/useAiStatus';
 import './AppLayout.css';
 
 interface AppLayoutProps {
@@ -18,6 +19,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   children,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const aiStatus = useAiStatus();
   const { user } = useAuth();
 
   return (
@@ -46,9 +48,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           </div>
 
           <div className="app-topbar-right">
-            <div className="system-live-pill" title="FastAPI Engine v1.0.0 Active">
+            <div
+              className={`system-live-pill ${aiStatus.toLowerCase()}`}
+              title={aiStatus === 'ONLINE' ? 'FastAPI Engine v1.0.0 Active' : 'FastAPI microservice unreachable — heuristic fallback active'}
+            >
               <span className="live-dot" />
-              <span>AI Engine Online</span>
+              <span>{aiStatus === 'ONLINE' ? 'AI Engine Online' : aiStatus === 'OFFLINE' ? 'AI Engine Offline' : 'Checking AI Engine'}</span>
             </div>
 
             <button

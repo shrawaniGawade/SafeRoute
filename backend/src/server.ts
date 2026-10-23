@@ -29,6 +29,9 @@ dotenv.config();
 
 const app = express();
 
+// Vercel terminates TLS and forwards client IPs via X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Security HTTP headers
 app.use(helmet());
 

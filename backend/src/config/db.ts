@@ -15,6 +15,16 @@ let connectingPromise: Promise<void> | null = null;
 
 let hasEverConnected = false;
 
+const isLocalUri = /(?:localhost|127\.0\.0\.1)/.test(ENV.MONGO_URI);
+
+function describeMongoTarget(uri: string): string {
+  return uri
+    .replace(/^mongodb(?:\+srv)?:\/\//, '')
+    .replace(/^[^@/]+@/, '')
+    .replace(/\/\/[^@/]+@/, '')
+    .replace(/\?.*$/, '');
+}
+
 export async function connectDB(): Promise<void> {
   if (mongoose.connection.readyState === 1) {
     return;
@@ -27,8 +37,8 @@ export async function connectDB(): Promise<void> {
   connectingPromise = (async () => {
     try {
       const conn = await mongoose.connect(ENV.MONGO_URI, {
-        serverSelectionTimeoutMS: 2000,
-        connectTimeoutMS: 3000,
+        serverSelectionTimeoutMS: isLocalUri ? 2000 : 8000,
+        connectTimeoutMS: isLocalUri ? 3000 : 10000,
         maxPoolSize: 10,
         minPoolSize: 2,
       });
@@ -37,12 +47,15 @@ export async function connectDB(): Promise<void> {
       console.log(`[Database] MongoDB successfully connected: ${conn.connection.host}/${conn.connection.name}`);
     } catch (err: any) {
       const errorMsg = err?.message || String(err);
-      const isOffline = errorMsg.includes('ECONNREFUSED') || err?.name === 'MongoServerSelectionError';
+      const target = describeMongoTarget(ENV.MONGO_URI);
 
-      if (isOffline) {
-        console.log(`[Database] Local MongoDB offline (${ENV.MONGO_URI}) -> In-Memory resilient data layer active.`);
+      if (isLocalUri && (errorMsg.includes('ECONNREFUSED') || err?.name === 'MongoServerSelectionError')) {
+        console.log(`[Database] Local MongoDB unavailable (${target}) -> In-Memory resilient data layer active.`);
       } else {
-        console.warn(`[Database] MongoDB connection issue: ${errorMsg}`);
+        console.warn(`[Database] MongoDB connection failed (${target}): ${errorMsg.split('\n')[0]}`);
+        if (/SSL alert number 80|tlsv1 alert internal error/i.test(errorMsg)) {
+          console.warn('[Database] Atlas network access blocked: add this server IP to the cluster allowlist.');
+        }
         console.log('[Database] Active Engine: In-Memory resilient data layer.');
       }
 

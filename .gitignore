@@ -9,3 +9,7 @@ __pycache__/
 *.pyc
 *.tsbuildinfo
 acid-squares-landing/
+.vercel
+.env*
+
+.vercel/

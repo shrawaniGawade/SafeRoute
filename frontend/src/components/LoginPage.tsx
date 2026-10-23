@@ -41,6 +41,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding, adminOnl
 
   const showTabs = !adminOnly && (authModalView === 'login' || authModalView === 'register');
 
+  const switchTab = (view: 'login' | 'register') => {
+    setAuthModalView(view);
+    window.location.hash = view === 'register' ? '#/register' : '#/login';
+  };
+
   return (
     <div className={`login-page-root ${adminOnly ? 'admin-login-mode' : ''}`}>
       {/* Top Header Bar */}
@@ -176,7 +181,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding, adminOnl
                   role="tab"
                   aria-selected={authModalView === 'login'}
                   className={`login-tab-button ${authModalView === 'login' ? 'active' : ''}`}
-                  onClick={() => setAuthModalView('login')}
+                  onClick={() => switchTab('login')}
                 >
                   Sign In
                 </button>
@@ -185,7 +190,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding, adminOnl
                   role="tab"
                   aria-selected={authModalView === 'register'}
                   className={`login-tab-button ${authModalView === 'register' ? 'active' : ''}`}
-                  onClick={() => setAuthModalView('register')}
+                  onClick={() => switchTab('register')}
                 >
                   Create Account
                 </button>
@@ -193,7 +198,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding, adminOnl
             )}
 
             {/* Dynamic View rendering */}
-            <div className="login-card-content">
+            <div className="login-card-content" key={authModalView}>
               {authModalView === 'login' && <LoginForm adminOnly={adminOnly} />}
               {authModalView === 'register' && <RegisterForm />}
               {authModalView === 'otp' && <OtpForm />}

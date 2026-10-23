@@ -28,7 +28,36 @@ export type AppRoute =
 
 function App() {
   const { user, isAuthenticated, isLoading, setAuthModalView, logout, toastMessage, showToast } = useAuth();
-  const [currentRoute, setCurrentRoute] = useState<AppRoute>('landing');
+  const [currentRoute, setCurrentRoute] = useState<AppRoute>(() => {
+    const hash = window.location.hash.toLowerCase();
+    const path = window.location.pathname.toLowerCase();
+
+    if (hash.includes('admin-login') || path === '/admin-login') {
+      return 'admin-login';
+    }
+
+    if (
+      hash.includes('register') ||
+      hash.includes('login') ||
+      hash.includes('signin') ||
+      path === '/login' ||
+      path === '/signin' ||
+      path === '/register' ||
+      path === '/signup'
+    ) {
+      return 'login';
+    }
+
+    if (hash.includes('unauthorized') || path === '/unauthorized') {
+      return 'unauthorized';
+    }
+
+    if (hash.includes('not-found') || hash.includes('404') || path === '/404') {
+      return 'not-found';
+    }
+
+    return 'landing';
+  });
 
   // Parse path or hash into an AppRoute
   const getRequestedRoute = useCallback((): AppRoute => {
@@ -40,12 +69,10 @@ function App() {
     }
 
     if (hash.includes('register') || path === '/register' || path === '/signup') {
-      setAuthModalView('register');
       return 'login';
     }
     if (hash.includes('login') || hash.includes('signin') || path === '/login' || path === '/signin') {
       if (hash.includes('admin')) return 'admin-login';
-      setAuthModalView('login');
       return 'login';
     }
     if (hash.includes('unauthorized') || path === '/unauthorized') {
@@ -75,6 +102,22 @@ function App() {
 
     // The public landing page is the default entry point for visitors.
     return 'landing';
+  }, []);
+
+  // Reflect auth deep links in the shared auth view without resetting local
+  // transitions (OTP, forgot password) on unrelated auth-state updates.
+  const syncAuthViewFromUrl = useCallback(() => {
+    const hash = window.location.hash.toLowerCase();
+    const path = window.location.pathname.toLowerCase();
+
+    if (hash.includes('register') || path === '/register' || path === '/signup') {
+      setAuthModalView('register');
+      return;
+    }
+
+    if (hash.includes('login') || hash.includes('signin') || path === '/login' || path === '/signin') {
+      setAuthModalView('login');
+    }
   }, [setAuthModalView]);
 
   // Synchronize route and enforce RBAC route protection
@@ -165,6 +208,10 @@ function App() {
 
   // Sync on initial load and whenever authentication status changes
   useEffect(() => {
+    syncAuthViewFromUrl();
+  }, [syncAuthViewFromUrl]);
+
+  useEffect(() => {
     const requested = getRequestedRoute();
     syncRouteWithProtection(requested);
   }, [isAuthenticated, isLoading, user, getRequestedRoute, syncRouteWithProtection]);
@@ -172,6 +219,7 @@ function App() {
   // Listen to browser back/forward and hash changes
   useEffect(() => {
     const handleLocationChange = () => {
+      syncAuthViewFromUrl();
       const requested = getRequestedRoute();
       syncRouteWithProtection(requested);
     };
@@ -183,7 +231,7 @@ function App() {
       window.removeEventListener('hashchange', handleLocationChange);
       window.removeEventListener('popstate', handleLocationChange);
     };
-  }, [getRequestedRoute, syncRouteWithProtection]);
+  }, [getRequestedRoute, syncAuthViewFromUrl, syncRouteWithProtection]);
 
   // Unified Navigation Handler
   const handleNavigate = (route: string) => {

@@ -63,6 +63,41 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ──────────────────────────────────────────────
+   TITANIUM WORKSPACE TOKENS
+   Shared by the authenticated app shell and dashboards so they match the
+   monochrome titanium landing/auth surfaces.
+   ────────────────────────────────────────────── */
+:root {
+  --ti-bg: #08080a;
+  --ti-bg-soft: #0b0b0e;
+  --ti-surface: #0f0f11;
+  --ti-surface-2: #141416;
+  --ti-surface-3: #18181b;
+  --ti-elev: rgba(255, 255, 255, 0.045);
+  --ti-line: rgba(255, 255, 255, 0.09);
+  --ti-line-strong: rgba(255, 255, 255, 0.18);
+  --ti-ink: #f4f4f5;
+  --ti-ink-soft: #d4d4d8;
+  --ti-muted: #a1a1aa;
+  --ti-faint: #71717a;
+  --ti-accent: #fafafa;
+  --ti-accent-ink: #09090b;
+  --ti-metal: linear-gradient(180deg, #fafafa 0%, #d4d4d8 100%);
+  --ti-metal-hover: linear-gradient(180deg, #ffffff 0%, #e4e4e7 100%);
+  --ti-card-shadow: 0 28px 70px -40px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --ti-grid: rgba(255, 255, 255, 0.028);
+  --ti-success: #34d399;
+  --ti-success-bg: rgba(52, 211, 153, 0.1);
+  --ti-success-line: rgba(52, 211, 153, 0.24);
+  --ti-warn: #fbbf24;
+  --ti-warn-bg: rgba(251, 191, 36, 0.1);
+  --ti-warn-line: rgba(251, 191, 36, 0.24);
+  --ti-danger: #f87171;
+  --ti-danger-bg: rgba(248, 113, 113, 0.1);
+  --ti-danger-line: rgba(248, 113, 113, 0.24);
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -140,6 +175,9 @@ code {
 html.dark ::selection {
   background: rgba(16, 185, 129, 0.25);
   color: #fff;
+}
+html.dark body {
+  background: #08080a;
 }
 html.light ::selection {
   background: rgba(16, 185, 129, 0.2);

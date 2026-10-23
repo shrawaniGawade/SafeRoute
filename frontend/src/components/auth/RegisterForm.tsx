@@ -80,7 +80,13 @@ export const RegisterForm: React.FC = () => {
     password.length === 0 ? 0 : criteriaMet <= 2 ? 1 : criteriaMet <= 3 ? 2 : criteriaMet <= 4 ? 3 : 4;
 
   const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
-  const strengthColors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#0d9488'];
+  const strengthColors = [
+    '',
+    'var(--auth-strength-1)',
+    'var(--auth-strength-2)',
+    'var(--auth-strength-3)',
+    'var(--auth-strength-4)',
+  ];
 
   const isEmailVerified = Boolean(
     verifiedEmail &&
@@ -185,8 +191,8 @@ export const RegisterForm: React.FC = () => {
       return;
     }
 
-    if (!name.trim()) {
-      setError('Please enter your full name.');
+    if (name.trim().length < 2) {
+      setError('Please enter your full name (at least 2 characters).');
       return;
     }
 
@@ -333,12 +339,12 @@ export const RegisterForm: React.FC = () => {
       {(otpSent || isEmailVerified) && (
         <div className="otp-box-section">
           <div className="label-row">
-            <label htmlFor="register-otp" style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>
+            <label htmlFor="register-otp" className="otp-verify-label">
               6-Digit Verification Code
             </label>
             {cooldown > 0 && (
-              <span style={{ fontSize: '11px', color: '#64748b' }}>
-                Resend available in <strong style={{ color: '#0d9488' }}>{cooldown}s</strong>
+              <span className="otp-cooldown-note">
+                Resend available in <strong className="otp-cooldown-timer">{cooldown}s</strong>
               </span>
             )}
           </div>
@@ -378,7 +384,7 @@ export const RegisterForm: React.FC = () => {
               </button>
             </div>
             {otp.length > 0 && otp.length < 6 && (
-              <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#b45309' }}>
+              <p className="otp-entry-hint">
                 Please enter all 6 digits ({otp.length}/6 entered)
               </p>
             )}
@@ -439,7 +445,10 @@ export const RegisterForm: React.FC = () => {
                   key={step}
                   className="strength-step"
                   style={{
-                    backgroundColor: step <= strengthLevel ? strengthColors[strengthLevel] : '#e2e8f0',
+                    backgroundColor:
+                      step <= strengthLevel
+                        ? strengthColors[strengthLevel]
+                        : 'var(--auth-strength-track)',
                   }}
                 />
               ))}
@@ -447,9 +456,7 @@ export const RegisterForm: React.FC = () => {
             <div className="strength-label" style={{ color: strengthColors[strengthLevel] }}>
               Strength: {strengthLabels[strengthLevel]}
               {criteriaMet < 5 && (
-                <span style={{ color: '#64748b', fontWeight: 'normal', marginLeft: '6px' }}>
-                  ({criteriaMet}/5 rules)
-                </span>
+                <span className="strength-criteria">({criteriaMet}/5 rules)</span>
               )}
             </div>
           </div>

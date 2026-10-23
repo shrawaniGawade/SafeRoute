@@ -23,13 +23,24 @@ export const ResetPasswordForm: React.FC = () => {
     newPassword.length === 0 ? 0 : criteriaMet <= 2 ? 1 : criteriaMet <= 3 ? 2 : criteriaMet <= 4 ? 3 : 4;
 
   const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
-  const strengthColors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#0d9488'];
+  const strengthColors = [
+    '',
+    'var(--auth-strength-1)',
+    'var(--auth-strength-2)',
+    'var(--auth-strength-3)',
+    'var(--auth-strength-4)',
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!otp.trim() || !newPassword || !confirmNewPassword) {
       setError('Please fill in all fields.');
+      return;
+    }
+
+    if (!/^\d{6}$/.test(otp.trim())) {
+      setError('Please enter the 6-digit verification code.');
       return;
     }
 
@@ -83,21 +94,8 @@ export const ResetPasswordForm: React.FC = () => {
       )}
 
       {pendingResetOtp ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            borderRadius: '8px',
-            padding: '10px 14px',
-            fontSize: '13px',
-            color: '#166534',
-            marginBottom: '16px',
-          }}
-        >
-          <CheckCircle2 size={16} color="#16a34a" />
+        <div className="auth-alert success reset-verified">
+          <CheckCircle2 size={16} />
           <span>
             Security Code Verified: <strong>{otp}</strong>
           </span>
@@ -155,7 +153,10 @@ export const ResetPasswordForm: React.FC = () => {
                   key={step}
                   className="strength-step"
                   style={{
-                    backgroundColor: step <= strengthLevel ? strengthColors[strengthLevel] : '#e2e8f0',
+                    backgroundColor:
+                      step <= strengthLevel
+                        ? strengthColors[strengthLevel]
+                        : 'var(--auth-strength-track)',
                   }}
                 />
               ))}

@@ -1,16 +1,19 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { LoginForm } from './auth/LoginForm';
 import { RegisterForm } from './auth/RegisterForm';
 import { OtpForm } from './auth/OtpForm';
 import { ForgotPasswordForm } from './auth/ForgotPasswordForm';
 import { ResetPasswordForm } from './auth/ResetPasswordForm';
+import Radar from './Radar';
 import {
   Shield,
   ArrowRight,
   Lock,
   Sparkles,
   Moon,
+  Sun,
   Zap,
   Users
 } from 'lucide-react';
@@ -23,6 +26,7 @@ interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding, adminOnly = false }) => {
   const { authModalView, setAuthModalView } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   // Default to 'login' view if loaded in another state
   useEffect(() => {
@@ -59,6 +63,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding, adminOnl
 
           <button
             type="button"
+            className="login-theme-toggle"
+            onClick={toggleTheme}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? <Sun size={15} strokeWidth={1.8} /> : <Moon size={15} strokeWidth={1.8} />}
+          </button>
+
+          <button
+            type="button"
             className="explore-landing-btn"
             onClick={onExploreLanding}
             aria-label="View SafeRoute landing page"
@@ -88,6 +102,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding, adminOnl
               ? 'Sign in with your administrator account to review platform health, manage access, and monitor the safety scoring service.'
               : 'SafeRoute analyzes live crime rates, streetlight illumination, accident frequency, and crowd density to calculate a safer path to your destination.'}
           </p>
+
+          <div className="login-radar-panel">
+            <Radar
+              color={adminOnly ? '#e4e4e7' : '#d4d4d8'}
+              targets={adminOnly ? 5 : 6}
+              ringCount={adminOnly ? 4 : 5}
+              speed={adminOnly ? 0.72 : 1}
+            />
+            <div className="radar-panel-label">
+              <span className="radar-live-dot" />
+              {adminOnly ? 'SECURE OPERATIONS MONITOR' : 'LIVE SAFETY TELEMETRY'}
+            </div>
+          </div>
 
           {/* Key Metrics */}
           <div className="login-metrics-grid">

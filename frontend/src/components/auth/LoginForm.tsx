@@ -10,10 +10,16 @@ export const LoginForm: React.FC<{ adminOnly?: boolean }> = ({ adminOnly = false
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const isValidEmail = (addr: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr.trim());
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password) {
       setError('Please provide both email and password.');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address.');
       return;
     }
 
@@ -29,7 +35,7 @@ export const LoginForm: React.FC<{ adminOnly?: boolean }> = ({ adminOnly = false
       }
     } catch (err: any) {
       if (err?.data?.unverified) {
-        setError('Your account is pending email verification. A new verification code has been dispatched to your email.');
+        setError('Your account is pending email verification. Enter the 6-digit code sent to your email, or request a new one on the next screen.');
       } else {
         setError(err?.message || 'Invalid email or password. Please try again.');
       }

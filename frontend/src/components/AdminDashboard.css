@@ -962,3 +962,85 @@ input:checked + .slider:before {
   }
 }
 
+
+/* Clean, full-width administration workspace */
+.admin-page-layout {
+  min-height: 100vh;
+  padding: 20px clamp(14px, 2.4vw, 36px);
+  background: #f1f5f9;
+}
+
+.admin-page-card {
+  width: min(100%, 1500px);
+  min-height: calc(100vh - 40px);
+  max-width: 1500px;
+  border: 1px solid #dbe4ee;
+  border-radius: 20px;
+  box-shadow: 0 18px 55px rgba(15, 23, 42, .09);
+}
+
+.admin-header {
+  min-height: 100px;
+  padding: 22px clamp(18px, 3vw, 38px);
+  background: #fff;
+}
+
+.admin-badge-icon { background: #ccfbf1; }
+.admin-header h2 { font-size: clamp(20px, 2.2vw, 26px); letter-spacing: -.03em; }
+.admin-subtitle { line-height: 1.6; }
+.admin-header-actions { flex-wrap: wrap; }
+
+.admin-tabs {
+  gap: 8px;
+  padding: 12px clamp(16px, 3vw, 38px) 0;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-tab {
+  min-height: 46px;
+  padding: 11px 15px;
+  border-radius: 10px 10px 0 0;
+  color: #64748b;
+}
+
+.admin-tab.active {
+  color: #0f766e;
+  background: #f0fdfa;
+  border-bottom: 2px solid #0d9488;
+}
+
+.admin-body {
+  flex: 1;
+  padding: clamp(18px, 3vw, 38px);
+  background: #f8fafc;
+}
+
+.admin-stats-grid { gap: 16px; }
+.admin-stat-card {
+  min-height: 132px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, .035);
+}
+.admin-section {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, .035);
+}
+.admin-table th { background: #f8fafc; }
+.admin-footer { padding: 18px clamp(18px, 3vw, 38px); }
+
+@media (max-width: 760px) {
+  .admin-page-layout { padding: 0; }
+  .admin-page-card { min-height: 100vh; border-radius: 0; border: 0; }
+  .admin-header { align-items: flex-start; flex-direction: column; gap: 18px; }
+  .admin-header-actions { width: 100%; }
+  .admin-tabs { overflow-x: auto; padding-left: 14px; padding-right: 14px; }
+  .admin-tab { white-space: nowrap; }
+  .admin-body { padding: 16px; }
+  .admin-section { padding: 16px; }
+}

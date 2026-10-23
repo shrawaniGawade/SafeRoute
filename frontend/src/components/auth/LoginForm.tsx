@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Eye, EyeOff, Lock, Mail, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 
-export const LoginForm: React.FC = () => {
+export const LoginForm: React.FC<{ adminOnly?: boolean }> = ({ adminOnly = false }) => {
   const { login, setAuthModalView } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +21,7 @@ export const LoginForm: React.FC = () => {
     setError('');
 
     try {
-      const response = await login({ email: email.trim(), password });
+      const response = await login({ email: email.trim(), password }, adminOnly ? 'admin' : undefined);
       if (response?.user?.role === 'admin') {
         window.location.hash = '#/admin';
       } else {
@@ -41,8 +41,8 @@ export const LoginForm: React.FC = () => {
   return (
     <form className="auth-form" onSubmit={handleSubmit} noValidate>
       <div className="auth-header">
-        <h3>Welcome Back</h3>
-        <p>Sign in to your SafeRoute account to access saved routes & personalized safety scoring.</p>
+        <h3>{adminOnly ? 'Administrator sign in' : 'Welcome back'}</h3>
+        <p>{adminOnly ? 'Use your administrator credentials to open the command center.' : 'Sign in to SafeRoute to continue planning safer routes.'}</p>
       </div>
 
       {error && (
@@ -119,16 +119,18 @@ export const LoginForm: React.FC = () => {
         )}
       </button>
 
-      <div className="auth-switch-footer">
-        Don&apos;t have an account?{' '}
-        <button
-          type="button"
-          className="switch-link"
-          onClick={() => setAuthModalView('register')}
-        >
-          Create one now
-        </button>
-      </div>
+      {!adminOnly && (
+        <div className="auth-switch-footer">
+          Don&apos;t have an account?{' '}
+          <button
+            type="button"
+            className="switch-link"
+            onClick={() => setAuthModalView('register')}
+          >
+            Create one now
+          </button>
+        </div>
+      )}
     </form>
   );
 };

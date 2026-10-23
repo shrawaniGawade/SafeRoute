@@ -32,7 +32,7 @@
 | Access Point | URL / Location | Credentials |
 | :--- | :--- | :--- |
 | **Main Web Application** | `http://localhost:5173` | Public access |
-| **Admin Command Center** | `http://localhost:5173/admin` or `/#admin` | Email: `admin@saferoute.com` / Pass: `Admin@12345` |
+| **Admin Command Center** | `http://localhost:5173/#/admin-login` | Configure `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env` |
 | **Backend API Gateway** | `http://localhost:5000/api/health` | Public access |
 | **AI Swagger Documentation** | `http://127.0.0.1:8000/docs` | Interactive OpenAPI schema |
 | **GitHub Issues Board** | `github.com/shrawaniGawade/SafeRoute/issues` | 4 User Stories tracked |

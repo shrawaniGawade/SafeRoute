@@ -18,22 +18,27 @@ import './LoginPage.css';
 
 interface LoginPageProps {
   onExploreLanding: () => void;
+  adminOnly?: boolean;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding, adminOnly = false }) => {
   const { authModalView, setAuthModalView } = useAuth();
 
   // Default to 'login' view if loaded in another state
   useEffect(() => {
+    if (adminOnly && authModalView === 'register') {
+      setAuthModalView('login');
+      return;
+    }
     if (authModalView !== 'login' && authModalView !== 'register' && authModalView !== 'otp' && authModalView !== 'forgot' && authModalView !== 'reset') {
       setAuthModalView('login');
     }
-  }, [authModalView, setAuthModalView]);
+  }, [adminOnly, authModalView, setAuthModalView]);
 
-  const showTabs = authModalView === 'login' || authModalView === 'register';
+  const showTabs = !adminOnly && (authModalView === 'login' || authModalView === 'register');
 
   return (
-    <div className="login-page-root">
+    <div className={`login-page-root ${adminOnly ? 'admin-login-mode' : ''}`}>
       {/* Top Header Bar */}
       <header className="login-header-bar">
         <div className="login-brand-group" onClick={onExploreLanding} title="Explore SafeRoute Overview">
@@ -42,7 +47,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding }) => {
           </div>
           <div className="login-brand-meta">
             <h1>SafeRoute</h1>
-            <span>Smarter Journeys. Safer Choices.</span>
+            <span>{adminOnly ? 'Administrator access' : 'Smarter Journeys. Safer Choices.'}</span>
           </div>
         </div>
 
@@ -68,19 +73,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding }) => {
       <main className="login-main-container">
         {/* Left Column: Brand & Security Showcase */}
         <section className="login-showcase-column">
-          <div className="login-tagline-badge">
+          <div className={`login-tagline-badge ${adminOnly ? 'admin-login-badge' : ''}`}>
             <Sparkles size={14} />
-            <span>AI-Powered Safety Intelligence</span>
+            <span>{adminOnly ? 'Secure administrator sign in' : 'AI-Powered Safety Intelligence'}</span>
           </div>
 
           <h2>
-            Navigate with confidence.{' '}
-            <span className="text-gradient-cyan">Safety-first routing</span> for every journey.
+            {adminOnly ? <>Manage SafeRoute with clarity.{' '}</> : <>Navigate with confidence.{' '}</>}
+            <span className="text-gradient-cyan">{adminOnly ? 'One secure command center.' : 'Safety-first routing for every journey.'}</span>
           </h2>
 
           <p className="login-showcase-desc">
-            SafeRoute analyzes live crime rates, streetlight illumination, accident frequency, and crowd density
-            to calculate the safest walkable and drivable path to your destination.
+            {adminOnly
+              ? 'Sign in with your administrator account to review platform health, manage access, and monitor the safety scoring service.'
+              : 'SafeRoute analyzes live crime rates, streetlight illumination, accident frequency, and crowd density to calculate a safer path to your destination.'}
           </p>
 
           {/* Key Metrics */}
@@ -161,13 +167,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onExploreLanding }) => {
 
             {/* Dynamic View rendering */}
             <div className="login-card-content">
-              {authModalView === 'login' && <LoginForm />}
+              {authModalView === 'login' && <LoginForm adminOnly={adminOnly} />}
               {authModalView === 'register' && <RegisterForm />}
               {authModalView === 'otp' && <OtpForm />}
               {authModalView === 'forgot' && <ForgotPasswordForm />}
               {authModalView === 'reset' && <ResetPasswordForm />}
             </div>
           </div>
+
+          {adminOnly ? (
+            <button type="button" className="admin-login-back-link" onClick={() => { window.location.hash = '#/login'; }}>
+              Go to traveler sign in
+            </button>
+          ) : authModalView === 'login' ? (
+            <button type="button" className="admin-login-back-link" onClick={() => { window.location.hash = '#/admin-login'; }}>
+              Administrator sign in
+            </button>
+          ) : null}
 
           {/* Security Guarantee Badge */}
           <div className="login-security-guarantee">

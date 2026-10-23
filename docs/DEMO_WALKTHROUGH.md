@@ -12,9 +12,7 @@
    - Frontend: `http://localhost:5173`
    - AI Service: `http://127.0.0.1:8000/docs`
 2. Open a clean browser tab at: **`http://localhost:5173`**
-3. Keep Admin credentials handy:
-   - **Email**: `admin@saferoute.com`
-   - **Password**: `Admin@12345`
+3. Configure `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env` before starting the backend. Keep the credentials private.
 
 ---
 
@@ -46,7 +44,7 @@
 2. Click **"Create one now"** to show the registration form:
    - Show the interactive password strength validator (requires uppercase, lowercase, number, special char).
 3. Switch back to **"Sign In"**:
-   - Click the green **"Auto-fill Admin"** button (demonstrates developer ergonomics).
+   - For administrator access, open `http://localhost:5173/#/admin-login` and enter the credentials configured in `backend/.env`.
    - Click **"Sign In"**.
    - Show the success toast alert and the updated profile icon in the top right.
 

@@ -165,7 +165,7 @@ gantt
 * **Team Tasks**:
   - **FE**: Build Admin Console modal and `/admin` direct route with statistics cards and user table.
   - **BE**: Implement `GET /api/admin/stats`, `GET /api/admin/users`, `PATCH /api/admin/users/:id/role`, and `DELETE /api/admin/users/:id`.
-  - **BE**: Seed default administrator account (`admin@saferoute.com` / `Admin@12345`).
+  - **BE**: Provision the administrator account from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the backend environment.
   - **QA**: Verify non-admin users receive `403 Forbidden` when attempting admin operations.
 * **Core Deliverables**:
   - Admin Command Center at `/admin` featuring live telemetry, user role toggling, and an on-demand AI simulator.

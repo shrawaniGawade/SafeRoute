@@ -666,3 +666,42 @@
   }
 }
 
+/* Shared auth form polish for the full-page and modal experiences. */
+.auth-form { gap: 15px; }
+.auth-header { margin-bottom: 20px; }
+.auth-header h3 { color: #1f2422; font-size: 23px; letter-spacing: -.025em; }
+.auth-header p { color: #707875; }
+.form-group { gap: 7px; }
+.form-group label { color: #3d4742; font-size: 12px; letter-spacing: .01em; }
+.link-btn, .switch-link, .highlight-email { color: #415b50; }
+.input-wrapper input {
+  min-height: 44px;
+  border-color: #dfe3df;
+  border-radius: 9px;
+  background: #fbfcfa;
+  color: #1f2422;
+}
+.input-wrapper input::placeholder { color: #a1aaa4; }
+.input-wrapper input:focus {
+  border-color: #81968b;
+  box-shadow: 0 0 0 3px rgba(65, 91, 80, .11);
+}
+.input-icon, .toggle-password { color: #8c9791; }
+.toggle-password:hover { color: #415b50; }
+.auth-submit-btn {
+  min-height: 44px;
+  margin-top: 7px;
+  border-radius: 9px;
+  background: #26332e;
+  box-shadow: 0 5px 14px rgba(31, 36, 34, .13);
+}
+.auth-submit-btn:hover:not(:disabled) { background: #415b50; box-shadow: 0 7px 18px rgba(31, 36, 34, .16); transform: translateY(-1px); }
+.auth-switch-footer { color: #7a847f; }
+.auth-alert { border-radius: 9px; }
+.email-action-row { gap: 7px; }
+.send-otp-btn { border-radius: 9px; background: #f0f3ef; color: #415b50; border-color: #d5ddd7; }
+.send-otp-btn:hover:not(:disabled) { background: #415b50; border-color: #415b50; }
+.otp-box-section { border-radius: 9px; background: #f7f8f6; border-color: #e1e5e1; }
+.verify-otp-btn { border-radius: 9px; background: #415b50; }
+.verify-otp-btn:hover:not(:disabled) { background: #26332e; }
+

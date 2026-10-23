@@ -37,7 +37,7 @@ interface AuthContextType {
   setPendingOtpInfo: (email: string, purpose: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET') => void;
   showToast: (text: string, type?: 'success' | 'error' | 'info') => void;
   sendOtp: (email: string, purpose?: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET') => Promise<AuthResponse>;
-  login: (payload: LoginPayload) => Promise<AuthResponse>;
+  login: (payload: LoginPayload, requiredRole?: UserProfile['role']) => Promise<AuthResponse>;
   register: (payload: RegisterPayload) => Promise<AuthResponse>;
   verifyOtp: (payload: VerifyOtpPayload) => Promise<AuthResponse>;
   resendOtp: (payload: ResendOtpPayload) => Promise<AuthResponse>;
@@ -131,9 +131,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     []
   );
 
-  const login = async (payload: LoginPayload): Promise<AuthResponse> => {
+  const login = async (payload: LoginPayload, requiredRole?: UserProfile['role']): Promise<AuthResponse> => {
     try {
       const response = await authService.login(payload);
+      if (requiredRole && response.user?.role !== requiredRole) {
+        await authService.logout().catch(() => undefined);
+        throw new Error('This sign-in page is for administrators only.');
+      }
       if (response.user && response.accessToken) {
         updateSession(response.accessToken, response.user);
         closeAuthModal();

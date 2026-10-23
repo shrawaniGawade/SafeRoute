@@ -18,7 +18,7 @@ SafeRoute is a modern, safety-conscious navigation platform that evaluates trave
   - Multi-variable risk assessment across illumination, crime, accidents, and crowds.
   - Visual metrics breakdown meters and context-aware Route Safety Advisories.
 - **🔐 End-to-End Authentication**:
-  - Default Admin Account seeded out of the box (`admin@saferoute.com` / `Admin@12345`) with 1-click Auto-fill in the login modal.
+  - Administrator credentials are provisioned from backend environment variables; the dedicated admin sign-in page has no registration option.
   - Secure Registration & Login with `bcryptjs` password hashing.
   - 6-Digit Cryptographic Numeric OTP for email verification and password recovery.
   - Dual-token architecture with in-memory Access Tokens & `httpOnly` Refresh Token Rotation (RTR).
@@ -144,16 +144,11 @@ uvicorn app.main:app --reload --port 8000
 
 ---
 
-## 🛡️ Default Administrator Access
+## 🛡️ Administrator Access
 
-The platform auto-seeds an administrator account upon backend startup:
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env` before starting the backend. The backend seeds or synchronizes that administrator account from those values; it does not use built-in credentials. Choose a unique strong password and keep the `.env` file private.
 
-| Attribute | Value |
-| :--- | :--- |
-| **Direct URL** | `http://localhost:5173/admin` or `http://localhost:5173/#admin` |
-| **Email** | `admin@saferoute.com` |
-| **Password** | `Admin@12345` |
-| **Convenience** | Click **"Auto-fill Admin"** inside the Sign In modal |
+Open `http://localhost:5173/#/admin-login` to sign in as an administrator. This page offers sign-in and password recovery only; account registration is not available there. After signing in, the console is at `http://localhost:5173/#/admin`.
 
 ---
 
@@ -275,8 +270,8 @@ In **Vercel Project Settings → Environment Variables**, add the following keys
 | `JWT_ACCESS_SECRET` | Cryptographically random secret (min 32 chars) | `openssl rand -hex 32` |
 | `JWT_REFRESH_SECRET` | Cryptographically random secret (min 32 chars) | `openssl rand -hex 32` |
 | `FRONTEND_URL` | Production frontend domain for CORS | `https://saferoute-frontend.vercel.app` |
-| `ADMIN_EMAIL` | Default system administrator email | `admin@saferoute.com` |
-| `ADMIN_PASSWORD` | Strong initial admin password | `Admin@SecurePassword2026!` |
+| `ADMIN_EMAIL` | Administrator email used by the backend seeder | `admin@example.com` (replace this) |
+| `ADMIN_PASSWORD` | Unique strong administrator password used by the backend seeder | Set privately in `backend/.env` |
 
 *(Optional SMTP alternative: set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` instead of Resend).*
 

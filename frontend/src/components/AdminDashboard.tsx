@@ -31,7 +31,6 @@ interface AdminDashboardProps {
   isOpen?: boolean;
   isStandalone?: boolean;
   onClose?: () => void;
-  onGoToPlanner?: () => void;
   onLogout?: () => void;
 }
 
@@ -39,7 +38,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   isOpen = true,
   isStandalone = false,
   onClose,
-  onGoToPlanner,
   onLogout
 }) => {
   const { user } = useAuth();
@@ -155,15 +153,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
         <div className="admin-header-actions">
-          {onGoToPlanner && (
-            <button
-              type="button"
-              className="planner-switch-btn"
-              onClick={onGoToPlanner}
-            >
-              <span>Route Planner &rarr;</span>
-            </button>
-          )}
           <button
             className={`refresh-btn ${loading ? 'spinning' : ''}`}
             onClick={loadStats}

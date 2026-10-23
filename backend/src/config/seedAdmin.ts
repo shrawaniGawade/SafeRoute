@@ -2,8 +2,14 @@ import { User } from '../models/User';
 
 export async function seedDefaultAdmin(): Promise<void> {
   try {
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
-    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
+    const configuredEmail = process.env.ADMIN_EMAIL?.trim();
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!configuredEmail || !adminPassword) {
+      console.warn('[AdminSeeder] Skipping administrator setup: set ADMIN_EMAIL and ADMIN_PASSWORD in the backend environment.');
+      return;
+    }
+
+    const adminEmail = configuredEmail.toLowerCase();
     const adminName = process.env.ADMIN_NAME || 'System Admin';
 
     const existingUser = await User.findOne({ email: adminEmail }).select('+password');

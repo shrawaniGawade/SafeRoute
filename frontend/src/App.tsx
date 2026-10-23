@@ -16,6 +16,7 @@ import { Analytics } from '@vercel/analytics/react';
 
 export type AppRoute =
   | 'login'
+  | 'admin-login'
   | 'landing'
   | 'app'
   | 'routes'
@@ -34,11 +35,16 @@ function App() {
     const hash = window.location.hash.toLowerCase();
     const path = window.location.pathname.toLowerCase();
 
+    if (hash.includes('admin-login') || path === '/admin-login') {
+      return 'admin-login';
+    }
+
     if (hash.includes('register')) {
       setAuthModalView('register');
       return 'login';
     }
     if (hash.includes('login') || hash.includes('signin')) {
+      if (hash.includes('admin')) return 'admin-login';
       setAuthModalView('login');
       return 'login';
     }
@@ -77,9 +83,14 @@ function App() {
       if (isLoading) return;
 
       if (!isAuthenticated) {
+        if (requestedRoute === 'admin') {
+          setCurrentRoute('admin-login');
+          window.location.hash = '#/admin-login';
+          return;
+        }
+
         // Guests cannot access protected pages
         if (
-          requestedRoute === 'admin' ||
           requestedRoute === 'app' ||
           requestedRoute === 'routes' ||
           requestedRoute === 'prediction-details' ||
@@ -92,7 +103,7 @@ function App() {
         }
 
         // Guests can view public pages
-        if (requestedRoute === 'landing' || requestedRoute === 'not-found' || requestedRoute === 'unauthorized') {
+        if (requestedRoute === 'landing' || requestedRoute === 'not-found' || requestedRoute === 'unauthorized' || requestedRoute === 'admin-login') {
           setCurrentRoute(requestedRoute);
           return;
         }
@@ -113,7 +124,7 @@ function App() {
         }
 
         // If user lands on login page while already authenticated, redirect to dashboard
-        if (requestedRoute === 'login') {
+        if (requestedRoute === 'login' || requestedRoute === 'admin-login') {
           setCurrentRoute('app');
           window.location.hash = '#/app';
           return;
@@ -128,8 +139,9 @@ function App() {
 
       // Logged-in Administrator
       if (user?.role === 'admin') {
-        // If admin lands on login page while already authenticated, redirect to admin console
-        if (requestedRoute === 'login') {
+        // Keep administrator accounts in the separate admin console.
+        const userDashboardRoutes: AppRoute[] = ['app', 'routes', 'prediction-details', 'profile'];
+        if (requestedRoute === 'login' || requestedRoute === 'admin-login' || userDashboardRoutes.includes(requestedRoute)) {
           setCurrentRoute('admin');
           window.location.hash = '#/admin';
           return;
@@ -175,6 +187,13 @@ function App() {
       return;
     }
 
+    if (route === 'admin-login') {
+      setAuthModalView('login');
+      setCurrentRoute('admin-login');
+      window.location.hash = '#/admin-login';
+      return;
+    }
+
     if (route === 'login' || route === 'register') {
       setAuthModalView(route === 'register' ? 'register' : 'login');
       setCurrentRoute('login');
@@ -190,6 +209,13 @@ function App() {
         setCurrentRoute('unauthorized');
         window.location.hash = '#/unauthorized';
       }
+      return;
+    }
+
+    const userDashboardRoutes = ['app', 'routes', 'prediction-details', 'profile'];
+    if (user?.role === 'admin' && userDashboardRoutes.includes(route)) {
+      setCurrentRoute('admin');
+      window.location.hash = '#/admin';
       return;
     }
 
@@ -266,6 +292,10 @@ function App() {
         <LoginPage onExploreLanding={() => handleNavigate('landing')} />
       )}
 
+      {currentRoute === 'admin-login' && (
+        <LoginPage adminOnly onExploreLanding={() => handleNavigate('landing')} />
+      )}
+
       {/* 4. User Dashboard */}
       {currentRoute === 'app' && (
         <AppLayout
@@ -320,7 +350,6 @@ function App() {
           isOpen={true}
           isStandalone={true}
           onLogout={handleLogout}
-          onGoToPlanner={() => handleNavigate('routes')}
         />
       )}
 

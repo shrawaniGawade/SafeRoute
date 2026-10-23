@@ -1,0 +1,19 @@
+.radar-container {
+  position: relative;
+  width: min(100%, 430px);
+  height: 260px;
+  margin: -6px auto -2px;
+  overflow: hidden;
+  pointer-events: auto;
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+}
+
+.radar-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 720px) {
+  .radar-container { height: 220px; margin-top: -10px; }
+}

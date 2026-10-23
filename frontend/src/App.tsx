@@ -28,7 +28,7 @@ export type AppRoute =
 
 function App() {
   const { user, isAuthenticated, isLoading, setAuthModalView, logout, toastMessage, showToast } = useAuth();
-  const [currentRoute, setCurrentRoute] = useState<AppRoute>('login');
+  const [currentRoute, setCurrentRoute] = useState<AppRoute>('landing');
 
   // Parse path or hash into an AppRoute
   const getRequestedRoute = useCallback((): AppRoute => {
@@ -39,11 +39,11 @@ function App() {
       return 'admin-login';
     }
 
-    if (hash.includes('register')) {
+    if (hash.includes('register') || path === '/register' || path === '/signup') {
       setAuthModalView('register');
       return 'login';
     }
-    if (hash.includes('login') || hash.includes('signin')) {
+    if (hash.includes('login') || hash.includes('signin') || path === '/login' || path === '/signin') {
       if (hash.includes('admin')) return 'admin-login';
       setAuthModalView('login');
       return 'login';
@@ -73,8 +73,8 @@ function App() {
       return 'landing';
     }
 
-    // Default route for visitors is login
-    return 'login';
+    // The public landing page is the default entry point for visitors.
+    return 'landing';
   }, [setAuthModalView]);
 
   // Synchronize route and enforce RBAC route protection
@@ -103,13 +103,19 @@ function App() {
         }
 
         // Guests can view public pages
-        if (requestedRoute === 'landing' || requestedRoute === 'not-found' || requestedRoute === 'unauthorized' || requestedRoute === 'admin-login') {
+        if (
+          requestedRoute === 'landing' ||
+          requestedRoute === 'login' ||
+          requestedRoute === 'not-found' ||
+          requestedRoute === 'unauthorized' ||
+          requestedRoute === 'admin-login'
+        ) {
           setCurrentRoute(requestedRoute);
           return;
         }
 
-        // New visitors land on Login Page
-        setCurrentRoute('login');
+        // New visitors land on the public overview page.
+        setCurrentRoute('landing');
         return;
       }
 
@@ -247,8 +253,8 @@ function App() {
 
   const handleLogout = async () => {
     await logout();
-    setCurrentRoute('login');
-    window.location.hash = '#/login';
+    setCurrentRoute('landing');
+    window.location.hash = '#/landing';
   };
 
   const getPageTitle = (route: AppRoute): string => {
@@ -284,6 +290,7 @@ function App() {
         <LandingPage
           onSignIn={() => handleNavigate('login')}
           onSignUp={() => handleNavigate('register')}
+          onNavigateApp={() => handleNavigate('app')}
         />
       )}
 

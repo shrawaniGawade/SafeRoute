@@ -1,3 +1,8 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────
+   THEME TRANSITIONS & VARIABLES
+   ────────────────────────────────────────────── */
 :root {
   /* Brand Primary Theme: SafeGuard Emerald & Deep Slate */
   --primary: #0d9488;
@@ -58,8 +63,17 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+/* Only skip transitions on animation-heavy elements */
+canvas, video, svg path, svg rect, svg circle {
+  transition: none;
 }
 
 html, body {
@@ -83,31 +97,6 @@ html, body {
   overflow-x: hidden;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
   margin: 0;
 }
@@ -125,4 +114,69 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+/* ──────────────────────────────────────────────
+   SCROLLBAR
+   ────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* ──────────────────────────────────────────────
+   SELECTION
+   ────────────────────────────────────────────── */
+html.dark ::selection {
+  background: rgba(16, 185, 129, 0.25);
+  color: #fff;
+}
+html.light ::selection {
+  background: rgba(16, 185, 129, 0.2);
+  color: #064e3b;
+}
+
+/* ──────────────────────────────────────────────
+   ANIMATE-IN UTILITY
+   ────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes zoom-in-95 {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slide-in-from-bottom-4 {
+  from { transform: translateY(1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-in {
+  animation-fill-mode: both;
+  animation-duration: 200ms;
+}
+
+.fade-in {
+  animation-name: fade-in;
+}
+
+.zoom-in-95 {
+  animation-name: zoom-in-95;
+}
+
+.slide-in-from-bottom-4 {
+  animation-name: slide-in-from-bottom-4;
 }

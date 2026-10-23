@@ -53,7 +53,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-  const [authModalView, setAuthModalView] = useState<AuthModalView>('login');
+  const [authModalView, setAuthModalView] = useState<AuthModalView>(() => {
+    const hash = window.location.hash.toLowerCase();
+    const path = window.location.pathname.toLowerCase();
+    if (hash.includes('register') || path === '/register' || path === '/signup') {
+      return 'register';
+    }
+    return 'login';
+  });
   const [pendingOtpEmail, setPendingOtpEmail] = useState<string>('');
   const [pendingOtpPurpose, setPendingOtpPurpose] = useState<
     'EMAIL_VERIFICATION' | 'PASSWORD_RESET'
@@ -180,9 +187,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       showToast('Account created successfully! Welcome to SafeRoute.', 'success');
     } else {
-      setPendingOtpInfo(payload.email, 'EMAIL_VERIFICATION');
-      setAuthModalView('otp');
-      showToast(response.message || 'Registration initiated! Please enter the 6-digit verification code.', 'info');
+      setAuthModalView('login');
+      showToast(response.message || 'Account created successfully. Please sign in.', 'success');
     }
     return response;
   };

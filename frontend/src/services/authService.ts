@@ -13,7 +13,6 @@ export interface RegisterPayload {
   email: string;
   password: string;
   confirmPassword?: string;
-  verificationToken?: string;
 }
 
 export interface LoginPayload {

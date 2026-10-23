@@ -33,15 +33,12 @@ export async function sendOtp(req: Request, res: Response): Promise<void> {
   const { email, purpose = 'EMAIL_VERIFICATION' } = req.body;
   const normalizedEmail = email.toLowerCase().trim();
 
-  // If registering, prevent sending OTP to already verified registered email
   if (purpose === 'EMAIL_VERIFICATION') {
-    const existing = await User.findOne({ email: normalizedEmail, isVerified: true });
-    if (existing) {
-      res.status(409).json({
-        message: 'An account with this email address already exists. Please log in.',
-      });
-      return;
-    }
+    res.status(410).json({
+      message: 'Email verification is disabled. Create your account directly; no OTP is required.',
+      code: 'EMAIL_VERIFICATION_DISABLED',
+    });
+    return;
   }
 
   // Check resend cooldown
@@ -99,11 +96,11 @@ export async function sendOtp(req: Request, res: Response): Promise<void> {
 
 /**
  * POST /api/auth/register
- * Creates a new user account with role 'user'. If a verificationToken is supplied,
- * enforces that the email was verified within the session window.
+ * Creates an email-verified account immediately, without an OTP step,
+ * and signs the new user in.
  */
 export async function register(req: Request, res: Response): Promise<void> {
-  const { name, email, password, verificationToken } = req.body;
+  const { name, email, password } = req.body;
   const normalizedEmail = email.toLowerCase().trim();
 
   const existingUser = await User.findOne({ email: normalizedEmail });
@@ -115,104 +112,39 @@ export async function register(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  // Pre-verification mode (user verified email first via /send-otp & /verify-otp)
-  if (verificationToken) {
-    const session = await Otp.findOne({
-      email: normalizedEmail,
-      purpose: 'EMAIL_VERIFICATION',
-      verified: true,
-    });
-
-    if (
-      !session ||
-      session.verificationTokenHash !== hashValue(verificationToken) ||
-      session.expiresAt < new Date()
-    ) {
-      res.status(403).json({
-        message: 'Email verification is required or session expired. Please verify your email first.',
-      });
-      return;
-    }
-
-    // Invalidate the verification session (strictly single-use)
-    await Otp.deleteMany({ email: normalizedEmail, purpose: 'EMAIL_VERIFICATION' });
-
-    let user;
-    if (existingUser) {
-      existingUser.name = name.trim();
-      existingUser.password = password;
-      existingUser.isVerified = true;
-      existingUser.role = 'user'; // Never trust client-supplied role
-      await existingUser.save();
-      user = existingUser;
-    } else {
-      user = await User.create({
-        name: name.trim(),
-        email: normalizedEmail,
-        password,
-        role: 'user', // Always standard user
-        isVerified: true,
-      });
-    }
-
-    const tokens = await createTokens(user._id.toString(), user.role);
-    setRefreshTokenCookie(res, tokens.refreshToken, tokens.refreshTokenExpiresAt);
-
-    res.status(201).json({
-      success: true,
-      message: 'Account created successfully.',
-      user: {
-        id: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isVerified: true,
-      },
-      accessToken: tokens.accessToken,
-    });
-    return;
-  }
-
-  // Fallback for direct registration flow (creates unverified account & dispatches code)
+  let user;
   if (existingUser) {
     existingUser.name = name.trim();
     existingUser.password = password;
+    existingUser.role = 'user'; // Never trust client-supplied role
+    existingUser.isVerified = true;
     await existingUser.save();
+    user = existingUser;
   } else {
-    await User.create({
+    user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
       password,
       role: 'user',
-      isVerified: false,
+      isVerified: true,
     });
   }
 
-  const rawOtp = generateNumericOtp(6);
-  const hashedOtp = hashValue(rawOtp);
-  const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
-
-  await Otp.deleteMany({ email: normalizedEmail, purpose: 'EMAIL_VERIFICATION' });
-  await Otp.create({
-    email: normalizedEmail,
-    hashedOtp,
-    purpose: 'EMAIL_VERIFICATION',
-    expiresAt,
-  });
-
-  try {
-    await sendOtpEmail(normalizedEmail, rawOtp, 'EMAIL_VERIFICATION');
-  } catch (err: any) {
-    await Otp.deleteMany({ email: normalizedEmail, purpose: 'EMAIL_VERIFICATION' });
-    res.status(503).json({
-      message: err?.message || 'Failed to deliver verification code. Please check email provider configuration.',
-    });
-    return;
-  }
+  const tokens = await createTokens(user._id.toString(), user.role);
+  setRefreshTokenCookie(res, tokens.refreshToken, tokens.refreshTokenExpiresAt);
 
   res.status(201).json({
-    message: 'Registration initiated! Please enter the 6-digit verification code sent to your email.',
+    success: true,
+    message: 'Account created successfully.',
     email: normalizedEmail,
+    user: {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isVerified: true,
+    },
+    accessToken: tokens.accessToken,
   });
 }
 
@@ -327,6 +259,14 @@ export async function resendOtp(req: Request, res: Response): Promise<void> {
   const { email, purpose = 'EMAIL_VERIFICATION' } = req.body;
   const normalizedEmail = email.toLowerCase().trim();
 
+  if (purpose === 'EMAIL_VERIFICATION') {
+    res.status(410).json({
+      message: 'Email verification is disabled. Create your account directly; no OTP is required.',
+      code: 'EMAIL_VERIFICATION_DISABLED',
+    });
+    return;
+  }
+
   // Check cooldown on existing OTP
   const existingOtp = await Otp.findOne({ email: normalizedEmail, purpose });
   if (existingOtp && existingOtp.createdAt) {
@@ -392,12 +332,7 @@ export async function login(req: Request, res: Response): Promise<void> {
   }
 
   if (!user.isVerified) {
-    res.status(403).json({
-      message: 'Your account is pending email verification. Please verify your email before signing in.',
-      unverified: true,
-      email: user.email,
-    });
-    return;
+    user.isVerified = true;
   }
 
   user.lastLogin = new Date();

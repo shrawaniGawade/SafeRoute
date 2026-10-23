@@ -24,7 +24,6 @@ export const registerSchema = z
         'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
       ),
     confirmPassword: z.string().optional(),
-    verificationToken: z.string().optional(),
   })
   .refine(
     (data) => !data.confirmPassword || data.password === data.confirmPassword,

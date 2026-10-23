@@ -139,6 +139,9 @@ describe('SafeRoute Backend API Endpoints Test Suite', () => {
       const body = await res.json();
       assert.ok(body.message, 'Must return success message');
       assert.strictEqual(body.email, newRegEmail);
+      assert.strictEqual(body.user.email, newRegEmail);
+      assert.strictEqual(body.user.isVerified, true);
+      assert.ok(body.accessToken, 'Registration must issue an access token');
     });
 
     test('POST /api/auth/register rejects duplicate registration with 409 Conflict', async () => {
@@ -178,89 +181,18 @@ describe('SafeRoute Backend API Endpoints Test Suite', () => {
       assert.strictEqual(createdUser.role, 'user', 'Client must NOT be able to self-assign admin role');
     });
 
-    test('POST /api/auth/send-otp sends verification OTP and enforces cooldown and secure verificationToken registration', async () => {
-      let interceptedOtp = '';
-      const origLog = console.log;
-      console.log = (...args: any[]) => {
-        const line = args.join(' ');
-        const match = line.match(/Code:\s*>>>\s*(\d{6})\s*<<</);
-        if (match) interceptedOtp = match[1];
-        origLog(...args);
-      };
-
+    test('POST /api/auth/send-otp rejects EMAIL_VERIFICATION because sign-up no longer uses OTP', async () => {
       const otpTestEmail = `otp.test.${Date.now()}@saferoute.test`;
       const res = await fetch(`${baseUrl}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: otpTestEmail, purpose: 'EMAIL_VERIFICATION' }),
       });
-      console.log = origLog;
 
-      assert.strictEqual(res.status, 200);
+      assert.strictEqual(res.status, 410);
       const data = await res.json();
-      assert.strictEqual(data.success, true);
-      assert.ok(data.message.includes('Verification code sent'));
-      assert.strictEqual((data as any).otp, undefined, 'OTP must NEVER be leaked in response');
-      assert.strictEqual((data as any).devOtp, undefined, 'devOtp must NEVER be leaked in response');
-
-      // Cooldown test: Immediate second request triggers 429
-      const resCooldown = await fetch(`${baseUrl}/api/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: otpTestEmail, purpose: 'EMAIL_VERIFICATION' }),
-      });
-      assert.strictEqual(resCooldown.status, 429);
-
-      // Verify with incorrect OTP: decrements attempts
-      const resBad = await fetch(`${baseUrl}/api/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: otpTestEmail, otp: '000000', purpose: 'EMAIL_VERIFICATION' }),
-      });
-      assert.strictEqual(resBad.status, 400);
-      const badData = await resBad.json();
-      assert.ok(badData.message.includes('4 attempts remaining'));
-
-      // Verify with correct OTP: returns verificationToken
-      const resGood = await fetch(`${baseUrl}/api/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: otpTestEmail, otp: interceptedOtp, purpose: 'EMAIL_VERIFICATION' }),
-      });
-      assert.strictEqual(resGood.status, 200);
-      const goodData = await resGood.json();
-      assert.ok(goodData.verificationToken, 'Must issue a verificationToken');
-
-      // Register with verificationToken: creates user account with role user
-      const resReg = await fetch(`${baseUrl}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Verified Traveler',
-          email: otpTestEmail,
-          password: 'Password@Secure99!',
-          confirmPassword: 'Password@Secure99!',
-          verificationToken: goodData.verificationToken,
-        }),
-      });
-      assert.strictEqual(resReg.status, 201);
-      const regData = await resReg.json();
-      assert.strictEqual(regData.user.email, otpTestEmail);
-      assert.strictEqual(regData.user.role, 'user');
-
-      // Single-use check: reusing the token must fail
-      const resReuse = await fetch(`${baseUrl}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Reuse Attempt',
-          email: otpTestEmail,
-          password: 'Password@Secure99!',
-          confirmPassword: 'Password@Secure99!',
-          verificationToken: goodData.verificationToken,
-        }),
-      });
-      assert.ok(resReuse.status === 409 || resReuse.status === 403);
+      assert.strictEqual(data.code, 'EMAIL_VERIFICATION_DISABLED');
+      assert.ok(data.message.toLowerCase().includes('disabled'));
     });
 
     test('POST /api/auth/login succeeds for valid credentials', async () => {

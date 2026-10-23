@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import app from '../server';
 import { connectDB } from '../config/db';
+import { User } from '../models/User';
 
 let server: any;
 let BASE_URL = '';
@@ -42,7 +43,7 @@ describe('SafeRoute Full Authentication E2E Flow', () => {
     });
   });
 
-  test('1. User Registration: POST /api/auth/register', async () => {
+  test('1. User Registration signs the account in without OTP: POST /api/auth/register', async () => {
     const res = await fetch(`${BASE_URL}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -51,31 +52,37 @@ describe('SafeRoute Full Authentication E2E Flow', () => {
 
     const data = await res.json();
     assert.equal(res.status, 201, `Expected status 201, got ${res.status}: ${JSON.stringify(data)}`);
-    assert.ok(data.message.includes('verification code'));
-    assert.ok(capturedOtp.length === 6, 'Should have intercepted 6-digit OTP from email dispatch');
-  });
-
-  test('2. Verify OTP: POST /api/auth/verify-otp', async () => {
-    const res = await fetch(`${BASE_URL}/verify-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: testUser.email,
-        otp: capturedOtp,
-        purpose: 'EMAIL_VERIFICATION',
-      }),
-    });
-
-    const data = await res.json();
-    assert.equal(res.status, 200, `Expected status 200, got ${res.status}: ${JSON.stringify(data)}`);
-    assert.ok(data.user.isVerified === true, 'User must be marked verified');
-    assert.ok(data.accessToken, 'Must receive access token');
+    assert.equal(data.user.email, testUser.email);
+    assert.equal(data.user.isVerified, true, 'Registration must verify the account immediately');
+    assert.ok(data.accessToken, 'Must receive access token on registration');
     accessToken = data.accessToken;
 
     const setCookie = res.headers.get('set-cookie');
     if (setCookie) {
       refreshTokenCookie = setCookie.split(';')[0];
     }
+  });
+
+  test('2. Unverified accounts can log in: POST /api/auth/login', async () => {
+    const unverifiedEmail = `unverified.${Date.now()}@saferoute.test`;
+    await User.create({
+      name: 'Unverified Traveler',
+      email: unverifiedEmail,
+      password: testUser.password,
+      role: 'user',
+      isVerified: false,
+    });
+
+    const res = await fetch(`${BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: unverifiedEmail, password: testUser.password }),
+    });
+
+    const data = await res.json();
+    assert.equal(res.status, 200, `Expected 200, got ${res.status}: ${JSON.stringify(data)}`);
+    assert.ok(data.accessToken, 'Must receive access token');
+    assert.equal(data.user.isVerified, true, 'Login must clear the unverified state');
   });
 
   test('3. User Login: POST /api/auth/login', async () => {

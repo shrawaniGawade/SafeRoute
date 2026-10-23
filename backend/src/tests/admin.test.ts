@@ -56,18 +56,7 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
     assert.strictEqual(res.status, 401);
   });
 
-  await t.test('3. Register and Login a Standard User', async () => {
-    let capturedOtp = '';
-    const origLog = console.log;
-    console.log = (...args: any[]) => {
-      const line = args.join(' ');
-      const match = line.match(/Code:\s*>>>\s*(\d{6})\s*<<</);
-      if (match) {
-        capturedOtp = match[1];
-      }
-      origLog(...args);
-    };
-
+  await t.test('3. Register a Standard User and receive a session', async () => {
     const userEmail = `traveler.admin.${Date.now()}.${Math.random().toString(36).substring(2, 7)}@saferoute.test`;
 
     const regRes = await fetch(`${BASE_URL}/api/auth/register`, {
@@ -80,26 +69,12 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
         confirmPassword: 'Password@12345',
       }),
     });
-    console.log = origLog;
 
     const regData = await regRes.json();
     assert.strictEqual(regRes.status, 201, `Register failed: ${regRes.status} ${JSON.stringify(regData)}`);
-    const otp = capturedOtp;
-
-    // Verify OTP
-    const verifyRes = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: userEmail,
-        otp,
-        purpose: 'EMAIL_VERIFICATION',
-      }),
-    });
-    const verifyData = await verifyRes.json();
-    assert.strictEqual(verifyRes.status, 200, `Verify OTP failed: ${verifyRes.status} ${JSON.stringify(verifyData)}`);
-    normalUserToken = verifyData.accessToken;
-    createdUserId = verifyData.user.id;
+    assert.strictEqual(regData.user.isVerified, true);
+    normalUserToken = regData.accessToken;
+    createdUserId = regData.user.id;
   });
 
   await t.test('4. Standard User Access to Admin Stats Forbidden (403)', async () => {

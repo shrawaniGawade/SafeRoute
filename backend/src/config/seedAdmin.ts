@@ -37,6 +37,14 @@ export async function seedDefaultAdmin(): Promise<void> {
         console.log(`[AdminSeeder] Synchronized Admin privileges and credentials: ${adminEmail}`);
       }
     }
+
+    // Enforce RBAC invariant: Exactly one admin account exists (the seeded admin)
+    if (typeof User.updateMany === 'function') {
+      await User.updateMany(
+        { email: { $ne: adminEmail }, role: 'admin' },
+        { $set: { role: 'user' } }
+      );
+    }
   } catch (error) {
     console.error('[AdminSeeder] Admin seed error:', error);
   }

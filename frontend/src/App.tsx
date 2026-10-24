@@ -5,13 +5,18 @@ import { AuthModal } from './components/auth/AuthModal';
 import { LoginPage } from './components/LoginPage';
 import { LandingPage } from './components/LandingPage';
 import { UserDashboard } from './components/UserDashboard';
-import { AdminDashboard } from './components/AdminDashboard';
 import { RouteRecommendationPage } from './components/pages/RouteRecommendationPage';
 import { PredictionDetailsPage } from './components/pages/PredictionDetailsPage';
 import { ProfilePage } from './components/pages/ProfilePage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import { UnauthorizedPage } from './components/pages/UnauthorizedPage';
 import { AppLayout } from './components/common/AppLayout';
+import { AdminProvider } from './context/AdminContext';
+import { AdminLayout } from './components/admin/AdminLayout';
+import { AdminOverviewPage } from './components/admin/pages/AdminOverviewPage';
+import { AdminUsersPage } from './components/admin/pages/AdminUsersPage';
+import { AdminServicesPage } from './components/admin/pages/AdminServicesPage';
+import { AdminAiSimulatorPage } from './components/admin/pages/AdminAiSimulatorPage';
 import { Analytics } from '@vercel/analytics/react';
 
 export type AppRoute =
@@ -21,13 +26,30 @@ export type AppRoute =
   | 'routes'
   | 'prediction-details'
   | 'profile'
-  | 'admin'
+  | 'admin-overview'
+  | 'admin-users'
+  | 'admin-services'
+  | 'admin-ai-simulator'
   | 'unauthorized'
   | 'not-found';
+
+const ADMIN_EMAIL = 'admin@saferoute.com';
 
 function App() {
   const { user, isAuthenticated, isLoading, setAuthModalView, logout, toastMessage, showToast } = useAuth();
   const [currentRoute, setCurrentRoute] = useState<AppRoute>('login');
+
+  const isAdminRoute = (route: AppRoute): boolean =>
+    route === 'admin-overview' ||
+    route === 'admin-users' ||
+    route === 'admin-services' ||
+    route === 'admin-ai-simulator';
+
+  const isUserRoute = (route: AppRoute): boolean =>
+    route === 'app' ||
+    route === 'routes' ||
+    route === 'prediction-details' ||
+    route === 'profile';
 
   // Parse path or hash into an AppRoute
   const getRequestedRoute = useCallback((): AppRoute => {
@@ -48,9 +70,28 @@ function App() {
     if (hash.includes('not-found') || hash.includes('404') || path === '/404') {
       return 'not-found';
     }
-    if (hash.includes('admin') || path === '/admin' || path.startsWith('/admin')) {
-      return 'admin';
+
+    // Admin Panel Routes
+    if (hash.includes('admin/users') || path === '/admin/users') {
+      return 'admin-users';
     }
+    if (hash.includes('admin/services') || path === '/admin/services') {
+      return 'admin-services';
+    }
+    if (hash.includes('admin/ai-simulator') || hash.includes('admin/simulator') || path === '/admin/ai-simulator') {
+      return 'admin-ai-simulator';
+    }
+    if (
+      hash.includes('admin/overview') ||
+      hash === '#/admin' ||
+      hash.startsWith('#/admin') ||
+      path === '/admin' ||
+      path.startsWith('/admin')
+    ) {
+      return 'admin-overview';
+    }
+
+    // User Panel Routes
     if (hash.includes('prediction-details') || hash.includes('audit') || hash.includes('details')) {
       return 'prediction-details';
     }
@@ -77,14 +118,8 @@ function App() {
       if (isLoading) return;
 
       if (!isAuthenticated) {
-        // Guests cannot access protected pages
-        if (
-          requestedRoute === 'admin' ||
-          requestedRoute === 'app' ||
-          requestedRoute === 'routes' ||
-          requestedRoute === 'prediction-details' ||
-          requestedRoute === 'profile'
-        ) {
+        // Guests cannot access protected admin or user pages
+        if (isAdminRoute(requestedRoute) || isUserRoute(requestedRoute)) {
           setCurrentRoute('login');
           window.location.hash = '#/login';
           showToast('Please sign in to access SafeRoute.', 'info');
@@ -104,7 +139,7 @@ function App() {
 
       // Logged-in Standard User
       if (user?.role === 'user') {
-        if (requestedRoute === 'admin') {
+        if (isAdminRoute(requestedRoute)) {
           // Standard user attempted to access admin page
           setCurrentRoute('unauthorized');
           window.location.hash = '#/unauthorized';
@@ -120,24 +155,53 @@ function App() {
         }
 
         setCurrentRoute(requestedRoute);
-        if (window.location.hash !== `#/${requestedRoute}`) {
-          window.location.hash = `#/${requestedRoute}`;
+        const targetHash = `#/${requestedRoute}`;
+        if (window.location.hash !== targetHash) {
+          window.location.hash = targetHash;
         }
         return;
       }
 
       // Logged-in Administrator
       if (user?.role === 'admin') {
-        // If admin lands on login page while already authenticated, redirect to admin console
-        if (requestedRoute === 'login') {
-          setCurrentRoute('admin');
-          window.location.hash = '#/admin';
+        // Ensure only the seeded admin account can access admin features
+        if (user.email !== ADMIN_EMAIL) {
+          setCurrentRoute('unauthorized');
+          window.location.hash = '#/unauthorized';
+          showToast('Access restricted: Only the seeded administrator account is authorized.', 'error');
           return;
         }
 
-        setCurrentRoute(requestedRoute);
-        if (window.location.hash !== `#/${requestedRoute}`) {
-          window.location.hash = `#/${requestedRoute}`;
+        // Admins should see only admin features, not user-specific commuter features
+        if (isUserRoute(requestedRoute) || requestedRoute === 'login') {
+          setCurrentRoute('admin-overview');
+          window.location.hash = '#/admin/overview';
+          return;
+        }
+
+        if (requestedRoute === 'landing' || requestedRoute === 'not-found') {
+          setCurrentRoute(requestedRoute);
+          return;
+        }
+
+        if (isAdminRoute(requestedRoute)) {
+          setCurrentRoute(requestedRoute);
+          const adminPathMap: Record<string, string> = {
+            'admin-overview': '#/admin/overview',
+            'admin-users': '#/admin/users',
+            'admin-services': '#/admin/services',
+            'admin-ai-simulator': '#/admin/ai-simulator',
+          };
+          const targetHash = adminPathMap[requestedRoute] || '#/admin/overview';
+          if (window.location.hash !== targetHash) {
+            window.location.hash = targetHash;
+          }
+          return;
+        }
+
+        setCurrentRoute('admin-overview');
+        if (window.location.hash !== '#/admin/overview') {
+          window.location.hash = '#/admin/overview';
         }
         return;
       }
@@ -182,14 +246,40 @@ function App() {
       return;
     }
 
-    if (route === 'admin') {
-      if (user?.role === 'admin') {
-        setCurrentRoute('admin');
-        window.location.hash = '#/admin';
-      } else {
-        setCurrentRoute('unauthorized');
-        window.location.hash = '#/unauthorized';
+    if (user?.role === 'admin') {
+      if (route === 'landing') {
+        setCurrentRoute('landing');
+        window.location.hash = '#/landing';
+        return;
       }
+
+      const adminPathMap: Record<string, AppRoute> = {
+        admin: 'admin-overview',
+        'admin-overview': 'admin-overview',
+        'admin-users': 'admin-users',
+        'admin-services': 'admin-services',
+        'admin-ai-simulator': 'admin-ai-simulator',
+      };
+
+      const adminTarget = adminPathMap[route] || 'admin-overview';
+      setCurrentRoute(adminTarget);
+      const targetHash =
+        adminTarget === 'admin-overview'
+          ? '#/admin/overview'
+          : adminTarget === 'admin-users'
+          ? '#/admin/users'
+          : adminTarget === 'admin-services'
+          ? '#/admin/services'
+          : '#/admin/ai-simulator';
+      window.location.hash = targetHash;
+      return;
+    }
+
+    if (route.startsWith('admin')) {
+      // Regular users are barred from admin console
+      setCurrentRoute('unauthorized');
+      window.location.hash = '#/unauthorized';
+      showToast('Access restricted: Admin privileges required.', 'error');
       return;
     }
 
@@ -205,7 +295,6 @@ function App() {
       'routes',
       'prediction-details',
       'profile',
-      'admin',
       'unauthorized',
       'not-found',
     ];
@@ -235,6 +324,14 @@ function App() {
         return 'Safety Inference Audit';
       case 'profile':
         return 'My Account & Preferences';
+      case 'admin-overview':
+        return 'System Telemetry & Platform Overview';
+      case 'admin-users':
+        return 'User Accounts Directory';
+      case 'admin-services':
+        return 'Microservices & Infrastructure Health';
+      case 'admin-ai-simulator':
+        return 'AI Safety Model Simulator';
       case 'unauthorized':
         return 'Clearance Required';
       case 'not-found':
@@ -266,7 +363,7 @@ function App() {
         <LoginPage onExploreLanding={() => handleNavigate('landing')} />
       )}
 
-      {/* 4. User Dashboard */}
+      {/* 4. User Panel: User Dashboard */}
       {currentRoute === 'app' && (
         <AppLayout
           currentRoute={currentRoute}
@@ -275,13 +372,12 @@ function App() {
         >
           <UserDashboard
             onNavigate={handleNavigate}
-            onOpenAdmin={user?.role === 'admin' ? () => handleNavigate('admin') : undefined}
             onLogout={handleLogout}
           />
         </AppLayout>
       )}
 
-      {/* 5. Route Recommendation Page */}
+      {/* 5. User Panel: Route Recommendation Page */}
       {currentRoute === 'routes' && (
         <AppLayout
           currentRoute={currentRoute}
@@ -292,7 +388,7 @@ function App() {
         </AppLayout>
       )}
 
-      {/* 6. Prediction Details Page */}
+      {/* 6. User Panel: Prediction Details Page */}
       {currentRoute === 'prediction-details' && (
         <AppLayout
           currentRoute={currentRoute}
@@ -303,7 +399,7 @@ function App() {
         </AppLayout>
       )}
 
-      {/* 7. User Profile Page */}
+      {/* 7. User Panel: User Profile Page */}
       {currentRoute === 'profile' && (
         <AppLayout
           currentRoute={currentRoute}
@@ -314,14 +410,23 @@ function App() {
         </AppLayout>
       )}
 
-      {/* 8. Admin Dashboard */}
-      {currentRoute === 'admin' && (
-        <AdminDashboard
-          isOpen={true}
-          isStandalone={true}
-          onLogout={handleLogout}
-          onGoToPlanner={() => handleNavigate('routes')}
-        />
+      {/* 8. Admin Panel: Dedicated Admin Layout & Pages */}
+      {isAdminRoute(currentRoute) && user?.role === 'admin' && (
+        <AdminProvider>
+          <AdminLayout
+            currentRoute={currentRoute}
+            onNavigate={handleNavigate}
+            pageTitle={getPageTitle(currentRoute)}
+            onLogout={handleLogout}
+          >
+            {currentRoute === 'admin-overview' && (
+              <AdminOverviewPage onNavigate={handleNavigate} />
+            )}
+            {currentRoute === 'admin-users' && <AdminUsersPage />}
+            {currentRoute === 'admin-services' && <AdminServicesPage />}
+            {currentRoute === 'admin-ai-simulator' && <AdminAiSimulatorPage />}
+          </AdminLayout>
+        </AdminProvider>
       )}
 
       {/* 9a. Unauthorized (403) Page */}

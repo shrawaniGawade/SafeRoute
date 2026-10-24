@@ -270,6 +270,10 @@ export async function verifyOtp(req: Request, res: Response): Promise<void> {
     // Check if an existing unverified user exists
     const user = await User.findOne({ email: normalizedEmail });
     if (user) {
+      const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+      if (user.email.toLowerCase().trim() !== adminEmail) {
+        user.role = 'user';
+      }
       user.isVerified = true;
       user.lastLogin = new Date();
       await user.save();

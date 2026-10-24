@@ -139,7 +139,7 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
     assert.ok(Array.isArray(data.data.users));
   });
 
-  await t.test('6. Admin Promotes Standard User to Admin Role', async () => {
+  await t.test('6. Admin Cannot Promote Standard User to Admin Role (403 Forbidden)', async () => {
     const res = await fetch(`${BASE_URL}/api/admin/users/${createdUserId}/role`, {
       method: 'PATCH',
       headers: {
@@ -149,11 +149,19 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       body: JSON.stringify({ role: 'admin' }),
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 200, `Promote failed: ${res.status} ${JSON.stringify(data)}`);
-    assert.strictEqual(data.user.role, 'admin');
+    assert.strictEqual(res.status, 403, `Promote must be forbidden: ${res.status} ${JSON.stringify(data)}`);
+    assert.strictEqual(data.success, false);
+
+    // Verify user role remained 'user'
+    const userRes = await fetch(`${BASE_URL}/api/admin/users`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const userData = await userRes.json();
+    const targetUser = userData.data.find((u: any) => u.id === createdUserId);
+    assert.strictEqual(targetUser.role, 'user', 'Target user role must remain "user"');
   });
 
-  await t.test('7. Admin Demotes User Back to Regular User', async () => {
+  await t.test('7. Admin Cannot Modify Any User Role (403 Forbidden)', async () => {
     const res = await fetch(`${BASE_URL}/api/admin/users/${createdUserId}/role`, {
       method: 'PATCH',
       headers: {
@@ -163,11 +171,11 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       body: JSON.stringify({ role: 'user' }),
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 200, `Demote failed: ${res.status} ${JSON.stringify(data)}`);
-    assert.strictEqual(data.user.role, 'user');
+    assert.strictEqual(res.status, 403, `Role change must be forbidden: ${res.status} ${JSON.stringify(data)}`);
+    assert.strictEqual(data.success, false);
   });
 
-  await t.test('7b. Admin Cannot Demote or Delete Self (400)', async () => {
+  await t.test('7b. Admin Cannot Demote or Delete Primary Admin Account (400/403)', async () => {
     const meRes = await fetch(`${BASE_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
@@ -182,13 +190,13 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       },
       body: JSON.stringify({ role: 'user' }),
     });
-    assert.strictEqual(selfDemoteRes.status, 400, 'Admin must not be allowed to demote self');
+    assert.strictEqual(selfDemoteRes.status, 403, 'Admin must not be allowed to change roles');
 
     const selfDeleteRes = await fetch(`${BASE_URL}/api/admin/users/${adminSelfId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${adminToken}` },
     });
-    assert.strictEqual(selfDeleteRes.status, 400, 'Admin must not be allowed to delete self');
+    assert.strictEqual(selfDeleteRes.status, 400, 'Primary admin must not be allowed to be deleted');
   });
 
   await t.test('8. Admin Deletes Standard User', async () => {

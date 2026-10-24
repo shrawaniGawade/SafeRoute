@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Bell,
   Trash2,
-  UserCheck,
   Zap,
   Play,
   Check,
@@ -21,7 +20,6 @@ import {
 import { useAuth } from '../context/AuthContext';
 import {
   fetchAdminStats,
-  updateAdminUserRole,
   deleteAdminUser,
   predictRouteSafety
 } from '../services/api';
@@ -31,7 +29,6 @@ interface AdminDashboardProps {
   isOpen?: boolean;
   isStandalone?: boolean;
   onClose?: () => void;
-  onGoToPlanner?: () => void;
   onLogout?: () => void;
 }
 
@@ -39,7 +36,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   isOpen = true,
   isStandalone = false,
   onClose,
-  onGoToPlanner,
   onLogout
 }) => {
   const { user } = useAuth();
@@ -78,19 +74,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return () => clearInterval(interval);
     }
   }, [isOpen]);
-
-  const handleToggleRole = async (userId: string, currentRole: 'admin' | 'user') => {
-    const newRole = currentRole === 'admin' ? 'user' : 'admin';
-    try {
-      await updateAdminUserRole(userId, newRole);
-      setActionMessage(`Role updated successfully to ${newRole}`);
-      setTimeout(() => setActionMessage(null), 3000);
-      loadStats();
-    } catch (err: any) {
-      setActionMessage(err.message || 'Failed to update role');
-      setTimeout(() => setActionMessage(null), 3500);
-    }
-  };
 
   const handleDeleteUser = async (userId: string, email: string) => {
     if (!window.confirm(`Are you sure you want to delete user: ${email}?`)) {
@@ -155,15 +138,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
         <div className="admin-header-actions">
-          {onGoToPlanner && (
-            <button
-              type="button"
-              className="planner-switch-btn"
-              onClick={onGoToPlanner}
-            >
-              <span>Route Planner &rarr;</span>
-            </button>
-          )}
           <button
             className={`refresh-btn ${loading ? 'spinning' : ''}`}
             onClick={loadStats}
@@ -341,7 +315,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="section-header">
                   <div>
                     <h3>User Accounts Directory</h3>
-                    <p className="section-hint">Control permissions, assign administrator privileges, or manage accounts.</p>
+                    <p className="section-hint">Directory of user accounts. The single administrator account is provisioned via secure seeding, and regular user roles are fixed.</p>
                   </div>
                   <span className="badge-pill">{data?.users?.length || 0} Total Records</span>
                 </div>
@@ -375,16 +349,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </td>
                           <td>
                             <div className="action-buttons-cell">
-                              <button
-                                className="action-pill-btn"
-                                onClick={() => handleToggleRole(u.id, u.role)}
-                                title={u.role === 'admin' ? 'Demote to regular user' : 'Promote to Admin'}
-                                disabled={u.id === user?.id && u.role === 'admin'}
-                              >
-                                <UserCheck size={14} />
-                                {u.role === 'admin' ? 'Demote' : 'Promote to Admin'}
-                              </button>
-                              {u.id !== user?.id && (
+                              {u.role !== 'admin' && u.id !== user?.id ? (
                                 <button
                                   className="action-pill-btn delete"
                                   onClick={() => handleDeleteUser(u.id, u.email)}
@@ -392,6 +357,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 >
                                   <Trash2 size={14} />
                                 </button>
+                              ) : (
+                                <span className="text-muted" style={{ fontSize: '11px' }}>
+                                  {u.role === 'admin' ? 'Seeded Admin' : 'Current Account'}
+                                </span>
                               )}
                             </div>
                           </td>

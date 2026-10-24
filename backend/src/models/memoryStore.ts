@@ -320,9 +320,37 @@ export const memoryUser = {
     } else {
       Object.assign(user, update);
     }
+    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+    if (user.role === 'admin' && user.email.toLowerCase().trim() !== adminEmail) {
+      user.role = 'user';
+    }
     user.updatedAt = new Date();
     usersMap.set(id.toString(), user);
     return formatUser(user, '-password');
+  },
+
+  async updateMany(filter: any, update: any): Promise<{ modifiedCount: number }> {
+    let modifiedCount = 0;
+    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+    for (const [id, user] of usersMap.entries()) {
+      let matches = true;
+      if (filter?.role && user.role !== filter.role) matches = false;
+      if (filter?.email?.$ne && user.email.toLowerCase().trim() === filter.email.$ne.toLowerCase().trim()) matches = false;
+      if (matches) {
+        if (update.$set) {
+          Object.assign(user, update.$set);
+        } else {
+          Object.assign(user, update);
+        }
+        if (user.role === 'admin' && user.email.toLowerCase().trim() !== adminEmail) {
+          user.role = 'user';
+        }
+        user.updatedAt = new Date();
+        usersMap.set(id, user);
+        modifiedCount++;
+      }
+    }
+    return { modifiedCount };
   },
 
   async findByIdAndDelete(id: string): Promise<InMemoryUserDoc | null> {
@@ -368,12 +396,18 @@ export const memoryUser = {
       hashedPassword = await bcrypt.hash(data.password, salt);
     }
 
+    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+    let finalRole: 'user' | 'admin' = 'user';
+    if (data.role === 'admin' && normalizedEmail === adminEmail) {
+      finalRole = 'admin';
+    }
+
     const doc: InMemoryUserDoc = {
       _id: id,
       name: data.name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
-      role: data.role || 'user',
+      role: finalRole,
       isVerified: !!data.isVerified,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -383,6 +417,10 @@ export const memoryUser = {
       },
       async save(): Promise<InMemoryUserDoc> {
         this.updatedAt = new Date();
+        const currentAdminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+        if (this.role === 'admin' && this.email.toLowerCase().trim() !== currentAdminEmail) {
+          this.role = 'user';
+        }
         if (this.password && !this.password.startsWith('$2')) {
           const salt = await bcrypt.genSalt(12);
           this.password = await bcrypt.hash(this.password, salt);

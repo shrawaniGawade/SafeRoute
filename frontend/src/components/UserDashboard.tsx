@@ -4,7 +4,6 @@ import {
   MapPin,
   Sparkles,
   ShieldCheck,
-  ShieldAlert,
   AlertTriangle,
   History,
   ArrowRight,
@@ -28,13 +27,11 @@ import './UserDashboard.css';
 
 interface UserDashboardProps {
   onNavigate?: (route: string) => void;
-  onOpenAdmin?: () => void;
   onLogout?: () => void;
 }
 
 export const UserDashboard: React.FC<UserDashboardProps> = ({
   onNavigate = () => {},
-  onOpenAdmin,
   onLogout,
 }) => {
   const { user } = useAuth();
@@ -151,12 +148,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 <Sparkles size={14} color="#facc15" />
                 AI Inference Online
               </span>
-              {user?.role === 'admin' && (
-                <span className="welcome-pill" style={{ background: 'rgba(234, 179, 8, 0.25)', borderColor: '#facc15' }}>
-                  <ShieldAlert size={14} color="#facc15" />
-                  Administrator
-                </span>
-              )}
             </div>
           </div>
 
@@ -169,18 +160,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               <Compass size={18} />
               <span>Launch Route Map</span>
             </button>
-
-            {user?.role === 'admin' && (
-              <button
-                type="button"
-                className="welcome-btn-primary"
-                style={{ background: '#fef3c7', color: '#b45309' }}
-                onClick={onOpenAdmin || (() => onNavigate('admin'))}
-              >
-                <ShieldAlert size={16} />
-                <span>Admin Console</span>
-              </button>
-            )}
 
             {onLogout && (
               <button

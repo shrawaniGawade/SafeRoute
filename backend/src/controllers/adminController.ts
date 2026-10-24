@@ -97,32 +97,13 @@ export async function toggleUserRole(req: AuthenticatedRequest, res: Response): 
     const { id } = req.params;
     const { role } = req.body;
 
-    if (!['admin', 'user'].includes(role)) {
-      res.status(400).json({ message: 'Invalid role specified.' });
-      return;
-    }
-
-    if (req.user?.userId === id && role === 'user') {
-      res.status(400).json({ message: 'You cannot demote your own account.' });
-      return;
-    }
-
-    const targetUser = await User.findById(id);
-    if (!targetUser) {
-      res.status(404).json({ message: 'User not found.' });
-      return;
-    }
-
-    const previousRole = targetUser.role;
-    targetUser.role = role;
-    await targetUser.save();
-
-    // Look up executing admin's email for audit trail
+    // Look up executing admin and target user for audit trail
     const adminUser = req.user?.userId ? await User.findById(req.user.userId) : null;
+    const targetUser = await User.findById(id);
 
-    // Record immutable audit log
+    // Record immutable audit log for the blocked attempt
     await logAdminAction({
-      action: role === 'admin' ? 'USER_ROLE_PROMOTED' : 'USER_ROLE_DEMOTED',
+      action: 'USER_ROLE_CHANGE_BLOCKED' as any,
       actor: {
         userId: req.user?.userId,
         email: adminUser?.email,
@@ -132,34 +113,31 @@ export async function toggleUserRole(req: AuthenticatedRequest, res: Response): 
       },
       target: {
         resourceType: 'User',
-        resourceId: targetUser._id?.toString() || id,
-        resourceName: targetUser.email,
+        resourceId: targetUser?._id?.toString() || id,
+        resourceName: targetUser?.email || id,
       },
+      status: 'FAILURE',
       metadata: {
-        previousRole,
-        newRole: role,
+        attemptedRole: role,
+        reason: 'Admin cannot change user roles. SafeRoute enforces a single seeded administrator account and fixed user roles.',
       },
     });
 
-    res.json({
-      success: true,
-      message: `User ${targetUser.email} role updated to ${role}.`,
-      user: {
-        id: targetUser._id?.toString() || targetUser.id,
-        name: targetUser.name,
-        email: targetUser.email,
-        role: targetUser.role,
-      },
+    res.status(403).json({
+      success: false,
+      message: 'Admin cannot change user roles. SafeRoute enforces a single seeded administrator account and fixed user roles.',
+      code: 'ROLE_MODIFICATION_RESTRICTED',
     });
   } catch (error) {
-    console.error('[AdminController] Error toggling role:', error);
-    res.status(500).json({ message: 'Internal server error updating user role.' });
+    console.error('[AdminController] Error processing role change restriction:', error);
+    res.status(500).json({ message: 'Internal server error processing user role request.' });
   }
 }
 
 export async function deleteUser(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
+    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
 
     if (req.user?.userId === id) {
       res.status(400).json({ message: 'You cannot delete your own account.' });
@@ -169,6 +147,15 @@ export async function deleteUser(req: AuthenticatedRequest, res: Response): Prom
     const targetUser = await User.findById(id);
     if (!targetUser) {
       res.status(404).json({ message: 'User not found.' });
+      return;
+    }
+
+    // Protect single admin account from deletion
+    if (targetUser.role === 'admin' || targetUser.email?.toLowerCase().trim() === adminEmail) {
+      res.status(400).json({
+        success: false,
+        message: 'The primary administrator account cannot be deleted.',
+      });
       return;
     }
 

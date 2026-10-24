@@ -91,8 +91,12 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-// Hash password before saving if modified
+// Enforce RBAC policy and hash password before saving if modified
 UserSchema.pre('save', async function () {
+  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+  if (this.role === 'admin' && this.email?.toLowerCase().trim() !== adminEmail) {
+    this.role = 'user';
+  }
   if (!this.isModified('password') || !this.password) {
     return;
   }

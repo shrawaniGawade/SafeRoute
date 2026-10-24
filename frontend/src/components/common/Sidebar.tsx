@@ -4,7 +4,6 @@ import {
   MapPin,
   FileText,
   User,
-  ShieldAlert,
   LogOut,
   Shield,
   Compass,
@@ -85,6 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             type="button"
+            id="user-nav-dashboard"
             className={`sidebar-nav-link ${currentRoute === 'app' ? 'active' : ''}`}
             onClick={() => handleLinkClick('app')}
           >
@@ -94,6 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             type="button"
+            id="user-nav-routes"
             className={`sidebar-nav-link ${currentRoute === 'routes' ? 'active' : ''}`}
             onClick={() => handleLinkClick('routes')}
           >
@@ -104,6 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             type="button"
+            id="user-nav-audit"
             className={`sidebar-nav-link ${currentRoute === 'prediction-details' ? 'active' : ''}`}
             onClick={() => handleLinkClick('prediction-details')}
           >
@@ -113,6 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             type="button"
+            id="user-nav-profile"
             className={`sidebar-nav-link ${currentRoute === 'profile' ? 'active' : ''}`}
             onClick={() => handleLinkClick('profile')}
           >
@@ -124,24 +127,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             type="button"
+            id="user-nav-landing"
             className={`sidebar-nav-link ${currentRoute === 'landing' ? 'active' : ''}`}
             onClick={() => handleLinkClick('landing')}
           >
             <Compass size={18} />
             <span>Public Overview</span>
           </button>
-
-          {user?.role === 'admin' && (
-            <button
-              type="button"
-              className={`sidebar-nav-link ${currentRoute === 'admin' ? 'active' : ''}`}
-              onClick={() => handleLinkClick('admin')}
-            >
-              <ShieldAlert size={18} />
-              <span>Admin Console</span>
-              <span className="sidebar-badge admin">Admin</span>
-            </button>
-          )}
         </nav>
 
         <div className="sidebar-footer">
@@ -157,6 +149,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             type="button"
+            id="user-logout-btn"
             className="sidebar-logout-btn"
             onClick={handleLogoutClick}
           >

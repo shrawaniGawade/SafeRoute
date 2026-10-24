@@ -26,6 +26,8 @@ export type AppRoute =
   | 'unauthorized'
   | 'not-found';
 
+const ADMIN_EMAIL = 'admin@saferoute.com';
+
 function App() {
   const { user, isAuthenticated, isLoading, setAuthModalView, logout, toastMessage, showToast } = useAuth();
   const [currentRoute, setCurrentRoute] = useState<AppRoute>(() => {
@@ -188,6 +190,14 @@ function App() {
 
       // Logged-in Administrator
       if (user?.role === 'admin') {
+        // Ensure only the seeded admin account can access admin features
+        if (user.email !== ADMIN_EMAIL) {
+          setCurrentRoute('unauthorized');
+          window.location.hash = '#/unauthorized';
+          showToast('Access restricted: Only the seeded administrator account is authorized.', 'error');
+          return;
+        }
+
         // Keep administrator accounts in the separate admin console.
         const userDashboardRoutes: AppRoute[] = ['app', 'routes', 'prediction-details', 'profile'];
         if (requestedRoute === 'login' || requestedRoute === 'admin-login' || userDashboardRoutes.includes(requestedRoute)) {
@@ -256,7 +266,7 @@ function App() {
     }
 
     if (route === 'admin') {
-      if (user?.role === 'admin') {
+      if (user?.role === 'admin' && user?.email === ADMIN_EMAIL) {
         setCurrentRoute('admin');
         window.location.hash = '#/admin';
       } else {

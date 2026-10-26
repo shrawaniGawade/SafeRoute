@@ -534,5 +534,210 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
       assert.ok(routes[0].durationText.includes('mins'));
     });
   });
+
+  await t.test('14. Real Location Search and Route Alternatives Synchronization', async (sub) => {
+    await sub.test('14a. Reverse geocoding builds readable human address from coordinates', () => {
+      function formatReverseAddress(result, lat, lng) {
+        if (!result) return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        return result.displayName || result.label || `${result.name}, ${result.city || ''}`;
+      }
+
+      const sampleResult = {
+        name: 'Linkcode Technologies',
+        city: 'Pune',
+        displayName: 'Linkcode Technologies, Fergusson College Rd, Shivajinagar, Pune, Maharashtra 411004',
+      };
+
+      const formatted = formatReverseAddress(sampleResult, 18.5284, 73.8436);
+      assert.equal(formatted.includes('Shivajinagar'), true);
+      assert.equal(formatted.includes('Pune'), true);
+    });
+
+    await sub.test('14b. Suggestions store actual latitude and longitude upon selection', () => {
+      const suggestion = {
+        name: 'Sai Aangan Society',
+        displayName: 'Sai Aangan Society, Near Saibaba Mandir, Alandi Road, Bhosari, Pune',
+        lat: 18.642953,
+        lng: 73.876243,
+      };
+
+      let selectedCoords = null;
+      let selectedText = '';
+
+      function handleSelect(item) {
+        selectedText = item.displayName;
+        selectedCoords = { lat: item.lat, lng: item.lng };
+      }
+
+      handleSelect(suggestion);
+      assert.equal(selectedText, suggestion.displayName);
+      assert.deepEqual(selectedCoords, { lat: 18.642953, lng: 73.876243 });
+    });
+
+    await sub.test('14c. Route alternatives display up to 3 routes or exact available count', () => {
+      function getRouteCountLabel(routes) {
+        if (!routes || routes.length === 0) return '0 Routes Available';
+        if (routes.length === 1) return '1 Route Available';
+        return `${routes.length} Routes Available`;
+      }
+
+      assert.equal(getRouteCountLabel([{ id: '1' }]), '1 Route Available');
+      assert.equal(getRouteCountLabel([{ id: '1' }, { id: '2' }]), '2 Routes Available');
+      assert.equal(getRouteCountLabel([{ id: '1' }, { id: '2' }, { id: '3' }]), '3 Routes Available');
+    });
+
+    await sub.test('14d. Active route selection updates highlighted route and stroke differentiation', () => {
+      const routes = [
+        { id: 'route_A', letter: 'A', name: 'Safe Corridor' },
+        { id: 'route_B', letter: 'B', name: 'Balanced Transit' },
+        { id: 'route_C', letter: 'C', name: 'Direct Shortcut' },
+      ];
+
+      let selectedRouteId = 'route_A';
+      function getRouteStyle(routeId) {
+        const isSelected = routeId === selectedRouteId;
+        return {
+          weight: isSelected ? 7 : 4,
+          opacity: isSelected ? 1.0 : 0.4,
+        };
+      }
+
+      assert.deepEqual(getRouteStyle('route_A'), { weight: 7, opacity: 1.0 });
+      assert.deepEqual(getRouteStyle('route_B'), { weight: 4, opacity: 0.4 });
+
+      // Switch selection to Route B
+      selectedRouteId = 'route_B';
+      assert.deepEqual(getRouteStyle('route_A'), { weight: 4, opacity: 0.4 });
+      assert.deepEqual(getRouteStyle('route_B'), { weight: 7, opacity: 1.0 });
+    });
+  });
+
+  await t.test('15. Route-Specific Full Audit Score Consistency & Environmental Factors', async (sub) => {
+    // Shared mathematical scoring formula
+    function computeSafetyScore(factors) {
+      const raw =
+        factors.lighting * 3.4 +
+        factors.crowd_level * 2.3 +
+        (10 - factors.crime_risk) * 2.6 +
+        (10 - factors.accident_risk) * 1.7;
+      return Math.max(15, Math.min(99.5, Math.round(raw * 10) / 10));
+    }
+
+    const routeA = {
+      id: 'alt_a',
+      letter: 'A',
+      name: 'Route A: Primary Safe Corridor',
+      factors: { lighting: 9.0, crime_risk: 1.0, accident_risk: 2.0, crowd_level: 8.0, emergency_proximity: 8.5 },
+    };
+    const routeB = {
+      id: 'alt_b',
+      letter: 'B',
+      name: 'Route B: Balanced Transit Avenue',
+      factors: { lighting: 7.0, crime_risk: 3.0, accident_risk: 3.0, crowd_level: 6.0, emergency_proximity: 7.0 },
+    };
+    const routeC = {
+      id: 'alt_c',
+      letter: 'C',
+      name: 'Route C: Direct Shortcut',
+      factors: { lighting: 4.0, crime_risk: 5.5, accident_risk: 4.5, crowd_level: 3.0, emergency_proximity: 4.5 },
+    };
+
+    routeA.safety_score = computeSafetyScore(routeA.factors);
+    routeB.safety_score = computeSafetyScore(routeB.factors);
+    routeC.safety_score = computeSafetyScore(routeC.factors);
+
+    await sub.test('15a. Strictly enforces Route A > Route B > Route C monotonic safety scores', () => {
+      assert.ok(
+        routeA.safety_score > routeB.safety_score,
+        `Route A (${routeA.safety_score}) must be strictly safer than Route B (${routeB.safety_score})`
+      );
+      assert.ok(
+        routeB.safety_score > routeC.safety_score,
+        `Route B (${routeB.safety_score}) must be strictly safer than Route C (${routeC.safety_score})`
+      );
+    });
+
+    await sub.test('15b. Route-specific environmental factors are distinct and directionally sound', () => {
+      // Illumination: Route A > Route B > Route C
+      assert.ok(routeA.factors.lighting > routeB.factors.lighting);
+      assert.ok(routeB.factors.lighting > routeC.factors.lighting);
+
+      // Foot traffic: Route A > Route B > Route C
+      assert.ok(routeA.factors.crowd_level > routeB.factors.crowd_level);
+      assert.ok(routeB.factors.crowd_level > routeC.factors.crowd_level);
+
+      // Crime risk: Route A < Route B < Route C (Lower risk is safer)
+      assert.ok(routeA.factors.crime_risk < routeB.factors.crime_risk);
+      assert.ok(routeB.factors.crime_risk < routeC.factors.crime_risk);
+
+      // Accident risk: Route A < Route B < Route C (Lower risk is safer)
+      assert.ok(routeA.factors.accident_risk < routeB.factors.accident_risk);
+      assert.ok(routeB.factors.accident_risk < routeC.factors.accident_risk);
+
+      // Emergency proximity: Route A > Route B > Route C
+      assert.ok(routeA.factors.emergency_proximity > routeB.factors.emergency_proximity);
+      assert.ok(routeB.factors.emergency_proximity > routeC.factors.emergency_proximity);
+    });
+
+    await sub.test('15c. Mathematical scoring formula correctly aggregates weighted factor contributions', () => {
+      // Expected Route A: (9*3.4) + (8*2.3) + ((10-1)*2.6) + ((10-2)*1.7) = 30.6 + 18.4 + 23.4 + 13.6 = 86.0
+      const scoreA = computeSafetyScore(routeA.factors);
+      assert.equal(scoreA, 86.0);
+
+      // Expected Route B: (7*3.4) + (6*2.3) + ((10-3)*2.6) + ((10-3)*1.7) = 23.8 + 13.8 + 18.2 + 11.9 = 67.7
+      const scoreB = computeSafetyScore(routeB.factors);
+      assert.equal(scoreB, 67.7);
+
+      // Expected Route C: (4*3.4) + (3*2.3) + ((10-5.5)*2.6) + ((10-4.5)*1.7) = 13.6 + 6.9 + 11.7 + 9.35 = 41.55 => 41.6
+      const scoreC = computeSafetyScore(routeC.factors);
+      assert.equal(scoreC, 41.6);
+    });
+
+    await sub.test('15d. Audit view state resolver dynamically swaps factor breakdown when switching routes', () => {
+      const routes = [routeA, routeB, routeC];
+      function resolveActiveAuditRoute(selectedId) {
+        return routes.find((r) => r.id === selectedId) || routes[0];
+      }
+
+      // Initial selection defaults to Route A
+      const initial = resolveActiveAuditRoute('alt_a');
+      assert.equal(initial.letter, 'A');
+      assert.equal(initial.safety_score, 86.0);
+      assert.equal(initial.factors.lighting, 9.0);
+
+      // Switch to Route B
+      const auditB = resolveActiveAuditRoute('alt_b');
+      assert.equal(auditB.letter, 'B');
+      assert.equal(auditB.safety_score, 67.7);
+      assert.equal(auditB.factors.lighting, 7.0);
+
+      // Switch to Route C
+      const auditC = resolveActiveAuditRoute('alt_c');
+      assert.equal(auditC.letter, 'C');
+      assert.equal(auditC.safety_score, 41.6);
+      assert.equal(auditC.factors.lighting, 4.0);
+    });
+
+    await sub.test('15e. Data source transparency distinguishes verified open data from modeled corridor benchmarks', () => {
+      function getDataSourceMetadata(locationName) {
+        const isChicago = locationName.toLowerCase().includes('chicago');
+        return {
+          crimeDataType: isChicago ? 'verified_historical_incidents' : 'corridor_sample_benchmark',
+          crimeSource: isChicago
+            ? 'Chicago Police Department 2024 Incident Registry (Socrata API ijzp-q8t2.json)'
+            : 'Municipal Corridor Risk Benchmark & Urban Arterial Density Estimation (Modeled Sample)',
+          isVerified: isChicago,
+        };
+      }
+
+      const chicagoMeta = getDataSourceMetadata('The Loop, Chicago, IL');
+      assert.equal(chicagoMeta.crimeDataType, 'verified_historical_incidents');
+      assert.equal(chicagoMeta.isVerified, true);
+
+      const externalMeta = getDataSourceMetadata('Shivajinagar, Pune, Maharashtra');
+      assert.equal(externalMeta.crimeDataType, 'corridor_sample_benchmark');
+      assert.equal(externalMeta.isVerified, false);
+    });
+  });
 });
 

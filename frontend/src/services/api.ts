@@ -56,6 +56,25 @@ export interface RouteAlternativeItem {
     crowd_level: number;
     emergency_proximity?: number;
   };
+  aiModel?: string;
+  aiFactors?: {
+    lighting_contribution?: number;
+    crowd_contribution?: number;
+    crime_deduction?: number;
+    accident_deduction?: number;
+  };
+  scoring_explanation?: string;
+  dataSource?: {
+    routingProvider?: string;
+    isNavigableRoadNetwork?: boolean;
+    crimeSource?: string;
+    crimeDataType?: string;
+    accidentSource?: string;
+    accidentDataType?: string;
+    lightingSource?: string;
+    emergencySource?: string;
+    dataFreshness?: string;
+  };
 }
 
 export interface FactorReasonItem {
@@ -499,6 +518,28 @@ export async function geocodeLocations(query: string, limit = 5): Promise<Geocod
   }
 
   return [];
+}
+
+/**
+ * Reverse geocodes coordinates (lat, lng) to a human-readable address
+ */
+export async function reverseGeocodeLocation(lat: number, lng: number): Promise<GeocodeResult | null> {
+  try {
+    const url = getApiUrl(`/places/reverse?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.result) {
+        return data.result as GeocodeResult;
+      }
+    }
+  } catch (err) {
+    console.warn('[API] Reverse geocoding failed:', err);
+  }
+  return null;
 }
 
 /**

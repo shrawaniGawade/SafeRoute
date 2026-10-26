@@ -91,7 +91,7 @@ export const RegisterForm: React.FC = () => {
     try {
       await register({
         name: name.trim(),
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
         confirmPassword,
       });

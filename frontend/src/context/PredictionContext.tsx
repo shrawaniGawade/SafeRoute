@@ -24,6 +24,8 @@ export interface PredictionStats {
 
 interface PredictionContextType {
   currentPrediction: RoutePredictionRecord | null;
+  selectedRouteId: string | null;
+  setSelectedRouteId: (id: string | null) => void;
   history: RoutePredictionRecord[];
   stats: PredictionStats;
   setCurrentPrediction: (prediction: RoutePredictionRecord | null) => void;
@@ -51,6 +53,13 @@ export const PredictionProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const [currentPrediction, setCurrentPrediction] = useState<RoutePredictionRecord | null>(() => {
     return history.length > 0 ? history[0] : null;
+  });
+
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(() => {
+    if (history.length > 0 && history[0].result?.alternatives && history[0].result.alternatives.length > 0) {
+      return history[0].result.recommendedRouteId || history[0].result.alternatives[0].id;
+    }
+    return null;
   });
 
   // Persist history to localStorage
@@ -89,12 +98,20 @@ export const PredictionProvider: React.FC<{ children: ReactNode }> = ({ children
 
     setHistory((prev) => [newRecord, ...prev.slice(0, 49)]); // Keep latest 50
     setCurrentPrediction(newRecord);
+    const initialRouteId =
+      data.result?.recommendedRouteId ||
+      data.result?.alternatives?.[0]?.id ||
+      null;
+    if (initialRouteId) {
+      setSelectedRouteId(initialRouteId);
+    }
     return newRecord;
   };
 
   const clearHistory = () => {
     setHistory([]);
     setCurrentPrediction(null);
+    setSelectedRouteId(null);
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
@@ -105,7 +122,9 @@ export const PredictionProvider: React.FC<{ children: ReactNode }> = ({ children
   const deletePrediction = (id: string) => {
     setHistory((prev) => prev.filter((item) => item.id !== id));
     if (currentPrediction?.id === id) {
-      setCurrentPrediction(history.find((item) => item.id !== id) || null);
+      const next = history.find((item) => item.id !== id) || null;
+      setCurrentPrediction(next);
+      setSelectedRouteId(next?.result?.recommendedRouteId || next?.result?.alternatives?.[0]?.id || null);
     }
   };
 
@@ -113,6 +132,8 @@ export const PredictionProvider: React.FC<{ children: ReactNode }> = ({ children
     <PredictionContext.Provider
       value={{
         currentPrediction,
+        selectedRouteId,
+        setSelectedRouteId,
         history,
         stats,
         setCurrentPrediction,

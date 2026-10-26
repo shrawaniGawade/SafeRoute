@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   LayoutDashboard,
   MapPin,
@@ -26,6 +26,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
 }) => {
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    if (!isMobileOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onCloseMobile();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobileOpen, onCloseMobile]);
 
   const handleLinkClick = (route: string) => {
     onNavigate(route);
@@ -122,6 +133,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <User size={18} />
             <span>My Profile</span>
           </button>
+
+          {user?.role === 'admin' && (
+            <button
+              type="button"
+              id="user-nav-admin"
+              className={`sidebar-nav-link ${currentRoute === 'admin' ? 'active' : ''}`}
+              onClick={() => handleLinkClick('admin')}
+            >
+              <Shield size={18} />
+              <span>Admin Console</span>
+              <span className="sidebar-badge admin">Admin</span>
+            </button>
+          )}
 
           <span className="sidebar-section-title">Platform</span>
 

@@ -86,7 +86,7 @@
 .route-cards-stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
 }
 
@@ -105,6 +105,10 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   position: relative;
   outline: none;
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+  isolation: isolate;
 }
 
 .route-card:hover {
@@ -391,8 +395,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 6px;
+  gap: 10px;
+  padding-top: 10px;
   border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
 }
 
 .selection-status {
@@ -402,6 +408,8 @@
   font-size: 11px;
   font-weight: 600;
   color: #64748b;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .status-indicator {
@@ -410,6 +418,7 @@
   border-radius: 50%;
   background: #cbd5e1;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .status-indicator.active {
@@ -435,6 +444,8 @@
   padding: 4px 8px;
   border-radius: 6px;
   transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .card-audit-action-btn:hover {
@@ -442,13 +453,10 @@
   color: var(--primary-hover, #0f766e);
 }
 
-/* Responsive Layout */
-/* Desktop Layout: Sidebar alongside map */
-@media (min-width: 900px) {
-  .routes-container-panel.routes-sidebar {
-    position: sticky;
-    top: 20px;
-  }
+/* Natural Page Flow Layout: Route cards scroll naturally with main content (No sticky/fixed collisions) */
+.routes-container-panel.routes-sidebar {
+  position: static;
+  width: 100%;
 }
 
 /* Mobile Layout: Bottom Sheet / Horizontal Scroll or Stack (<900px) */
@@ -503,9 +511,10 @@
 }
 
 .app-shell-root .route-card {
-  background: var(--ti-surface);
+  background: var(--ti-surface, #0f0f11);
   border-color: var(--ti-line);
   box-shadow: var(--ti-card-shadow);
+  isolation: isolate;
 }
 
 .app-shell-root .route-card:hover {
@@ -514,7 +523,8 @@
 }
 
 .app-shell-root .route-card.selected {
-  background: rgba(255, 255, 255, 0.06);
+  background: #141417;
+  border-color: var(--route-accent, var(--ti-line-strong));
   box-shadow: 0 0 0 1px var(--route-accent, var(--ti-line-strong)), 0 14px 34px -20px rgba(0, 0, 0, 0.95);
 }
 

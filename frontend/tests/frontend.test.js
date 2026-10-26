@@ -739,5 +739,116 @@ test('SafeRoute Frontend Architecture & Business Logic Test Suite', async (t) =>
       assert.equal(externalMeta.isVerified, false);
     });
   });
+
+  await t.test('16. Admin Authorization, Role Invariants & Navigation Security', async (sub) => {
+    function resolveNavigationAccess(requestedRoute, user, isAuthenticated) {
+      if (!isAuthenticated) {
+        if (requestedRoute === 'admin') {
+          return { route: 'admin-login', status: 401, allowed: false };
+        }
+        const guestAllowed = ['landing', 'login', 'admin-login', 'not-found', 'unauthorized'];
+        return guestAllowed.includes(requestedRoute)
+          ? { route: requestedRoute, status: 200, allowed: true }
+          : { route: 'landing', status: 200, allowed: true };
+      }
+
+      if (user?.role === 'user') {
+        if (requestedRoute === 'admin') {
+          return { route: 'unauthorized', status: 403, allowed: false, message: 'Access restricted: Admin privileges required.' };
+        }
+        if (requestedRoute === 'login' || requestedRoute === 'admin-login') {
+          return { route: 'app', status: 200, allowed: true };
+        }
+        return { route: requestedRoute, status: 200, allowed: true };
+      }
+
+      if (user?.role === 'admin') {
+        // Any authenticated admin with role 'admin' can access admin console regardless of email address
+        const userDashboardRoutes = ['app', 'routes', 'profile'];
+        if (requestedRoute === 'login' || requestedRoute === 'admin-login' || userDashboardRoutes.includes(requestedRoute)) {
+          return { route: 'admin', status: 200, allowed: true };
+        }
+        return { route: requestedRoute, status: 200, allowed: true };
+      }
+
+      return { route: 'unauthorized', status: 403, allowed: false };
+    }
+
+    await sub.test('16a. Authorized admin (shrawanig74@gmail.com) can access admin route without email allowlist rejection', () => {
+      const adminUser = {
+        id: 'usr_admin_shrawani',
+        email: 'shrawanig74@gmail.com',
+        role: 'admin',
+        isVerified: true
+      };
+      const result = resolveNavigationAccess('admin', adminUser, true);
+      assert.equal(result.allowed, true);
+      assert.equal(result.route, 'admin');
+      assert.equal(result.status, 200);
+    });
+
+    await sub.test('16b. Normal user with role "user" receives 403 unauthorized when accessing admin', () => {
+      const regularUser = {
+        id: 'usr_traveler_1',
+        email: 'traveler@example.com',
+        role: 'user',
+        isVerified: true
+      };
+      const result = resolveNavigationAccess('admin', regularUser, true);
+      assert.equal(result.allowed, false);
+      assert.equal(result.route, 'unauthorized');
+      assert.equal(result.status, 403);
+      assert.equal(result.message, 'Access restricted: Admin privileges required.');
+    });
+
+    await sub.test('16c. Unauthenticated visitor receives 401 redirect to admin-login', () => {
+      const result = resolveNavigationAccess('admin', null, false);
+      assert.equal(result.allowed, false);
+      assert.equal(result.route, 'admin-login');
+      assert.equal(result.status, 401);
+    });
+
+    await sub.test('16d. Admin authorization persists across session restoration / page refresh', () => {
+      // Simulate session restoration from refresh token
+      const restoredSession = {
+        accessToken: 'valid_restored_jwt_token',
+        user: {
+          id: 'usr_admin_restored',
+          name: 'Shrawani Gawade',
+          email: 'shrawanig74@gmail.com',
+          role: 'admin',
+          isVerified: true
+        }
+      };
+
+      assert.ok(restoredSession.accessToken);
+      assert.equal(restoredSession.user.role, 'admin');
+
+      const routeCheck = resolveNavigationAccess('admin', restoredSession.user, true);
+      assert.equal(routeCheck.allowed, true);
+      assert.equal(routeCheck.route, 'admin');
+    });
+
+    await sub.test('16e. Normal users can still access standard commuter dashboard and routes', () => {
+      const regularUser = {
+        id: 'usr_traveler_2',
+        email: 'commuter@saferoute.com',
+        role: 'user',
+        isVerified: true
+      };
+
+      const dashboard = resolveNavigationAccess('app', regularUser, true);
+      assert.equal(dashboard.allowed, true);
+      assert.equal(dashboard.route, 'app');
+
+      const routes = resolveNavigationAccess('routes', regularUser, true);
+      assert.equal(routes.allowed, true);
+      assert.equal(routes.route, 'routes');
+
+      const profile = resolveNavigationAccess('profile', regularUser, true);
+      assert.equal(profile.allowed, true);
+      assert.equal(profile.route, 'profile');
+    });
+  });
 });
 

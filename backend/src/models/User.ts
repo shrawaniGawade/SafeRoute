@@ -1,6 +1,7 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { memoryUser } from './memoryStore';
+import { isConfiguredAdminEmail } from '../config/env';
 
 export type UserRole = 'user' | 'admin';
 
@@ -93,8 +94,7 @@ const UserSchema = new Schema<IUser>(
 
 // Enforce RBAC policy and hash password before saving if modified
 UserSchema.pre('save', async function () {
-  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
-  if (this.role === 'admin' && this.email?.toLowerCase().trim() !== adminEmail) {
+  if (this.role === 'admin' && !isConfiguredAdminEmail(this.email)) {
     this.role = 'user';
   }
   if (!this.isModified('password') || !this.password) {

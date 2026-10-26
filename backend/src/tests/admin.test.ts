@@ -1,14 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import http from 'node:http';
+import jwt from 'jsonwebtoken';
 import app from '../server';
 import { connectDB } from '../config/db';
 import { seedDefaultAdmin } from '../config/seedAdmin';
+import { ENV } from '../config/env';
 
 let server: http.Server;
 let BASE_URL = '';
 
-const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').split(',')[0].toLowerCase().trim();
 const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
 
 test('SafeRoute Admin Endpoints & Authorization', async (t) => {
@@ -180,5 +182,77 @@ test('SafeRoute Admin Endpoints & Authorization', async (t) => {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     assert.strictEqual(res.status, 200);
+  });
+
+  await t.test('9. Expired or Invalid JWT Tokens are Rejected with HTTP 401', async () => {
+    // Malformed token
+    const malformedRes = await fetch(`${BASE_URL}/api/admin/stats`, {
+      headers: { Authorization: 'Bearer this.is.not.a.valid.jwt.token' },
+    });
+    assert.strictEqual(malformedRes.status, 401, 'Malformed token must return 401');
+
+    // Expired token
+    const expiredToken = jwt.sign(
+      { userId: 'test_expired_id', role: 'admin' },
+      ENV.JWT.ACCESS_SECRET,
+      { expiresIn: '-1s' }
+    );
+    const expiredRes = await fetch(`${BASE_URL}/api/admin/stats`, {
+      headers: { Authorization: `Bearer ${expiredToken}` },
+    });
+    assert.strictEqual(expiredRes.status, 401, 'Expired token must return 401');
+    const expiredBody = await expiredRes.json();
+    assert.strictEqual(expiredBody.code, 'TOKEN_EXPIRED');
+
+    // Token signed with wrong secret
+    const forgedToken = jwt.sign(
+      { userId: 'test_hacker_id', role: 'admin' },
+      'completely_wrong_untrusted_secret_key_123',
+      { expiresIn: '15m' }
+    );
+    const forgedRes = await fetch(`${BASE_URL}/api/admin/stats`, {
+      headers: { Authorization: `Bearer ${forgedToken}` },
+    });
+    assert.strictEqual(forgedRes.status, 401, 'Forged signature token must return 401');
+  });
+
+  await t.test('10. Token with Missing or Invalid Role is Rejected with HTTP 403', async () => {
+    // Token with arbitrary non-admin role
+    const guestToken = jwt.sign(
+      { userId: 'test_guest_id', role: 'guest' },
+      ENV.JWT.ACCESS_SECRET,
+      { expiresIn: '15m' }
+    );
+    const guestRes = await fetch(`${BASE_URL}/api/admin/stats`, {
+      headers: { Authorization: `Bearer ${guestToken}` },
+    });
+    assert.strictEqual(guestRes.status, 403, 'Guest role must return 403 on admin routes');
+
+    // Token with empty role
+    const noRoleToken = jwt.sign(
+      { userId: 'test_norole_id', role: '' },
+      ENV.JWT.ACCESS_SECRET,
+      { expiresIn: '15m' }
+    );
+    const noRoleRes = await fetch(`${BASE_URL}/api/admin/stats`, {
+      headers: { Authorization: `Bearer ${noRoleToken}` },
+    });
+    assert.strictEqual(noRoleRes.status, 403, 'Missing role must return 403 on admin routes');
+  });
+
+  await t.test('11. Any Authenticated Admin Role Token can Access Admin Telemetry', async () => {
+    // An authorized admin with a custom email (e.g. shrawanig74@gmail.com)
+    const customAdminToken = jwt.sign(
+      { userId: 'shrawani_admin_id', role: 'admin' },
+      ENV.JWT.ACCESS_SECRET,
+      { expiresIn: '15m' }
+    );
+    const customAdminRes = await fetch(`${BASE_URL}/api/admin/stats`, {
+      headers: { Authorization: `Bearer ${customAdminToken}` },
+    });
+    assert.strictEqual(customAdminRes.status, 200, 'Custom admin token must succeed');
+    const customAdminBody = await customAdminRes.json();
+    assert.strictEqual(customAdminBody.success, true);
+    assert.ok(customAdminBody.data.services.backend.status === 'ONLINE');
   });
 });

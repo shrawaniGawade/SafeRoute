@@ -4,7 +4,7 @@ import { SafetyPrediction } from '../models/SafetyPrediction';
 import { RouteHistory } from '../models/RouteHistory';
 import { AuditLog, logAdminAction } from '../models/AuditLog';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
-import { ENV } from '../config/env';
+import { ENV, isConfiguredAdminEmail } from '../config/env';
 import { checkDBHealth } from '../config/db';
 
 export async function getAdminStats(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -137,7 +137,6 @@ export async function toggleUserRole(req: AuthenticatedRequest, res: Response): 
 export async function deleteUser(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
 
     if (req.user?.userId === id) {
       res.status(400).json({ message: 'You cannot delete your own account.' });
@@ -150,8 +149,8 @@ export async function deleteUser(req: AuthenticatedRequest, res: Response): Prom
       return;
     }
 
-    // Protect single admin account from deletion
-    if (targetUser.role === 'admin' || targetUser.email?.toLowerCase().trim() === adminEmail) {
+    // Protect single/configured admin accounts from deletion
+    if (targetUser.role === 'admin' || isConfiguredAdminEmail(targetUser.email)) {
       res.status(400).json({
         success: false,
         message: 'The primary administrator account cannot be deleted.',

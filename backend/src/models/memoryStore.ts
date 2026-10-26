@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { isConfiguredAdminEmail } from '../config/env';
 
 function generateHexId(): string {
   return crypto.randomBytes(12).toString('hex');
@@ -366,10 +367,9 @@ function createUserDoc(data: {
   createdAt?: Date;
   updatedAt?: Date;
 }): InMemoryUserDoc {
-  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
   const normalizedEmail = (data.email || '').toLowerCase().trim();
   let role: 'user' | 'admin' = 'user';
-  if (data.role === 'admin' && normalizedEmail === adminEmail) {
+  if (data.role === 'admin' && isConfiguredAdminEmail(normalizedEmail)) {
     role = 'admin';
   }
 
@@ -393,8 +393,7 @@ function createUserDoc(data: {
 
     async save(): Promise<InMemoryUserDoc> {
       this.updatedAt = new Date();
-      const currentAdminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
-      if (this.role === 'admin' && this.email.toLowerCase().trim() !== currentAdminEmail) {
+      if (this.role === 'admin' && !isConfiguredAdminEmail(this.email)) {
         this.role = 'user';
       }
 
@@ -579,8 +578,7 @@ export const memoryUser = {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(patch.password, salt);
     }
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
-    if (user.role === 'admin' && user.email.toLowerCase().trim() !== adminEmail) {
+    if (user.role === 'admin' && !isConfiguredAdminEmail(user.email)) {
       user.role = 'user';
     }
     user.updatedAt = new Date();
@@ -591,11 +589,14 @@ export const memoryUser = {
 
   async updateMany(filter: any, update: any): Promise<{ modifiedCount: number }> {
     let modifiedCount = 0;
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
     for (const [id, user] of usersMap.entries()) {
       let matches = true;
       if (filter?.role && user.role !== filter.role) matches = false;
       if (filter?.email?.$ne && user.email.toLowerCase().trim() === filter.email.$ne.toLowerCase().trim()) matches = false;
+      if (filter?.email?.$nin && Array.isArray(filter.email.$nin)) {
+        const lowerList = filter.email.$nin.map((e: string) => e.toLowerCase().trim());
+        if (lowerList.includes(user.email.toLowerCase().trim())) matches = false;
+      }
       if (matches) {
         const patch = update.$set || update;
         Object.assign(user, patch);
@@ -603,7 +604,7 @@ export const memoryUser = {
           const salt = await bcrypt.genSalt(10);
           user.password = await bcrypt.hash(patch.password, salt);
         }
-        if (user.role === 'admin' && user.email.toLowerCase().trim() !== adminEmail) {
+        if (user.role === 'admin' && !isConfiguredAdminEmail(user.email)) {
           user.role = 'user';
         }
         user.updatedAt = new Date();
@@ -701,9 +702,8 @@ export const memoryUser = {
       hashedPassword = await bcrypt.hash(data.password, salt);
     }
 
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
     let finalRole: 'user' | 'admin' = 'user';
-    if (data.role === 'admin' && normalizedEmail === adminEmail) {
+    if (data.role === 'admin' && isConfiguredAdminEmail(normalizedEmail)) {
       finalRole = 'admin';
     }
 

@@ -38,8 +38,14 @@ async function bootstrapAdmin(): Promise<void> {
     const nameArg = args.find((a) => a.startsWith('--name='))?.split('=')[1];
 
     const adminEmail = (emailArg || process.env.BOOTSTRAP_ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@saferoute.com')
+      .split(',')[0]
       .trim()
       .toLowerCase();
+
+    // Ensure bootstrap target email is recognized as admin during save
+    if (adminEmail && !process.env.ADMIN_EMAIL?.includes(adminEmail)) {
+      process.env.ADMIN_EMAIL = process.env.ADMIN_EMAIL ? `${process.env.ADMIN_EMAIL},${adminEmail}` : adminEmail;
+    }
 
     const adminName = (nameArg || process.env.BOOTSTRAP_ADMIN_NAME || process.env.ADMIN_NAME || 'System Administrator').trim();
 

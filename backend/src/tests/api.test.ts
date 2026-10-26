@@ -18,7 +18,7 @@ let secondUserToken: string;
 const secondUserEmail = `second.user.${Date.now()}@saferoute.test`;
 
 let adminToken: string;
-const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase();
+const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').split(',')[0].toLowerCase().trim();
 const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
 
 let createdPredictionId: string;

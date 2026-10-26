@@ -1,8 +1,22 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+export function getAdminEmails(): string[] {
+  const raw = process.env.ADMIN_EMAIL || 'admin@saferoute.com';
+  return raw
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function isConfiguredAdminEmail(email?: string): boolean {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  return getAdminEmails().includes(normalized);
+}
+
 export const ENV = {
-  ADMIN_EMAIL: (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim(),
+  ADMIN_EMAIL: (process.env.ADMIN_EMAIL || 'admin@saferoute.com').split(',')[0].toLowerCase().trim(),
   PORT: Number(process.env.PORT) || 5000,
   NODE_ENV: process.env.NODE_ENV || 'development',
   MONGO_URI: (process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/saferoute').trim(),

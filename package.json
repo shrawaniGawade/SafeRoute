@@ -15,6 +15,9 @@
     "test": "npm test --prefix backend",
     "start": "npm start --prefix backend"
   },
+  "devDependencies": {
+    "vite": "^8.3.0"
+  },
   "keywords": [
     "safety",
     "route-planning",

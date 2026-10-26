@@ -383,6 +383,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  isolation: isolate;
 }
 
 .factor-meters-grid {
@@ -511,9 +514,10 @@
    ============================================================ */
 .app-shell-root .route-panel-card,
 .app-shell-root .factor-breakdown-card {
-  background: var(--ti-surface);
+  background: var(--ti-surface, #0f0f11);
   border-color: var(--ti-line);
   box-shadow: var(--ti-card-shadow);
+  isolation: isolate;
 }
 
 .app-shell-root .panel-header h2 {

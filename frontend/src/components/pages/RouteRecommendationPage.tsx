@@ -39,7 +39,12 @@ export interface DestinationStop {
 }
 
 export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = ({ onNavigate }) => {
-  const { currentPrediction, recordPrediction } = usePredictions();
+  const {
+    currentPrediction,
+    recordPrediction,
+    selectedRouteId: contextRouteId,
+    setSelectedRouteId: setContextRouteId,
+  } = usePredictions();
   const { showToast } = useAuth();
 
   const [source, setSource] = useState(currentPrediction?.source || 'North Station, Boston, MA');
@@ -77,7 +82,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
   const [error, setError] = useState('');
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
   const [hasSearched, setHasSearched] = useState<boolean>(Boolean(currentPrediction?.result));
-  const [selectedRouteId, setSelectedRouteId] = useState<string>('alt_safe_corridor');
+  const [selectedRouteId, setSelectedRouteId] = useState<string>(contextRouteId || 'alt_safe_corridor');
 
   // Missing Place & Interactive Pin Placement State
   const [isAddPlaceModalOpen, setIsAddPlaceModalOpen] = useState(false);
@@ -349,6 +354,7 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
       if (result.alternatives && result.alternatives.length > 0) {
         const targetId = result.recommendedRouteId || result.alternatives[0].id;
         setSelectedRouteId(targetId);
+        setContextRouteId(targetId);
       }
       showToast('Route safety score successfully evaluated!', 'success');
     } catch (err: any) {
@@ -850,7 +856,10 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
           safetyScore={activeResult?.safety_score || 88}
           routes={currentRoutes}
           selectedRouteId={selectedRouteId}
-          onSelectRoute={(id) => setSelectedRouteId(id)}
+          onSelectRoute={(id) => {
+            setSelectedRouteId(id);
+            setContextRouteId(id);
+          }}
           isLoading={loading}
           error={error || null}
           isPinDropMode={isPinDropMode}
@@ -863,8 +872,18 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
         <RouteList
           routes={currentRoutes}
           selectedRouteId={selectedRouteId}
-          onSelectRoute={(id) => setSelectedRouteId(id)}
-          onNavigateDetails={() => onNavigate('prediction-details')}
+          onSelectRoute={(id) => {
+            setSelectedRouteId(id);
+            setContextRouteId(id);
+          }}
+          onNavigateDetails={(routeId) => {
+            const targetId = routeId || selectedRouteId || currentRoutes[0]?.id;
+            if (targetId) {
+              setSelectedRouteId(targetId);
+              setContextRouteId(targetId);
+            }
+            onNavigate('prediction-details');
+          }}
           isLoading={loading}
           error={error}
           errorStatus={errorStatus}
@@ -882,8 +901,8 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             {/* Navigability & Safety Policy Disclaimer */}
             <div
               style={{
-                background: activeResult?.is_navigable ? 'var(--ti-success-bg)' : 'var(--ti-warn-bg)',
-                border: `1px solid ${activeResult?.is_navigable ? 'var(--ti-success-line)' : 'var(--ti-warn-line)'}`,
+                background: activeResult?.is_navigable ? 'var(--ti-success-bg, #064e3b)' : 'var(--ti-warn-bg, #451a03)',
+                border: `1px solid ${activeResult?.is_navigable ? 'var(--ti-success-line, #047857)' : 'var(--ti-warn-line, #b45309)'}`,
                 borderRadius: '10px',
                 padding: '12px 16px',
                 fontSize: '12px',
@@ -892,6 +911,9 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
                 flexDirection: 'column',
                 gap: '4px',
                 margin: '14px 0',
+                isolation: 'isolate',
+                boxSizing: 'border-box',
+                width: '100%',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
@@ -913,11 +935,14 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             {activeResult?.scoring_explanation && (
               <div
                 style={{
-                  background: 'var(--ti-surface-2)',
-                  border: '1px solid var(--ti-line)',
+                  background: 'var(--ti-surface-2, #18181b)',
+                  border: '1px solid var(--ti-line, #27272a)',
                   borderRadius: '12px',
                   padding: '14px 18px',
                   margin: '12px 0',
+                  isolation: 'isolate',
+                  boxSizing: 'border-box',
+                  width: '100%',
                 }}
               >
                 <h4
@@ -944,11 +969,14 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             {activeResult?.explanation?.factorReasons && activeResult.explanation.factorReasons.length > 0 && (
               <div
                 style={{
-                  background: 'var(--ti-surface)',
-                  border: '1px solid var(--ti-line)',
+                  background: 'var(--ti-surface, #0f0f11)',
+                  border: '1px solid var(--ti-line, #27272a)',
                   borderRadius: '12px',
                   padding: '14px 18px',
                   margin: '12px 0',
+                  isolation: 'isolate',
+                  boxSizing: 'border-box',
+                  width: '100%',
                 }}
               >
                 <h4

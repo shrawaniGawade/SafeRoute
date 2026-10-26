@@ -202,6 +202,10 @@ export async function verifyOtp(req: Request, res: Response): Promise<void> {
     // Check if an existing unverified user exists
     const user = await User.findOne({ email: normalizedEmail });
     if (user) {
+      const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+      if (user.email.toLowerCase().trim() !== adminEmail) {
+        user.role = 'user';
+      }
       user.isVerified = true;
       user.lastLogin = new Date();
       await user.save();
@@ -326,6 +330,7 @@ export async function login(req: Request, res: Response): Promise<void> {
 
   if (!user || !(await user.comparePassword(password))) {
     res.status(401).json({
+      success: false,
       message: 'Invalid email or password.',
     });
     return;
@@ -342,7 +347,8 @@ export async function login(req: Request, res: Response): Promise<void> {
   setRefreshTokenCookie(res, tokens.refreshToken, tokens.refreshTokenExpiresAt);
 
   res.status(200).json({
-    message: 'Welcome back!',
+    success: true,
+    message: 'Login successful',
     user: {
       id: user._id.toString(),
       name: user.name,

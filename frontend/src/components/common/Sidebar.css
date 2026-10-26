@@ -1,17 +1,22 @@
 /* SafeRoute Desktop Sidebar & Mobile Drawer */
 
 .sidebar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
   width: 260px;
+  height: 100vh;
+  height: 100dvh;
   background: #0b1324;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  position: sticky;
-  top: 0;
   z-index: 100;
-  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sidebar-header {
@@ -20,6 +25,7 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
 .sidebar-brand {
@@ -63,6 +69,26 @@
   flex-direction: column;
   gap: 6px;
   overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .sidebar-section-title {
@@ -126,6 +152,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 .sidebar-user-card {
@@ -198,9 +226,10 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1050;
   animation: fadeIn 0.2s ease;
 }
 
@@ -211,13 +240,18 @@
     top: 0;
     left: 0;
     bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
     transform: translateX(-100%);
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
-    z-index: 1001;
+    box-shadow: none;
+    z-index: 1100;
   }
 
   .sidebar-container.mobile-open {
     transform: translateX(0);
+    box-shadow: 10px 0 40px rgba(0, 0, 0, 0.75);
   }
 
   .mobile-drawer-backdrop.mobile-open {

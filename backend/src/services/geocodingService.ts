@@ -324,6 +324,102 @@ const CURATED_LANDMARKS: GeocodeResult[] = [
     importance: 0.94,
     address: { suburb: 'Fort', city: 'Mumbai', state: 'Maharashtra', postcode: '400001', country: 'India' },
   },
+  {
+    placeId: 'nom_pune_linkcode_fc',
+    name: 'Linkcode Technologies, Pune',
+    displayName: 'Linkcode Technologies, Fergusson College Rd, Shivajinagar, Pune, Maharashtra 411004, India',
+    label: 'Linkcode Technologies, Fergusson College Rd, Shivajinagar, Pune, Maharashtra 411004, India',
+    confidence: 0.96,
+    lat: 18.5284,
+    lng: 73.8436,
+    type: 'commercial',
+    importance: 0.96,
+    address: { road: 'Fergusson College Rd', suburb: 'Shivajinagar', city: 'Pune', state: 'Maharashtra', postcode: '411004', country: 'India' },
+  },
+  {
+    placeId: 'nom_pune_linkcode_alandi',
+    name: 'Linkcode Campus, Alandi Road',
+    displayName: 'Linkcode Campus, Alandi Road, Alandi Devachi, Pune, Maharashtra 412105, India',
+    label: 'Linkcode Campus, Alandi Road, Alandi Devachi, Pune, Maharashtra 412105, India',
+    confidence: 0.95,
+    lat: 18.6750,
+    lng: 73.8990,
+    type: 'commercial',
+    importance: 0.95,
+    address: { road: 'Alandi Road', suburb: 'Alandi Devachi', city: 'Pune', state: 'Maharashtra', postcode: '412105', country: 'India' },
+  },
+  {
+    placeId: 'nom_pune_sai_aangan',
+    name: 'Sai Aangan Society, Alandi Road',
+    displayName: 'Sai Aangan Society, Near Saibaba Mandir, Sant Dnyaneshwar Marg, Alandi Road, Bhosari, Pune, Maharashtra 411039, India',
+    label: 'Sai Aangan Society, Near Saibaba Mandir, Sant Dnyaneshwar Marg, Alandi Road, Bhosari, Pune, Maharashtra 411039, India',
+    confidence: 0.95,
+    lat: 18.642953,
+    lng: 73.876243,
+    type: 'residential',
+    importance: 0.95,
+    address: { road: 'Sant Dnyaneshwar Marg', suburb: 'Bhosari', city: 'Pune', state: 'Maharashtra', postcode: '411039', country: 'India' },
+  },
+  {
+    placeId: 'nom_pune_saibaba_mandir',
+    name: 'Saibaba Mandir / Sai Temple, Alandi Road',
+    displayName: 'Saibaba Mandir, Sant Dnyaneshwar Marg, Alandi Road, Bhosari, Pune, Maharashtra 411039, India',
+    label: 'Saibaba Mandir, Sant Dnyaneshwar Marg, Alandi Road, Bhosari, Pune, Maharashtra 411039, India',
+    confidence: 0.94,
+    lat: 18.6416261,
+    lng: 73.8769225,
+    type: 'place_of_worship',
+    importance: 0.94,
+    address: { road: 'Sant Dnyaneshwar Marg', suburb: 'Bhosari', city: 'Pune', state: 'Maharashtra', postcode: '411039', country: 'India' },
+  },
+  {
+    placeId: 'nom_pune_alandi_mandir',
+    name: 'Shree Sant Dnyaneshwar Maharaj Sanjeevan Samadhi Mandir, Alandi',
+    displayName: 'Shree Dnyaneshwar Maharaj Sanjeevan Samadhi Mandir, Alandi Devachi, Khed, Pune, Maharashtra 412105, India',
+    label: 'Shree Dnyaneshwar Maharaj Sanjeevan Samadhi Mandir, Alandi Devachi, Khed, Pune, Maharashtra 412105, India',
+    confidence: 0.98,
+    lat: 18.6760109,
+    lng: 73.8964305,
+    type: 'place_of_worship',
+    importance: 0.98,
+    address: { road: 'Mandir steps', suburb: 'Alandi Devachi', city: 'Pune', state: 'Maharashtra', postcode: '412105', country: 'India' },
+  },
+  {
+    placeId: 'nom_pune_thorya_paduka',
+    name: 'Thorya / Thorala Paduka Temple',
+    displayName: 'Thorya Paduka Temple, Sant Dyaneshwar Marg, Bhosari, Pune, Maharashtra 411039, India',
+    label: 'Thorya Paduka Temple, Sant Dyaneshwar Marg, Bhosari, Pune, Maharashtra 411039, India',
+    confidence: 0.92,
+    lat: 18.6403704,
+    lng: 73.8769770,
+    type: 'place_of_worship',
+    importance: 0.92,
+    address: { road: 'Sant Dyaneshwar Marg', suburb: 'Bhosari', city: 'Pune', state: 'Maharashtra', postcode: '411039', country: 'India' },
+  },
+  {
+    placeId: 'nom_pune_mit_aoe',
+    name: 'MIT Academy of Engineering (MIT AOE), Alandi',
+    displayName: 'MIT Academy of Engineering, Dehu Phata, Alandi, Pune, Maharashtra 412105, India',
+    label: 'MIT Academy of Engineering, Dehu Phata, Alandi, Pune, Maharashtra 412105, India',
+    confidence: 0.93,
+    lat: 18.6757,
+    lng: 73.8864,
+    type: 'college',
+    importance: 0.93,
+    address: { road: 'Dehu Phata Road', suburb: 'Alandi', city: 'Pune', state: 'Maharashtra', postcode: '412105', country: 'India' },
+  },
+  {
+    placeId: 'nom_pune_coep',
+    name: 'COEP Technological University, Shivajinagar, Pune',
+    displayName: 'COEP Technological University, Wellesely Rd, Shivajinagar, Pune, Maharashtra 411005, India',
+    label: 'COEP Technological University, Wellesely Rd, Shivajinagar, Pune, Maharashtra 411005, India',
+    confidence: 0.95,
+    lat: 18.5298,
+    lng: 73.8567,
+    type: 'university',
+    importance: 0.95,
+    address: { road: 'Wellesely Rd', suburb: 'Shivajinagar', city: 'Pune', state: 'Maharashtra', postcode: '411005', country: 'India' },
+  },
 ];
 
 /**
@@ -515,6 +611,88 @@ async function queryNominatim(
     .filter((item: GeocodeResult | null): item is GeocodeResult => item !== null);
 }
 
+/**
+ * Executes a fast, rate-limit-free OSM/Pelias geocoding query using Photon (Komoot).
+ * Ideal for real-time autocomplete, typo tolerance, and global POIs.
+ */
+async function queryPhoton(
+  query: string,
+  limit: number,
+  focus?: { lat: number; lng: number }
+): Promise<GeocodeResult[]> {
+  try {
+    const url = 'https://photon.komoot.io/api/';
+    const params: Record<string, any> = {
+      q: query.trim(),
+      limit: Math.min(10, Math.max(1, limit)),
+    };
+
+    if (focus && isValidCoordinate(focus.lat, focus.lng)) {
+      params.lat = focus.lat;
+      params.lon = focus.lng;
+    }
+
+    const response = await axios.get(url, {
+      params,
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'SafeRoute-App/2.0 (contact: info@saferoute.local)',
+      },
+      timeout: 4500,
+    });
+
+    const features = response.data?.features;
+    if (!features || !Array.isArray(features)) {
+      return [];
+    }
+
+    return features
+      .map((feat: any) => {
+        const coords = feat?.geometry?.coordinates;
+        if (!Array.isArray(coords) || coords.length < 2) return null;
+        const [lng, lat] = coords;
+        if (!isValidCoordinate(lat, lng)) return null;
+
+        const props = feat.properties || {};
+        const name = props.name || props.street || query.trim();
+        const addressParts = [
+          props.name,
+          props.street ? (props.housenumber ? `${props.housenumber} ${props.street}` : props.street) : null,
+          props.district || props.suburb || props.neighbourhood || props.locality,
+          props.city || props.town || props.village,
+          props.state,
+          props.postcode,
+          props.country,
+        ].filter(Boolean);
+
+        const displayName = addressParts.length > 0 ? addressParts.join(', ') : name;
+
+        return {
+          placeId: `photon_${props.osm_type || 'osm'}_${props.osm_id || `${lat.toFixed(5)}_${lng.toFixed(5)}`}`,
+          name,
+          displayName,
+          label: displayName,
+          lat,
+          lng,
+          type: props.osm_value || props.type || 'place',
+          confidence: 0.9,
+          importance: 0.9,
+          address: {
+            road: props.street,
+            suburb: props.district || props.suburb || props.neighbourhood,
+            city: props.city || props.town || props.village,
+            state: props.state,
+            postcode: props.postcode,
+            country: props.country,
+          },
+        } as GeocodeResult;
+      })
+      .filter((item: GeocodeResult | null): item is GeocodeResult => item !== null);
+  } catch {
+    return [];
+  }
+}
+
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -534,18 +712,27 @@ export function generateQueryVariations(query: string): string[] {
   const q = query.trim();
   variations.add(q);
 
+  if (/aalndi/i.test(q)) {
+    variations.add(q.replace(/aalndi/gi, 'Alandi'));
+  }
+
+  if (/linkcode/i.test(q)) {
+    variations.add('Linkcode Technologies Pune');
+    variations.add('Linkcode Campus Alandi Road');
+  }
+
+  if (/sai\s*aangan|sai\s*angan|saiangel|sai\s*angel/i.test(q)) {
+    variations.add(q.replace(/sai\s*aangan|sai\s*angan/gi, 'Saiangel'));
+    variations.add(q.replace(/sai\s*aangan|sai\s*angan/gi, 'Sai Angel'));
+    variations.add(q.replace(/saiangel|sai\s*angel/gi, 'Sai Aangan Society'));
+  }
+
   if (/thorala/i.test(q)) {
     variations.add(q.replace(/thorala/gi, 'Thorya'));
     variations.add(q.replace(/thorala/gi, 'Thorlya'));
   } else if (/thorya/i.test(q)) {
     variations.add(q.replace(/thorya/gi, 'Thorala'));
     variations.add(q.replace(/thorya/gi, 'Thorlya'));
-  }
-
-  if (/saiangel/i.test(q)) {
-    variations.add(q.replace(/saiangel/gi, 'Sai Angel'));
-  } else if (/sai\s+angel/i.test(q)) {
-    variations.add(q.replace(/sai\s+angel/gi, 'Saiangel'));
   }
 
   if (/mandir/i.test(q)) {
@@ -707,7 +894,51 @@ export async function searchLocations(
     results.push(...dbPlaces);
   }
 
-  // 4. Try OpenRouteService Geocoding if needed
+  // 3b. Prioritize known local curated landmarks (e.g., Linkcode, Sai Aangan, MIT AOE)
+  if (results.length < limit) {
+    const curatedMatches = searchCuratedLandmarks(query, limit - results.length);
+    if (curatedMatches.length > 0) {
+      results.push(...curatedMatches);
+    }
+  }
+
+  // 4. Fast, fuzzy OpenStreetMap & POI search via Photon (Komoot)
+  if (results.length < limit) {
+    try {
+      const photonResults = await queryPhoton(query, limit - results.length, focus);
+      results.push(...photonResults);
+
+      // If 0 results, try query variations (typos, transliterations) or "near" sub-parts
+      if (photonResults.length === 0) {
+        const nearMatch = query.match(/^(.+?)(?:,\s*|\s+)near(?:by)?\s+(.+)$/i);
+        const searchTerms: string[] = [];
+
+        if (nearMatch) {
+          const placePart = nearMatch[1].trim();
+          const landmarkPart = nearMatch[2].trim();
+          searchTerms.push(`${placePart} ${landmarkPart}`);
+          searchTerms.push(placePart);
+          searchTerms.push(landmarkPart);
+        }
+
+        const variations = generateQueryVariations(query).filter((v) => v.toLowerCase() !== query.toLowerCase());
+        searchTerms.push(...variations);
+
+        for (const term of searchTerms) {
+          if (results.length >= limit) break;
+          const varResults = await queryPhoton(term, limit - results.length, focus);
+          if (varResults.length > 0) {
+            results.push(...varResults);
+            break;
+          }
+        }
+      }
+    } catch {
+      // Continue to next fallback
+    }
+  }
+
+  // 5. Try OpenRouteService Geocoding if needed
   if (results.length < limit && ENV.ROUTING_PROVIDER === 'openrouteservice' && ENV.ROUTING_API_KEY) {
     try {
       const orsResults = await queryOpenRouteService(query, limit - results.length, focus);
@@ -717,7 +948,7 @@ export async function searchLocations(
     }
   }
 
-  // 5. Try Nominatim fallback if more results needed
+  // 6. Try Nominatim fallback if more results needed
   if (results.length < limit) {
     try {
       const nomResults = await queryNominatim(query, limit - results.length, focus);
@@ -739,11 +970,20 @@ export async function searchLocations(
     }
   }
 
-  // 6. Final fallback to curated landmarks
+  // 7. Final fallback to curated landmarks
   if (results.length === 0) {
     const fallbackResults = searchCuratedLandmarks(query, limit);
     if (fallbackResults.length > 0) {
       results = fallbackResults;
+    } else {
+      const variations = generateQueryVariations(query);
+      for (const v of variations) {
+        const varRes = searchCuratedLandmarks(v, limit);
+        if (varRes.length > 0) {
+          results = varRes;
+          break;
+        }
+      }
     }
   }
 
@@ -871,8 +1111,40 @@ export async function reverseGeocode(lat: number, lng: number): Promise<GeoPoint
   let label = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   let confidence = 0.5;
 
-  // Try ORS reverse geocoding
-  if (ENV.ROUTING_PROVIDER === 'openrouteservice' && ENV.ROUTING_API_KEY) {
+  // 2. Try fast Photon reverse geocoding
+  try {
+    const pRes = await axios.get('https://photon.komoot.io/reverse', {
+      params: { lat, lon: lng },
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'SafeRoute-App/2.0 (contact: info@saferoute.local)',
+      },
+      timeout: 4000,
+    });
+    const first = pRes.data?.features?.[0];
+    if (first && first.properties) {
+      const props = first.properties;
+      const parts = [
+        props.name,
+        props.street ? (props.housenumber ? `${props.housenumber} ${props.street}` : props.street) : null,
+        props.district || props.suburb || props.locality,
+        props.city || props.town || props.village,
+        props.state,
+        props.postcode,
+        props.country,
+      ].filter(Boolean);
+
+      if (parts.length > 0) {
+        label = parts.join(', ');
+        confidence = 0.95;
+      }
+    }
+  } catch {
+    // Fall through to ORS / Nominatim
+  }
+
+  // 3. Try ORS reverse geocoding
+  if (confidence === 0.5 && ENV.ROUTING_PROVIDER === 'openrouteservice' && ENV.ROUTING_API_KEY) {
     try {
       const response = await axios.get('https://api.openrouteservice.org/geocode/reverse', {
         params: {
@@ -894,7 +1166,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<GeoPoint
     }
   }
 
-  // Try Nominatim reverse geocoding
+  // 4. Try Nominatim reverse geocoding
   if (confidence === 0.5) {
     try {
       await throttleNominatim();

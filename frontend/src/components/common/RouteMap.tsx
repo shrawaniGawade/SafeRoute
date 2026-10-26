@@ -273,7 +273,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         const polyline = L.polyline(latLngs, {
           color: routeColor,
           weight: isSelected ? 7 : 4,
-          opacity: isSelected ? 1.0 : 0.65,
+          opacity: isSelected ? 1.0 : 0.4,
           dashArray,
           lineCap: 'round',
           lineJoin: 'round',
@@ -429,8 +429,13 @@ export const RouteMap: React.FC<RouteMapProps> = ({
       markersLayer.addLayer(destMarker);
     });
 
-    // Fit Bounds so origin, all destinations, and the complete route remain visible
-    const fitTargets: [number, number][] = [...allRoutePoints];
+    // Fit Bounds so origin, all destinations, and the selected route remain clearly framed
+    const selectedRoute = routes.find((r) => r.id === currentSelectedId) || routes[0];
+    const selectedRoutePoints = selectedRoute ? extractLeafletLatLngs(selectedRoute) : [];
+
+    const fitTargets: [number, number][] =
+      selectedRoutePoints.length > 0 ? [...selectedRoutePoints] : [...allRoutePoints];
+
     if (resolvedOrigin) fitTargets.push(resolvedOrigin);
     finalDestMarkers.forEach((d) => fitTargets.push(d.coords));
 
@@ -683,27 +688,11 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
   return (
     <div className="route-map-container" role="region" aria-label="Interactive Route Safety Map">
-      {/* Floating Pin Placement Mode Banner */}
-      {isPinDropMode && (
-        <div className="pin-placement-banner" role="status">
-          <MapPin size={15} />
-          <span>
-            {placedPinCoords
-              ? `Pin placed at ${placedPinCoords.lat}, ${placedPinCoords.lng} (Drag pin to adjust position)`
-              : 'Click anywhere on map to drop pin at your entrance / location'}
-          </span>
-          {onCancelPinDrop && (
-            <button type="button" className="pin-placement-cancel-btn" onClick={onCancelPinDrop}>
-              Done / Cancel
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Layer Toggles */}
-      <div className="map-layers-bar">
+      {/* Map Layer Tabs Toolbar Header */}
+      <div className="map-layers-bar" role="toolbar" aria-label="Map Layer Filters">
         <button
           type="button"
+          id="map-tab-streetlights"
           className={`map-layer-chip ${showLights ? 'active' : ''}`}
           onClick={() => setShowLights(!showLights)}
           title="Toggle Streetlight Telemetry"
@@ -714,6 +703,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         </button>
         <button
           type="button"
+          id="map-tab-safezones"
           className={`map-layer-chip ${showSafeZones ? 'active' : ''}`}
           onClick={() => setShowSafeZones(!showSafeZones)}
           title="Toggle Verified Police / Safe Havens"
@@ -724,6 +714,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         </button>
         <button
           type="button"
+          id="map-tab-safetyhubs"
           className={`map-layer-chip ${showNearbyHubs ? 'active' : ''}`}
           onClick={() => setShowNearbyHubs(!showNearbyHubs)}
           title="Toggle Nearby Emergency Hubs (Hospitals, Police, Society Gates)"
@@ -734,6 +725,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         </button>
         <button
           type="button"
+          id="map-tab-hazards"
           className={`map-layer-chip ${showHazards ? 'active' : ''}`}
           onClick={() => setShowHazards(!showHazards)}
           title="Toggle Community Road Hazards"
@@ -745,7 +737,8 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         {onOpenAddPlace && (
           <button
             type="button"
-            className="map-layer-chip"
+            id="map-tab-addplace"
+            className="map-layer-chip add-place-chip"
             style={{ background: '#0d9488', color: '#ffffff', border: 'none', fontWeight: 700 }}
             onClick={onOpenAddPlace}
             title="Add Missing Society or Landmark"
@@ -754,66 +747,94 @@ export const RouteMap: React.FC<RouteMapProps> = ({
             <span>Add Place</span>
           </button>
         )}
-        {routes && routes.length > 0 && (
+        {routes && routes.length > 0 && routes.map((r, i) => {
+          const isSelected = r.id === currentSelectedId;
+          const letter = r.letter || ['A', 'B', 'C'][i] || String(i + 1);
+          return (
+            <button
+              key={r.id || `route-tab-${i}`}
+              type="button"
+              id={`map-tab-route-${letter.toLowerCase()}`}
+              className={`map-layer-chip ${isSelected ? 'active' : ''}`}
+              onClick={() => handleSelect(r.id)}
+              title={`Select Route ${letter} (${r.safety_score || safetyScore}/100)`}
+              aria-pressed={isSelected}
+            >
+              <Layers size={14} />
+              <span>Route {letter} ({r.safety_score || safetyScore}/100)</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Map Canvas & Interactive Controls Wrapper */}
+      <div className="map-canvas-wrapper">
+        {/* Floating Pin Placement Mode Banner */}
+        {isPinDropMode && (
+          <div className="pin-placement-banner" role="status">
+            <MapPin size={15} />
+            <span>
+              {placedPinCoords
+                ? `Pin placed at ${placedPinCoords.lat}, ${placedPinCoords.lng} (Drag pin to adjust position)`
+                : 'Click anywhere on map to drop pin at your entrance / location'}
+            </span>
+            {onCancelPinDrop && (
+              <button type="button" className="pin-placement-cancel-btn" onClick={onCancelPinDrop}>
+                Done / Cancel
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Map Control Buttons */}
+        <div className="map-controls-bar">
           <button
             type="button"
-            className={`map-layer-chip ${isRouteASelected ? 'active' : ''}`}
-            onClick={() => handleSelect(routeAId)}
-            title="Select Route A (Safest Corridor)"
-            aria-pressed={isRouteASelected}
+            id="map-control-zoom-in"
+            className="map-control-btn"
+            onClick={handleZoomIn}
+            aria-label="Zoom in"
+            title="Zoom In"
           >
-            <Layers size={14} />
-            <span>Route A ({selectedRouteObj?.safety_score || safetyScore}/100)</span>
+            <ZoomIn size={18} />
           </button>
-        )}
-      </div>
+          <button
+            type="button"
+            id="map-control-zoom-out"
+            className="map-control-btn"
+            onClick={handleZoomOut}
+            aria-label="Zoom out"
+            title="Zoom Out"
+          >
+            <ZoomOut size={18} />
+          </button>
+          <button
+            type="button"
+            id="map-control-reset"
+            className="map-control-btn"
+            onClick={handleReset}
+            aria-label="Reset zoom"
+            title="Reset View"
+          >
+            <RotateCcw size={16} />
+          </button>
+          <button
+            type="button"
+            id="map-control-info"
+            className={`map-control-btn ${showStatusOverlay ? 'active' : ''}`}
+            onClick={() => setShowStatusOverlay(!showStatusOverlay)}
+            aria-label="Toggle Route Information"
+            title="Toggle Route Information"
+          >
+            <Info size={17} />
+          </button>
+        </div>
 
-      {/* Map Control Buttons */}
-      <div className="map-controls-bar">
-        <button
-          type="button"
-          className="map-control-btn"
-          onClick={handleZoomIn}
-          aria-label="Zoom in"
-          title="Zoom In"
-        >
-          <ZoomIn size={18} />
-        </button>
-        <button
-          type="button"
-          className="map-control-btn"
-          onClick={handleZoomOut}
-          aria-label="Zoom out"
-          title="Zoom Out"
-        >
-          <ZoomOut size={18} />
-        </button>
-        <button
-          type="button"
-          className="map-control-btn"
-          onClick={handleReset}
-          aria-label="Reset zoom"
-          title="Reset View"
-        >
-          <RotateCcw size={16} />
-        </button>
-        <button
-          type="button"
-          className={`map-control-btn ${showStatusOverlay ? 'active' : ''}`}
-          onClick={() => setShowStatusOverlay(!showStatusOverlay)}
-          aria-label="Toggle Route Information"
-          title="Toggle Route Information"
-        >
-          <Info size={17} />
-        </button>
-      </div>
-
-      {/* Real Interactive Leaflet Map Canvas */}
-      <div
-        ref={mapContainerRef}
-        className="leaflet-map-canvas"
-        style={{ width: '100%', height: '100%', minHeight: '480px' }}
-      />
+        {/* Real Interactive Leaflet Map Canvas */}
+        <div
+          ref={mapContainerRef}
+          className="leaflet-map-canvas"
+        />
 
       {/* Loading Overlay Badge */}
       {isLoading && (
@@ -904,6 +925,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

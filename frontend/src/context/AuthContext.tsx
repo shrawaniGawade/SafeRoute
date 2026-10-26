@@ -153,7 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
           window.location.hash = '#/app';
         }
-        showToast(`Welcome back, ${response.user.name}!`, 'success');
+        showToast('Login successful', 'success');
       }
       return response;
     } catch (error: any) {

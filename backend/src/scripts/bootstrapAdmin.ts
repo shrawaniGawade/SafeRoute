@@ -91,6 +91,14 @@ async function bootstrapAdmin(): Promise<void> {
       console.log(`✔ Administrator account successfully provisioned for: ${adminEmail}`);
     }
 
+    // Enforce RBAC invariant: Exactly one admin account exists (the bootstrapped admin)
+    if (typeof User.updateMany === 'function') {
+      await User.updateMany(
+        { email: { $ne: adminEmail }, role: 'admin' },
+        { $set: { role: 'user' } }
+      );
+    }
+
     // Immutable audit record (with sanitized metadata, zero secrets leaked)
     await logAdminAction({
       action: 'ADMIN_BOOTSTRAP' as any,

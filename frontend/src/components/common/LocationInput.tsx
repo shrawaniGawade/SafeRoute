@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, Navigation, Loader2, LocateFixed, X } from 'lucide-react';
-import { geocodeLocations, type GeocodeResult } from '../../services/api';
+import { geocodeLocations, reverseGeocodeLocation, type GeocodeResult } from '../../services/api';
 import './LocationInput.css';
 
 export interface SelectedLocation {
@@ -181,7 +181,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
     }
   };
 
-  // Use my location (browser geolocation)
+  // Use my location (browser geolocation) with reverse geocoding to actual address
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by your browser.');
@@ -192,18 +192,30 @@ export const LocationInput: React.FC<LocationInputProps> = ({
     setLocationError(null);
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const lat = parseFloat(pos.coords.latitude.toFixed(6));
         const lng = parseFloat(pos.coords.longitude.toFixed(6));
-        const myLocText = 'My Current Location';
 
-        setInputValue(myLocText);
-        onChange(myLocText, { lat, lng });
+        let formattedAddress = `${lat}, ${lng}`;
+        let locationName = 'Current Location';
+
+        try {
+          const revResult = await reverseGeocodeLocation(lat, lng);
+          if (revResult) {
+            formattedAddress = revResult.displayName || revResult.label || `${lat}, ${lng}`;
+            locationName = revResult.name || formattedAddress.split(',')[0].trim();
+          }
+        } catch (err) {
+          console.warn('[LocationInput] Reverse geocode lookup failed:', err);
+        }
+
+        setInputValue(formattedAddress);
+        onChange(formattedAddress, { lat, lng });
 
         if (onSelectLocation) {
           onSelectLocation({
-            name: myLocText,
-            displayName: `${myLocText} (${lat}, ${lng})`,
+            name: locationName,
+            displayName: formattedAddress,
             lat,
             lng,
           });
@@ -214,13 +226,17 @@ export const LocationInput: React.FC<LocationInputProps> = ({
       },
       (err) => {
         setIsLocating(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          setLocationError('Location permission denied. Please search manually.');
+        if (err.code === 1 || err.code === (err as any).PERMISSION_DENIED) {
+          setLocationError('Location permission denied. Please allow access in browser or search manually.');
+        } else if (err.code === 2 || err.code === (err as any).POSITION_UNAVAILABLE) {
+          setLocationError('GPS location unavailable. Please check your network or enter location.');
+        } else if (err.code === 3 || err.code === (err as any).TIMEOUT) {
+          setLocationError('Location request timed out. Please try again.');
         } else {
           setLocationError('Unable to detect current location.');
         }
       },
-      { timeout: 8000, enableHighAccuracy: true }
+      { timeout: 10000, enableHighAccuracy: true, maximumAge: 30000 }
     );
   };
 

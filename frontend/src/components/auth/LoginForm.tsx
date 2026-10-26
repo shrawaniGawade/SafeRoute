@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, EyeOff, Lock, Mail, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ArrowRight, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 
 export const LoginForm: React.FC<{ adminOnly?: boolean }> = ({ adminOnly = false }) => {
   const { login, setAuthModalView } = useAuth();
@@ -9,35 +9,47 @@ export const LoginForm: React.FC<{ adminOnly?: boolean }> = ({ adminOnly = false
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const isValidEmail = (addr: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr.trim());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password) {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !password) {
       setError('Please provide both email and password.');
+      setSuccess('');
       return;
     }
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(trimmedEmail)) {
       setError('Please enter a valid email address.');
+      setSuccess('');
       return;
     }
 
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      const response = await login({ email: email.trim(), password }, adminOnly ? 'admin' : undefined);
-      if (response?.user?.role === 'admin') {
-        window.location.hash = '#/admin';
-      } else {
-        window.location.hash = '#/app';
-      }
+      const response = await login({ email: trimmedEmail, password }, adminOnly ? 'admin' : undefined);
+      setSuccess('Login successful');
+      setError('');
+      setTimeout(() => {
+        if (response?.user?.role === 'admin') {
+          window.location.hash = '#/admin';
+        } else {
+          window.location.hash = '#/app';
+        }
+      }, 500);
     } catch (err: any) {
-      if (err?.data?.unverified) {
+      setSuccess('');
+      if (err?.status === 401 || err?.message?.toLowerCase().includes('invalid email or password')) {
+        setError('Invalid email or password.');
+      } else if (err?.data?.unverified) {
         setError('Your account is pending email verification. Enter the 6-digit code sent to your email, or request a new one on the next screen.');
       } else {
-        setError(err?.message || 'Invalid email or password. Please try again.');
+        setError(err?.message || 'Invalid email or password.');
       }
     } finally {
       setLoading(false);
@@ -58,6 +70,13 @@ export const LoginForm: React.FC<{ adminOnly?: boolean }> = ({ adminOnly = false
         </div>
       )}
 
+      {success && (
+        <div className="auth-alert success">
+          <CheckCircle2 size={18} />
+          <span>{success}</span>
+        </div>
+      )}
+
       <div className="form-group">
         <label htmlFor="login-email">Email Address</label>
         <div className="input-wrapper">
@@ -67,7 +86,11 @@ export const LoginForm: React.FC<{ adminOnly?: boolean }> = ({ adminOnly = false
             type="email"
             placeholder="you@example.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) setError('');
+              if (success) setSuccess('');
+            }}
             disabled={loading}
             autoComplete="email"
             required
@@ -94,7 +117,11 @@ export const LoginForm: React.FC<{ adminOnly?: boolean }> = ({ adminOnly = false
             type={showPassword ? 'text' : 'password'}
             placeholder="Enter your password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError('');
+              if (success) setSuccess('');
+            }}
             disabled={loading}
             autoComplete="current-password"
             required

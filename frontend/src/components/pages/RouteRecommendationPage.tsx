@@ -29,7 +29,7 @@ import { useAuth } from '../../context/AuthContext';
 import './RouteRecommendationPage.css';
 
 interface RouteRecommendationPageProps {
-  onNavigate: (route: string) => void;
+  onNavigate?: (route: string) => void;
 }
 
 export interface DestinationStop {
@@ -38,7 +38,7 @@ export interface DestinationStop {
   coords?: { lat: number; lng: number };
 }
 
-export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = ({ onNavigate }) => {
+export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = ({ onNavigate: _onNavigate }) => {
   const {
     currentPrediction,
     recordPrediction,
@@ -875,14 +875,6 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
           onSelectRoute={(id) => {
             setSelectedRouteId(id);
             setContextRouteId(id);
-          }}
-          onNavigateDetails={(routeId) => {
-            const targetId = routeId || selectedRouteId || currentRoutes[0]?.id;
-            if (targetId) {
-              setSelectedRouteId(targetId);
-              setContextRouteId(targetId);
-            }
-            onNavigate('prediction-details');
           }}
           isLoading={loading}
           error={error}

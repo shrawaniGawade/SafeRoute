@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import {
   LayoutDashboard,
   MapPin,
-  FileText,
   User,
   LogOut,
   Shield,
@@ -112,16 +111,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <MapPin size={18} />
             <span>Route Finder</span>
             <span className="sidebar-badge">AI Map</span>
-          </button>
-
-          <button
-            type="button"
-            id="user-nav-audit"
-            className={`sidebar-nav-link ${currentRoute === 'prediction-details' ? 'active' : ''}`}
-            onClick={() => handleLinkClick('prediction-details')}
-          >
-            <FileText size={18} />
-            <span>Prediction Audit</span>
           </button>
 
           <button

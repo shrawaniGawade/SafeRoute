@@ -3,7 +3,6 @@ import {
   ShieldCheck,
   Navigation,
   Compass,
-  ChevronRight,
   Clock,
   MapPin,
   Sparkles,
@@ -17,7 +16,6 @@ export interface RouteCardProps {
   letter: string;
   isSelected: boolean;
   onSelect: (routeId: string) => void;
-  onNavigateDetails?: (routeId: string) => void;
 }
 
 /**
@@ -54,7 +52,6 @@ export const RouteCard: React.FC<RouteCardProps> = ({
   letter,
   isSelected,
   onSelect,
-  onNavigateDetails,
 }) => {
   const riskMeta = getExplicitRiskLabel(route.safety_score, route.rating);
   const routeColor = route.color || (letter === 'A' ? '#0d9488' : letter === 'B' ? '#8b5cf6' : '#f59e0b');
@@ -170,27 +167,12 @@ export const RouteCard: React.FC<RouteCardProps> = ({
         </div>
       )}
 
-      {/* Card Footer: Selection indicator & Audit Button */}
+      {/* Card Footer: Selection indicator */}
       <div className="route-card-footer">
         <div className="selection-status">
           <span className={`status-indicator ${isSelected ? 'active' : ''}`} />
           <span className="status-text">{isSelected ? 'Active on Map' : 'Click to Highlight'}</span>
         </div>
-
-        {onNavigateDetails && (
-          <button
-            type="button"
-            className="card-audit-action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onNavigateDetails(route.id);
-            }}
-            title="Inspect factor-by-factor AI safety breakdown"
-          >
-            <span>Full Audit</span>
-            <ChevronRight size={14} />
-          </button>
-        )}
       </div>
     </div>
   );

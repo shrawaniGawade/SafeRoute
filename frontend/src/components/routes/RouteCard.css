@@ -431,27 +431,6 @@
   font-weight: 700;
 }
 
-.card-audit-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: transparent;
-  border: none;
-  color: var(--primary, #0d9488);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: background 0.15s ease, color 0.15s ease;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.card-audit-action-btn:hover {
-  background: var(--primary-subtle, rgba(13, 148, 136, 0.08));
-  color: var(--primary-hover, #0f766e);
-}
 
 /* Natural Page Flow Layout: Route cards scroll naturally with main content (No sticky/fixed collisions) */
 .routes-container-panel.routes-sidebar {
@@ -637,14 +616,6 @@
   background: var(--ti-faint);
 }
 
-.app-shell-root .card-audit-action-btn {
-  color: var(--ti-ink-soft);
-}
-
-.app-shell-root .card-audit-action-btn:hover {
-  background: var(--ti-elev);
-  color: var(--ti-ink);
-}
 
 @media (max-width: 899px) {
   .app-shell-root .routes-container-panel.routes-bottom-sheet {

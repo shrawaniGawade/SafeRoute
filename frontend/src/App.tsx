@@ -7,7 +7,6 @@ import { LandingPage } from './components/LandingPage';
 import { UserDashboard } from './components/UserDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { RouteRecommendationPage } from './components/pages/RouteRecommendationPage';
-import { PredictionDetailsPage } from './components/pages/PredictionDetailsPage';
 import { ProfilePage } from './components/pages/ProfilePage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import { UnauthorizedPage } from './components/pages/UnauthorizedPage';
@@ -20,7 +19,6 @@ export type AppRoute =
   | 'landing'
   | 'app'
   | 'routes'
-  | 'prediction-details'
   | 'profile'
   | 'admin'
   | 'unauthorized'
@@ -86,8 +84,8 @@ function App() {
     if (hash.includes('admin') || path === '/admin' || path.startsWith('/admin')) {
       return 'admin';
     }
-    if (hash.includes('prediction-details') || hash.includes('audit') || hash.includes('details')) {
-      return 'prediction-details';
+    if (hash.includes('prediction-details') || hash.includes('audit')) {
+      return 'routes';
     }
     if (hash.includes('routes') || hash.includes('recommendation') || hash.includes('planner')) {
       return 'routes';
@@ -138,7 +136,6 @@ function App() {
         if (
           requestedRoute === 'app' ||
           requestedRoute === 'routes' ||
-          requestedRoute === 'prediction-details' ||
           requestedRoute === 'profile'
         ) {
           setCurrentRoute('login');
@@ -199,7 +196,7 @@ function App() {
         }
 
         // Keep administrator accounts in the separate admin console.
-        const userDashboardRoutes: AppRoute[] = ['app', 'routes', 'prediction-details', 'profile'];
+        const userDashboardRoutes: AppRoute[] = ['app', 'routes', 'profile'];
         if (requestedRoute === 'login' || requestedRoute === 'admin-login' || userDashboardRoutes.includes(requestedRoute)) {
           setCurrentRoute('admin');
           window.location.hash = '#/admin';
@@ -276,7 +273,7 @@ function App() {
       return;
     }
 
-    const userDashboardRoutes = ['app', 'routes', 'prediction-details', 'profile'];
+    const userDashboardRoutes = ['app', 'routes', 'profile'];
     if (user?.role === 'admin' && userDashboardRoutes.includes(route)) {
       setCurrentRoute('admin');
       window.location.hash = '#/admin';
@@ -293,7 +290,6 @@ function App() {
     const validRoutes: AppRoute[] = [
       'app',
       'routes',
-      'prediction-details',
       'profile',
       'admin',
       'unauthorized',
@@ -321,8 +317,6 @@ function App() {
         return 'Traveler Dashboard';
       case 'routes':
         return 'AI Route Safety Finder';
-      case 'prediction-details':
-        return 'Safety Inference Audit';
       case 'profile':
         return 'My Account & Preferences';
       case 'unauthorized':
@@ -387,18 +381,7 @@ function App() {
         </AppLayout>
       )}
 
-      {/* 6. Prediction Details Page */}
-      {currentRoute === 'prediction-details' && (
-        <AppLayout
-          currentRoute={currentRoute}
-          onNavigate={handleNavigate}
-          pageTitle={getPageTitle(currentRoute)}
-        >
-          <PredictionDetailsPage onNavigate={handleNavigate} />
-        </AppLayout>
-      )}
-
-      {/* 7. User Profile Page */}
+      {/* 6. User Profile Page */}
       {currentRoute === 'profile' && (
         <AppLayout
           currentRoute={currentRoute}

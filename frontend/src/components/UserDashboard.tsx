@@ -40,7 +40,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 }) => {
   const { user } = useAuth();
   const aiStatus = useAiStatus();
-  const { history, stats, recordPrediction, setCurrentPrediction } = usePredictions();
+  const { history, stats, recordPrediction } = usePredictions();
 
   // Search Form State
   const [source, setSource] = useState('Central Square, Cambridge, MA');
@@ -112,11 +112,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
   const handleOpenInMapFinder = () => {
     onNavigate('routes');
-  };
-
-  const handleInspectPrediction = (record: RoutePredictionRecord) => {
-    setCurrentPrediction(record);
-    onNavigate('prediction-details');
   };
 
   return (
@@ -425,14 +420,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <ScoreBadge score={latestResult.result.safety_score} size="md" />
-                <button
-                  type="button"
-                  className="btn-inspect-history"
-                  onClick={() => handleInspectPrediction(latestResult)}
-                >
-                  <span>Full Audit</span>
-                  <ArrowRight size={13} />
-                </button>
               </div>
             </div>
           )}
@@ -478,15 +465,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
                   <div className="history-card-right">
                     <ScoreBadge score={item.result.safety_score} size="sm" />
-                    <button
-                      type="button"
-                      className="btn-inspect-history"
-                      onClick={() => handleInspectPrediction(item)}
-                      title="Inspect AI safety metrics"
-                    >
-                      <span>Audit</span>
-                      <ArrowRight size={12} />
-                    </button>
                   </div>
                 </div>
               ))}

@@ -11,7 +11,6 @@ export interface RouteListProps {
   routes?: RouteAlternativeItem[];
   selectedRouteId?: string;
   onSelectRoute: (routeId: string) => void;
-  onNavigateDetails?: (routeId: string) => void;
   isLoading?: boolean;
   error?: string | null;
   errorStatus?: number | null;
@@ -27,7 +26,6 @@ export const RouteList: React.FC<RouteListProps> = ({
   routes = [],
   selectedRouteId,
   onSelectRoute,
-  onNavigateDetails,
   isLoading = false,
   error = null,
   errorStatus = null,
@@ -146,7 +144,6 @@ export const RouteList: React.FC<RouteListProps> = ({
                   letter={letter}
                   isSelected={isSelected}
                   onSelect={onSelectRoute}
-                  onNavigateDetails={onNavigateDetails}
                 />
               );
             })}

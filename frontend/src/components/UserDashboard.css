@@ -408,24 +408,6 @@
   flex-shrink: 0;
 }
 
-.btn-inspect-history {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  background: white;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--primary, #0d9488);
-  cursor: pointer;
-}
-
-.btn-inspect-history:hover {
-  background: #f0fdfa;
-  border-color: #99f6e4;
-}
 
 @media (max-width: 600px) {
   .user-dash-welcome-card {
@@ -764,14 +746,3 @@
   color: var(--ti-faint);
 }
 
-.btn-inspect-history {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--ti-line);
-  color: var(--ti-ink-soft);
-}
-
-.btn-inspect-history:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: var(--ti-line-strong);
-  color: var(--ti-ink);
-}

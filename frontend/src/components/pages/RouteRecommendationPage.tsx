@@ -876,14 +876,6 @@ export const RouteRecommendationPage: React.FC<RouteRecommendationPageProps> = (
             setSelectedRouteId(id);
             setContextRouteId(id);
           }}
-          onNavigateDetails={(routeId) => {
-            const targetId = routeId || selectedRouteId || currentRoutes[0]?.id;
-            if (targetId) {
-              setSelectedRouteId(targetId);
-              setContextRouteId(targetId);
-            }
-            onNavigate('prediction-details');
-          }}
           isLoading={loading}
           error={error}
           errorStatus={errorStatus}

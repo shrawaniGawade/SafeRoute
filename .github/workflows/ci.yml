@@ -19,17 +19,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
       - name: Install Dependencies
-        run: |
-          npm install -g npm@latest
-          npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: TypeScript Compilation Check
         run: npm run build
@@ -54,16 +52,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install Dependencies
         run: |
-          npm install -g npm@latest
           npm install --legacy-peer-deps
           npm install @rolldown/binding-linux-x64-gnu lightningcss-linux-x64-gnu @oxlint/binding-linux-x64-gnu --legacy-peer-deps
 
@@ -135,10 +132,10 @@ jobs:
           sleep 4
           curl -f http://127.0.0.1:8000/health
 
-      - name: Setup Node.js 20 for Backend
+      - name: Setup Node.js 22 for Backend
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Run Integration Tests Against Live Mongo & AI
         working-directory: backend
@@ -152,6 +149,5 @@ jobs:
           ADMIN_EMAIL: admin@saferoute.com
           ADMIN_PASSWORD: Admin@12345
         run: |
-          npm install -g npm@latest
           npm install --legacy-peer-deps
           npm test

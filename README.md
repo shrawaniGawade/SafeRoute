@@ -2,6 +2,9 @@
 > **Smarter Journeys. Safer Choices.**
 
 SafeRoute is a modern, safety-conscious navigation platform that evaluates travel routes using multi-dimensional safety parameters (lighting quality, crime risks, accident histories, and crowd levels) coupled with enterprise-grade authentication.
+<img width="1920" height="3130" alt="image" src="https://github.com/user-attachments/assets/558cb93c-1d55-4207-bcde-690ab6dbd987" />
+<img width="1920" height="1521" alt="image" src="https://github.com/user-attachments/assets/885c92a5-1124-46ab-8257-afe32a91ae3b" />
+<img width="1920" height="1606" alt="image" src="https://github.com/user-attachments/assets/eaefc5c7-919c-469e-a364-562a2562a4b2" />
 
 ---
 

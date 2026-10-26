@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 function generateHexId(): string {
   return crypto.randomBytes(12).toString('hex');
@@ -237,33 +239,269 @@ const emergencyLocationsMap = new Map<string, InMemoryEmergencyLocationDoc>();
 const customPlacesMap = new Map<string, InMemoryCustomPlaceDoc>();
 const hazardReportsMap = new Map<string, InMemoryHazardReportDoc>();
 
+function isBcryptHash(val?: string): boolean {
+  if (!val || typeof val !== 'string') return false;
+  return /^\$2[aby]?\$\d{2}\$[./A-Za-z0-9]{53}$/.test(val);
+}
+
+const isDevEnv =
+  process.env.NODE_ENV !== 'test' &&
+  process.env.npm_lifecycle_event !== 'test' &&
+  !process.argv.includes('--test');
+
+function getDevCacheCandidates(): string[] {
+  const candidates: string[] = [];
+  try {
+    candidates.push(path.resolve(__dirname, '../../node_modules/.cache/saferoute_dev_store.json'));
+  } catch {}
+  try {
+    candidates.push(path.resolve(__dirname, '../../../node_modules/.cache/saferoute_dev_store.json'));
+  } catch {}
+  try {
+    candidates.push(path.resolve(process.cwd(), 'node_modules/.cache/saferoute_dev_store.json'));
+  } catch {}
+  try {
+    candidates.push(path.resolve(process.cwd(), 'backend/node_modules/.cache/saferoute_dev_store.json'));
+  } catch {}
+  try {
+    candidates.push(path.resolve(__dirname, '../../.dev_store.json'));
+  } catch {}
+  try {
+    candidates.push(path.resolve(process.cwd(), '.dev_store.json'));
+  } catch {}
+
+  return Array.from(new Set(candidates));
+}
+
+function getPrimaryDevCacheFile(): string {
+  const candidates = getDevCacheCandidates();
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      return c;
+    }
+  }
+  const preferredDir = path.resolve(__dirname, '../../node_modules/.cache');
+  try {
+    if (!fs.existsSync(preferredDir)) {
+      fs.mkdirSync(preferredDir, { recursive: true });
+    }
+    return path.join(preferredDir, 'saferoute_dev_store.json');
+  } catch {
+    return path.resolve(process.cwd(), '.dev_store.json');
+  }
+}
+
+function loadDevPersistence(): void {
+  if (!isDevEnv) return;
+  try {
+    const candidates = getDevCacheCandidates();
+    for (const filePath of candidates) {
+      if (fs.existsSync(filePath)) {
+        try {
+          const raw = fs.readFileSync(filePath, 'utf8');
+          const data = JSON.parse(raw);
+          if (Array.isArray(data.users)) {
+            for (const u of data.users) {
+              if (u._id && u.email) {
+                if (!usersMap.has(u._id)) {
+                  const doc = createUserDoc(u);
+                  usersMap.set(doc._id, doc);
+                }
+              }
+            }
+          }
+        } catch {
+          // ignore corrupted single candidate
+        }
+      }
+    }
+  } catch {
+    // Non-critical; fallback to memory
+  }
+}
+
+function saveDevPersistence(): void {
+  if (!isDevEnv) return;
+  try {
+    const primaryFile = getPrimaryDevCacheFile();
+    const users = Array.from(usersMap.values()).map((u) => ({
+      _id: u._id,
+      name: u.name,
+      email: u.email,
+      password: u.password,
+      role: u.role,
+      isVerified: u.isVerified,
+      emergencyContact: u.emergencyContact,
+      defaultPreset: u.defaultPreset,
+      lastLogin: u.lastLogin,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
+    }));
+    const payload = JSON.stringify({ users });
+    fs.writeFileSync(primaryFile, payload, 'utf8');
+
+    const candidates = getDevCacheCandidates();
+    for (const c of candidates) {
+      if (c !== primaryFile && fs.existsSync(c)) {
+        try {
+          fs.writeFileSync(c, payload, 'utf8');
+        } catch {}
+      }
+    }
+  } catch {
+    // Non-critical
+  }
+}
+
+function createUserDoc(data: {
+  _id: string;
+  name: string;
+  email: string;
+  password?: string;
+  role?: 'user' | 'admin';
+  isVerified?: boolean;
+  emergencyContact?: string;
+  defaultPreset?: 'night' | 'commute' | 'maximum' | 'custom';
+  lastLogin?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}): InMemoryUserDoc {
+  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+  const normalizedEmail = (data.email || '').toLowerCase().trim();
+  let role: 'user' | 'admin' = 'user';
+  if (data.role === 'admin' && normalizedEmail === adminEmail) {
+    role = 'admin';
+  }
+
+  const doc: InMemoryUserDoc = {
+    _id: data._id,
+    name: data.name,
+    email: normalizedEmail,
+    password: data.password,
+    role,
+    isVerified: !!data.isVerified,
+    emergencyContact: data.emergencyContact || '',
+    defaultPreset: data.defaultPreset || 'night',
+    lastLogin: data.lastLogin ? new Date(data.lastLogin) : undefined,
+    createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+    updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+
+    async comparePassword(candidate: string): Promise<boolean> {
+      if (!this.password) return false;
+      return bcrypt.compare(candidate, this.password);
+    },
+
+    async save(): Promise<InMemoryUserDoc> {
+      this.updatedAt = new Date();
+      const currentAdminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
+      if (this.role === 'admin' && this.email.toLowerCase().trim() !== currentAdminEmail) {
+        this.role = 'user';
+      }
+
+      const master = usersMap.get(this._id);
+      if (this.password && !isBcryptHash(this.password)) {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+      } else if (!this.password && master?.password) {
+        this.password = master.password;
+      }
+
+      const canonical = createUserDoc({
+        _id: this._id,
+        name: this.name,
+        email: this.email,
+        password: this.password,
+        role: this.role,
+        isVerified: this.isVerified,
+        emergencyContact: this.emergencyContact,
+        defaultPreset: this.defaultPreset,
+        lastLogin: this.lastLogin,
+        createdAt: this.createdAt,
+        updatedAt: this.updatedAt,
+      });
+
+      usersMap.set(this._id, canonical);
+      saveDevPersistence();
+      return canonical;
+    },
+
+    toJSON() {
+      const copy: any = { ...this };
+      delete copy.password;
+      return copy;
+    },
+
+    toObject() {
+      const copy: any = { ...this };
+      delete copy.password;
+      return copy;
+    },
+  };
+
+  return doc;
+}
+
+// Initialize persistence from dev cache
+loadDevPersistence();
+
 export const memoryUser = {
   findOne(query: { email?: string; _id?: any }) {
     let selectFields = '-password';
-    const findPromise = (async () => {
+
+    const execute = async (): Promise<InMemoryUserDoc | null> => {
+      let targetUser: InMemoryUserDoc | null = null;
       if (query?._id) {
-        const u = usersMap.get(query._id.toString());
-        if (!u) return null;
-        return formatUser(u, selectFields);
-      }
-      if (!query?.email) return null;
-      const targetEmail = query.email.toLowerCase().trim();
-      for (const u of usersMap.values()) {
-        if (u.email.toLowerCase().trim() === targetEmail) {
-          return formatUser(u, selectFields);
+        targetUser = usersMap.get(query._id.toString()) || null;
+      } else if (query?.email) {
+        const targetEmail = query.email.toLowerCase().trim();
+        for (const u of usersMap.values()) {
+          if (u.email.toLowerCase().trim() === targetEmail) {
+            targetUser = u;
+            break;
+          }
         }
       }
-      return null;
-    })();
+      if (!targetUser) {
+        loadDevPersistence();
+        if (query?._id) {
+          targetUser = usersMap.get(query._id.toString()) || null;
+        } else if (query?.email) {
+          const targetEmail = query.email.toLowerCase().trim();
+          for (const u of usersMap.values()) {
+            if (u.email.toLowerCase().trim() === targetEmail) {
+              targetUser = u;
+              break;
+            }
+          }
+        }
+      }
+      if (!targetUser) return null;
+      return formatUser(targetUser, selectFields);
+    };
 
-    const queryObj = {
-      select: (fields: string) => {
+    const queryObj: any = {
+      select(fields: string) {
         selectFields = fields;
-        return findPromise;
+        return queryObj;
       },
-      then: findPromise.then.bind(findPromise),
-      catch: findPromise.catch.bind(findPromise),
-      finally: findPromise.finally.bind(findPromise),
+      lean() {
+        return queryObj;
+      },
+      populate() {
+        return queryObj;
+      },
+      exec() {
+        return execute();
+      },
+      then(onfulfilled?: any, onrejected?: any) {
+        return execute().then(onfulfilled, onrejected);
+      },
+      catch(onrejected?: any) {
+        return execute().catch(onrejected);
+      },
+      finally(onfinally?: any) {
+        return execute().finally(onfinally);
+      },
     };
 
     return queryObj;
@@ -271,7 +509,9 @@ export const memoryUser = {
 
   find(query?: any) {
     let selectFields = '-password';
-    const listPromise = (async () => {
+    let sortOption: any = null;
+
+    const execute = async (): Promise<InMemoryUserDoc[]> => {
       let results = Array.from(usersMap.values());
       if (query?.role) {
         results = results.filter((u) => u.role === query.role);
@@ -280,17 +520,35 @@ export const memoryUser = {
         results = results.filter((u) => u.isVerified === query.isVerified);
       }
       return results.map((u) => formatUser(u, selectFields));
-    })();
+    };
 
-    const queryObj = {
-      select: (fields: string) => {
+    const queryObj: any = {
+      select(fields: string) {
         selectFields = fields;
         return queryObj;
       },
-      sort: () => queryObj,
-      then: listPromise.then.bind(listPromise),
-      catch: listPromise.catch.bind(listPromise),
-      finally: listPromise.finally.bind(listPromise),
+      sort(opt: any) {
+        sortOption = opt;
+        return queryObj;
+      },
+      lean() {
+        return queryObj;
+      },
+      populate() {
+        return queryObj;
+      },
+      exec() {
+        return execute();
+      },
+      then(onfulfilled?: any, onrejected?: any) {
+        return execute().then(onfulfilled, onrejected);
+      },
+      catch(onrejected?: any) {
+        return execute().catch(onrejected);
+      },
+      finally(onfinally?: any) {
+        return execute().finally(onfinally);
+      },
     };
 
     return queryObj;
@@ -315,10 +573,11 @@ export const memoryUser = {
   async findByIdAndUpdate(id: string, update: any): Promise<InMemoryUserDoc | null> {
     const user = usersMap.get(id.toString());
     if (!user) return null;
-    if (update.$set) {
-      Object.assign(user, update.$set);
-    } else {
-      Object.assign(user, update);
+    const patch = update.$set || update;
+    Object.assign(user, patch);
+    if (patch.password && !isBcryptHash(patch.password)) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(patch.password, salt);
     }
     const adminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
     if (user.role === 'admin' && user.email.toLowerCase().trim() !== adminEmail) {
@@ -326,6 +585,7 @@ export const memoryUser = {
     }
     user.updatedAt = new Date();
     usersMap.set(id.toString(), user);
+    saveDevPersistence();
     return formatUser(user, '-password');
   },
 
@@ -337,10 +597,11 @@ export const memoryUser = {
       if (filter?.role && user.role !== filter.role) matches = false;
       if (filter?.email?.$ne && user.email.toLowerCase().trim() === filter.email.$ne.toLowerCase().trim()) matches = false;
       if (matches) {
-        if (update.$set) {
-          Object.assign(user, update.$set);
-        } else {
-          Object.assign(user, update);
+        const patch = update.$set || update;
+        Object.assign(user, patch);
+        if (patch.password && !isBcryptHash(patch.password)) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(patch.password, salt);
         }
         if (user.role === 'admin' && user.email.toLowerCase().trim() !== adminEmail) {
           user.role = 'user';
@@ -350,6 +611,9 @@ export const memoryUser = {
         modifiedCount++;
       }
     }
+    if (modifiedCount > 0) {
+      saveDevPersistence();
+    }
     return { modifiedCount };
   },
 
@@ -357,7 +621,48 @@ export const memoryUser = {
     const user = usersMap.get(id.toString());
     if (!user) return null;
     usersMap.delete(id.toString());
+    saveDevPersistence();
     return user;
+  },
+
+  async deleteOne(query?: any): Promise<{ deletedCount: number }> {
+    if (query?._id) {
+      const deleted = usersMap.delete(query._id.toString());
+      if (deleted) saveDevPersistence();
+      return { deletedCount: deleted ? 1 : 0 };
+    }
+    if (query?.email) {
+      const targetEmail = query.email.toLowerCase().trim();
+      for (const [id, u] of usersMap.entries()) {
+        if (u.email.toLowerCase().trim() === targetEmail) {
+          usersMap.delete(id);
+          saveDevPersistence();
+          return { deletedCount: 1 };
+        }
+      }
+    }
+    return { deletedCount: 0 };
+  },
+
+  async deleteMany(query?: any): Promise<{ deletedCount: number }> {
+    let count = 0;
+    if (!query || Object.keys(query).length === 0) {
+      count = usersMap.size;
+      usersMap.clear();
+      saveDevPersistence();
+      return { deletedCount: count };
+    }
+    for (const [id, u] of usersMap.entries()) {
+      let match = true;
+      if (query.role && u.role !== query.role) match = false;
+      if (query.email && u.email.toLowerCase().trim() !== query.email.toLowerCase().trim()) match = false;
+      if (match) {
+        usersMap.delete(id);
+        count++;
+      }
+    }
+    if (count > 0) saveDevPersistence();
+    return { deletedCount: count };
   },
 
   async create(data: {
@@ -391,8 +696,8 @@ export const memoryUser = {
 
     const id = generateHexId();
     let hashedPassword = data.password;
-    if (data.password) {
-      const salt = await bcrypt.genSalt(12);
+    if (data.password && !isBcryptHash(data.password)) {
+      const salt = await bcrypt.genSalt(10);
       hashedPassword = await bcrypt.hash(data.password, salt);
     }
 
@@ -402,59 +707,36 @@ export const memoryUser = {
       finalRole = 'admin';
     }
 
-    const doc: InMemoryUserDoc = {
+    const doc = createUserDoc({
       _id: id,
       name: data.name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
       role: finalRole,
       isVerified: !!data.isVerified,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      async comparePassword(candidate: string): Promise<boolean> {
-        if (!this.password) return false;
-        return bcrypt.compare(candidate, this.password);
-      },
-      async save(): Promise<InMemoryUserDoc> {
-        this.updatedAt = new Date();
-        const currentAdminEmail = (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim();
-        if (this.role === 'admin' && this.email.toLowerCase().trim() !== currentAdminEmail) {
-          this.role = 'user';
-        }
-        if (this.password && !this.password.startsWith('$2')) {
-          const salt = await bcrypt.genSalt(12);
-          this.password = await bcrypt.hash(this.password, salt);
-        }
-        usersMap.set(this._id, this);
-        return this;
-      },
-      toJSON() {
-        const copy: any = { ...this };
-        delete copy.password;
-        return copy;
-      },
-      toObject() {
-        const copy: any = { ...this };
-        delete copy.password;
-        return copy;
-      },
-    };
+    });
 
     usersMap.set(id, doc);
+    saveDevPersistence();
     return doc;
   },
 };
 
 function formatUser(user: InMemoryUserDoc, selectFields: string): InMemoryUserDoc {
-  if (selectFields.includes('+password') || selectFields === 'password') {
+  const wantsPassword = selectFields.includes('+password') || selectFields === 'password';
+  if (wantsPassword) {
     return user;
   }
-  // Return copy without password
+  // Return projected copy without password exposed on own properties
   const copy: any = Object.create(user);
   Object.assign(copy, user);
-  if (!selectFields.includes('+password')) {
-    delete copy.password;
-  }
+  delete copy.password;
+  Object.defineProperty(copy, 'password', {
+    value: undefined,
+    writable: true,
+    enumerable: false,
+    configurable: true,
+  });
   return copy;
 }
 

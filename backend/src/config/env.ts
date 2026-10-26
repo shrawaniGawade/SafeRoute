@@ -5,7 +5,7 @@ export const ENV = {
   ADMIN_EMAIL: (process.env.ADMIN_EMAIL || 'admin@saferoute.com').toLowerCase().trim(),
   PORT: Number(process.env.PORT) || 5000,
   NODE_ENV: process.env.NODE_ENV || 'development',
-  MONGO_URI: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/saferoute',
+  MONGO_URI: (process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/saferoute').trim(),
 
   JWT: {
     ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'saferoute_dev_access_secret_key_change_in_production_min32chars',

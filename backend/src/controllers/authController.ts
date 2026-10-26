@@ -330,6 +330,7 @@ export async function login(req: Request, res: Response): Promise<void> {
 
   if (!user || !(await user.comparePassword(password))) {
     res.status(401).json({
+      success: false,
       message: 'Invalid email or password.',
     });
     return;
@@ -346,7 +347,8 @@ export async function login(req: Request, res: Response): Promise<void> {
   setRefreshTokenCookie(res, tokens.refreshToken, tokens.refreshTokenExpiresAt);
 
   res.status(200).json({
-    message: 'Welcome back!',
+    success: true,
+    message: 'Login successful',
     user: {
       id: user._id.toString(),
       name: user.name,

@@ -55,6 +55,9 @@ export async function connectDB(): Promise<void> {
         console.warn(`[Database] MongoDB connection failed (${target}): ${errorMsg.split('\n')[0]}`);
         if (/SSL alert number 80|tlsv1 alert internal error/i.test(errorMsg)) {
           console.warn('[Database] Atlas network access blocked: add this server IP to the cluster allowlist.');
+        } else if (/bad auth|authentication failed/i.test(errorMsg)) {
+          console.warn('[Database] Atlas authentication failed: invalid username or password in MONGO_URI.');
+          console.warn('[Database] Check your MongoDB Atlas "Database Access" credentials.');
         }
         console.log('[Database] Active Engine: In-Memory resilient data layer.');
       }

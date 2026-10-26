@@ -2,12 +2,102 @@ import { CustomPlace } from '../models/CustomPlace';
 
 export async function seedDefaultPlaces(): Promise<void> {
   try {
-    const count = await CustomPlace.countDocuments();
-    if (count > 0) {
-      return;
-    }
-
     const defaultPlaces = [
+      {
+        name: 'Linkcode Technologies, Pune',
+        aliases: ['Linkcode', 'Linkcode Technologies', 'Link Code', 'Linkcode Pune', 'Linkcode Institute'],
+        category: 'junction_lane',
+        pinType: 'general_place',
+        location: {
+          type: 'Point',
+          coordinates: [73.8436, 18.5284],
+        },
+        lat: 18.5284,
+        lng: 73.8436,
+        address: 'Linkcode Technologies, Fergusson College Rd, Shivajinagar, Pune, Maharashtra 411004',
+        locality: 'Shivajinagar',
+        city: 'Pune',
+        state: 'Maharashtra',
+        postcode: '411004',
+        landmark: 'Near FC Road',
+        description: 'Linkcode Technologies technical training institute and campus in Pune.',
+        source: 'verified_partner',
+        verificationStatus: 'verified',
+        isPublic: true,
+      },
+      {
+        name: 'Linkcode Campus, Alandi Road',
+        aliases: ['Linkcode Alandi', 'Linkcode Campus', 'Linkcode Technologies Alandi'],
+        category: 'junction_lane',
+        pinType: 'general_place',
+        location: {
+          type: 'Point',
+          coordinates: [73.8990, 18.6750],
+        },
+        lat: 18.6750,
+        lng: 73.8990,
+        address: 'Linkcode Campus, Alandi Road, Alandi Devachi, Pune, Maharashtra 412105',
+        locality: 'Alandi Road',
+        city: 'Pune',
+        state: 'Maharashtra',
+        postcode: '412105',
+        landmark: 'Alandi Devachi Corridor',
+        description: 'Linkcode educational hub on Alandi Road.',
+        source: 'verified_partner',
+        verificationStatus: 'verified',
+        isPublic: true,
+      },
+      {
+        name: 'Sai Aangan Society, Alandi Road',
+        aliases: [
+          'Sai Aangan',
+          'Sai Aangan Society',
+          'Sai Aangan Society near Sai Temple Alandi',
+          'Sai Aangan Society near Sai Temple aalndi',
+          'Sai Angan Society',
+          'साई अंगण सोसायटी',
+        ],
+        category: 'residential_society',
+        pinType: 'complex_gate',
+        location: {
+          type: 'Point',
+          coordinates: [73.876243, 18.642953],
+        },
+        lat: 18.642953,
+        lng: 73.876243,
+        address: 'Sai Aangan Society, Near Saibaba Mandir, Sant Dnyaneshwar Marg, Alandi Road, Bhosari, Pune, Maharashtra 411039',
+        locality: 'Bhosari / Dighi, Alandi Road',
+        city: 'Pune',
+        state: 'Maharashtra',
+        postcode: '411039',
+        landmark: 'Near Sai Baba Mandir & Thorala Paduka Temple',
+        description: 'Residential society located adjacent to Saibaba Mandir corridor on Alandi Road.',
+        source: 'verified_partner',
+        verificationStatus: 'verified',
+        isPublic: true,
+      },
+      {
+        name: 'Saibaba Mandir / Sai Temple, Alandi Road',
+        aliases: ['Sai Temple Alandi', 'Sai Temple', 'Sai Mandir', 'Saibaba Mandir', 'Sai Temple aalndi', 'साई मंदिर'],
+        category: 'temple_religious',
+        pinType: 'general_place',
+        location: {
+          type: 'Point',
+          coordinates: [73.8769225, 18.6416261],
+        },
+        lat: 18.6416261,
+        lng: 73.8769225,
+        address: 'Saibaba Mandir, Sant Dnyaneshwar Marg, Alandi Road, Bhosari, Pune, Maharashtra 411039',
+        locality: 'Alandi Road, Bhosari',
+        city: 'Pune',
+        state: 'Maharashtra',
+        postcode: '411039',
+        landmark: 'Sant Dnyaneshwar Marg',
+        description: 'Saibaba Temple on Alandi Road corridor.',
+        source: 'verified_partner',
+        verificationStatus: 'verified',
+        isPublic: true,
+      },
       {
         name: 'Saiangel Society',
         aliases: ['Sai Angel Society', 'Saiangel', 'Sai Angel', 'साई एंजेल सोसायटी'],
@@ -95,6 +185,28 @@ export async function seedDefaultPlaces(): Promise<void> {
         isPublic: true,
       },
       {
+        name: 'MIT Academy of Engineering (MIT AOE), Alandi',
+        aliases: ['MIT AOE', 'MIT Alandi', 'MIT Engineering College Alandi'],
+        category: 'junction_lane',
+        pinType: 'general_place',
+        location: {
+          type: 'Point',
+          coordinates: [73.8864, 18.6757],
+        },
+        lat: 18.6757,
+        lng: 73.8864,
+        address: 'MIT Academy of Engineering, Dehu Phata, Alandi, Pune, Maharashtra 412105',
+        locality: 'Dehu Phata, Alandi',
+        city: 'Pune',
+        state: 'Maharashtra',
+        postcode: '412105',
+        landmark: 'Dehu Phata',
+        description: 'Autonomous engineering college campus in Alandi, Pune.',
+        source: 'verified_partner',
+        verificationStatus: 'verified',
+        isPublic: true,
+      },
+      {
         name: 'Alandi Police Chowky',
         aliases: ['Alandi Police Station'],
         category: 'junction_lane',
@@ -134,8 +246,13 @@ export async function seedDefaultPlaces(): Promise<void> {
       },
     ];
 
-    await CustomPlace.insertMany(defaultPlaces);
-    console.log('[SeedPlaces] Default local landmarks and societies seeded successfully.');
+    for (const place of defaultPlaces) {
+      const existing = await CustomPlace.findOne({ name: place.name });
+      if (!existing) {
+        await CustomPlace.create(place);
+      }
+    }
+    console.log('[SeedPlaces] Default local landmarks and societies checked/seeded successfully.');
   } catch (err: any) {
     console.warn('[SeedPlaces] Error seeding default places:', err?.message || err);
   }
